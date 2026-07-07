@@ -158,6 +158,7 @@
   @media print {
     button, .footer-row, #new-emp-name, .panel, .view-switch, .toast-wrap { display:none !important; }
     .print-only { display:block !important; }
+    .print-hide { display:none !important; }
     :root, [data-theme="dark"] {
       --bg: #ffffff;
       --text: #1f1f1d;
@@ -420,6 +421,9 @@ let state = {
   showPasswordModal: false,
   showCodeModal: false,
   showTshirtModal: false,
+  showExportModal: false,
+  exportFormat: null,
+  exportPanels: { shiftPlan: true, employees: true, tshirt: false, shiftTypes: false, posten: false },
   // null = no restriction (open for all dates)
   availabilityWindowStart: null,
   availabilityWindowEnd: null,
@@ -1135,6 +1139,79 @@ function exportExcel(){
   XLSX.writeFile(wb, 'Schichtplan_'+dKey+'.xlsx');
 }
 function exportPdf(){ window.print(); }
+function exportExcelSelected(){
+  const p = state.exportPanels;
+  const dKey = dateKey(state.selectedDate);
+  const wb = XLSX.utils.book_new();
+
+  if (p.shiftPlan) {
+    const headerRow = ['Datum', 'Schicht', 'Posten', 'Mitarbeiter'];
+    const rows = [headerRow];
+    state.shiftTypes.forEach(st=>{
+      state.posten.forEach(po=>{
+        const empId = getPostenAssignment(dKey, st.id, po.id);
+        const emp = empId ? state.employees.find(e=>e.id===empId) : null;
+        rows.push([fmtDate(state.selectedDate), st.name+' ('+st.time+')', po.name, emp ? emp.name : 'nicht besetzt']);
+      });
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:12},{wch:20},{wch:22},{wch:22}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Schichtplan');
+  }
+
+  if (p.employees) {
+    const empHeaderRow = ['Name', 'Telefon', 'Kompetenzen', 'Max. Schichten/Tag'];
+    const empRows = [empHeaderRow];
+    [...state.employees].sort((a,b)=>a.name.localeCompare(b.name,'de')).forEach(emp=>{
+      const comps = state.posten.filter(po=>isQualifiedForPosten(emp,po.id)).map(po=>po.name).join(', ');
+      empRows.push([emp.name, emp.phone || '', comps, getMaxShifts(emp)]);
+    });
+    const wsEmp = XLSX.utils.aoa_to_sheet(empRows);
+    wsEmp['!cols'] = [{wch:22},{wch:16},{wch:30},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, wsEmp, 'Mitarbeiter');
+  }
+
+  if (p.tshirt) {
+    const sizeCounts = getTshirtSizeCounts();
+    const rows = [['Gr\u00f6\u00dfe', 'Anzahl Mitarbeiter']];
+    TSHIRT_SIZES.forEach(sz=>rows.push([sz, sizeCounts[sz]]));
+    const unset = state.employees.filter(e=>!e.tshirtSize).length;
+    rows.push(['Ohne Angabe', unset]);
+    rows.push([]);
+    rows.push(['Name', 'T-Shirt-Gr\u00f6\u00dfe']);
+    [...state.employees].sort((a,b)=>a.name.localeCompare(b.name,'de')).forEach(emp=>{
+      rows.push([emp.name, emp.tshirtSize || '']);
+    });
+    const wsT = XLSX.utils.aoa_to_sheet(rows);
+    wsT['!cols'] = [{wch:22},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, wsT, 'T-Shirt-Groessen');
+  }
+
+  if (p.shiftTypes) {
+    const rows = [['Name', 'Zeit']];
+    state.shiftTypes.forEach(st=>rows.push([st.name, st.time]));
+    const wsS = XLSX.utils.aoa_to_sheet(rows);
+    wsS['!cols'] = [{wch:22},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, wsS, 'Schichttypen');
+  }
+
+  if (p.posten) {
+    const rows = [['Name', 'Beschreibung']];
+    state.posten.forEach(po=>rows.push([po.name, po.description || '']));
+    const wsP = XLSX.utils.aoa_to_sheet(rows);
+    wsP['!cols'] = [{wch:22},{wch:40}];
+    XLSX.utils.book_append_sheet(wb, wsP, 'Posten');
+  }
+
+  if (!wb.SheetNames.length) {
+    showToast('Bitte mindestens einen Bereich ausw\u00e4hlen.', 'error');
+    return;
+  }
+  XLSX.writeFile(wb, 'Schichtplan_'+dKey+'.xlsx');
+}
+function exportPdfSelected(){
+  window.print();
+}
 function exportDailyExcel(){
   const dKey = dateKey(state.selectedDate);
   const sortedEmployees = [...state.employees].sort((a,b)=>a.name.localeCompare(b.name, 'de'));
@@ -1196,6 +1273,9 @@ function render(){
   if (state.showTshirtModal) {
     html += renderTshirtModal();
   }
+  if (state.showExportModal) {
+    html += renderExportModal();
+  }
   if (state.confirmModal) {
     html += renderConfirmModal();
   }
@@ -1212,6 +1292,7 @@ function render(){
   if (state.showPasswordModal) wirePasswordModal();
   if (state.showCodeModal) wireCodeChangeModal();
   if (state.showTshirtModal) wireTshirtModal();
+  if (state.showExportModal) wireExportModal();
   if (state.confirmModal) wireConfirmModal();
   scheduleCloudSave();
 }
@@ -1604,6 +1685,57 @@ function wireTshirtModal(){
   });
 }
 
+const EXPORT_PANEL_OPTIONS = [
+  { key: 'shiftPlan', label: 'Schichtplan des Tages (Zuweisungen)' },
+  { key: 'employees', label: 'Mitarbeiter&uuml;bersicht (Name, Telefon, Kompetenzen)' },
+  { key: 'tshirt', label: 'T-Shirt-Gr&ouml;&szlig;en' },
+  { key: 'shiftTypes', label: 'Schichttypen' },
+  { key: 'posten', label: 'Posten' }
+];
+function renderExportModal(){
+  const p = state.exportPanels;
+  const formatLabel = state.exportFormat === 'excel' ? 'Excel' : 'PDF';
+  let html = '<div class="modal-overlay" id="export-modal-overlay">';
+  html += '<div class="modal-box">';
+  html += '<p style="font-weight:600; font-size:15px; margin:0 0 6px;">Export (' + formatLabel + ')</p>';
+  html += '<p class="hint" style="margin:0 0 12px;">W&auml;hle aus, welche Bereiche exportiert werden sollen.</p>';
+  html += '<div style="display:flex; flex-direction:column; gap:10px;">';
+  EXPORT_PANEL_OPTIONS.forEach(opt=>{
+    html += '<label style="display:flex; align-items:center; gap:8px; font-size:13px;">';
+    html += '<input type="checkbox" id="export-panel-'+opt.key+'"'+(p[opt.key] ? ' checked' : '')+' /> '+opt.label;
+    html += '</label>';
+  });
+  html += '</div>';
+  html += '<div style="display:flex; gap:8px; justify-content:flex-end; margin-top:18px;">';
+  html += '<button id="export-modal-cancel">Abbrechen</button>';
+  html += '<button id="export-modal-run">Exportieren</button>';
+  html += '</div>';
+  html += '</div></div>';
+  return html;
+}
+function wireExportModal(){
+  const overlay = document.getElementById('export-modal-overlay');
+  const cancelBtn = document.getElementById('export-modal-cancel');
+  const runBtn = document.getElementById('export-modal-run');
+  if (cancelBtn) cancelBtn.onclick = ()=>{ state.showExportModal = false; render(); };
+  if (overlay) overlay.onclick = (e)=>{ if (e.target === overlay) { state.showExportModal = false; render(); } };
+  if (runBtn) runBtn.onclick = ()=>{
+    EXPORT_PANEL_OPTIONS.forEach(opt=>{
+      const el = document.getElementById('export-panel-'+opt.key);
+      state.exportPanels[opt.key] = el ? el.checked : false;
+    });
+    if (!Object.values(state.exportPanels).some(Boolean)) {
+      showToast('Bitte mindestens einen Bereich ausw\u00e4hlen.', 'error');
+      return;
+    }
+    state.showExportModal = false;
+    const format = state.exportFormat;
+    render();
+    if (format === 'excel') exportExcelSelected();
+    else exportPdfSelected();
+  };
+}
+
 function renderAdminLockScreen(){
   let html = '<div class="panel" style="max-width:340px; margin:40px auto; text-align:center;">';
   html += '<p style="font-size:28px; margin:0 0 8px;">&#128274;</p>';
@@ -1805,6 +1937,7 @@ function renderAdminView(){
     return html;
   }
 
+  html += '<div class="'+(state.exportPanels.shiftPlan ? '' : 'print-hide')+'">';
   state.shiftTypes.forEach(st=>{
     const panelKey = 'shift:'+st.id;
     // Schicht-Karten sind standardmäßig EINgeklappt (wie die Panels oben)
@@ -1874,7 +2007,9 @@ function renderAdminView(){
   });
 
   html += '<p class="hint" style="margin-top:8px;">'+state.employees.length+' Mitarbeiter · &#10003; markiert vom Mitarbeiter gemeldete Verf&uuml;gbarkeit f&uuml;r dieses Datum</p>';
+  html += '</div>';
 
+  if (state.exportPanels.employees) {
   html += '<div class="print-only" style="margin-top:24px;">';
   html += '<p style="font-weight:600; font-size:15px; margin:0 0 10px;">Mitarbeiter&uuml;bersicht</p>';
   html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">';
@@ -1894,6 +2029,48 @@ function renderAdminView(){
   });
   html += '</tbody></table>';
   html += '</div>';
+  }
+
+  if (state.exportPanels.tshirt) {
+    const sizeCounts = getTshirtSizeCounts();
+    const unsetCount = state.employees.filter(e=>!e.tshirtSize).length;
+    html += '<div class="print-only" style="margin-top:24px;">';
+    html += '<p style="font-weight:600; font-size:15px; margin:0 0 10px;">T-Shirt-Gr&ouml;&szlig;en</p>';
+    html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">';
+    html += '<thead><tr><th style="text-align:left; border-bottom:1px solid #d6d3c9; padding:6px 8px;">Gr&ouml;&szlig;e</th><th style="text-align:left; border-bottom:1px solid #d6d3c9; padding:6px 8px;">Anzahl</th></tr></thead><tbody>';
+    TSHIRT_SIZES.forEach(sz=>{
+      html += '<tr><td style="padding:6px 8px; border-bottom:1px solid #eeece4;">'+sz+'</td><td style="padding:6px 8px; border-bottom:1px solid #eeece4;">'+sizeCounts[sz]+'</td></tr>';
+    });
+    if (unsetCount) {
+      html += '<tr><td style="padding:6px 8px;">Ohne Angabe</td><td style="padding:6px 8px;">'+unsetCount+'</td></tr>';
+    }
+    html += '</tbody></table>';
+    html += '</div>';
+  }
+
+  if (state.exportPanels.shiftTypes) {
+    html += '<div class="print-only" style="margin-top:24px;">';
+    html += '<p style="font-weight:600; font-size:15px; margin:0 0 10px;">Schichttypen</p>';
+    html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">';
+    html += '<thead><tr><th style="text-align:left; border-bottom:1px solid #d6d3c9; padding:6px 8px;">Name</th><th style="text-align:left; border-bottom:1px solid #d6d3c9; padding:6px 8px;">Zeit</th></tr></thead><tbody>';
+    state.shiftTypes.forEach(st=>{
+      html += '<tr><td style="padding:6px 8px; border-bottom:1px solid #eeece4;">'+st.name+'</td><td style="padding:6px 8px; border-bottom:1px solid #eeece4;">'+st.time+'</td></tr>';
+    });
+    html += '</tbody></table>';
+    html += '</div>';
+  }
+
+  if (state.exportPanels.posten) {
+    html += '<div class="print-only" style="margin-top:24px;">';
+    html += '<p style="font-weight:600; font-size:15px; margin:0 0 10px;">Posten</p>';
+    html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">';
+    html += '<thead><tr><th style="text-align:left; border-bottom:1px solid #d6d3c9; padding:6px 8px;">Name</th><th style="text-align:left; border-bottom:1px solid #d6d3c9; padding:6px 8px;">Beschreibung</th></tr></thead><tbody>';
+    state.posten.forEach(po=>{
+      html += '<tr><td style="padding:6px 8px; border-bottom:1px solid #eeece4;">'+po.name+'</td><td style="padding:6px 8px; border-bottom:1px solid #eeece4;">'+(po.description||'\u2013')+'</td></tr>';
+    });
+    html += '</tbody></table>';
+    html += '</div>';
+  }
 
   return html;
 }
@@ -1907,8 +2084,8 @@ function wireAdminView(){
   if (clearDayBtn) clearDayBtn.onclick = clearDayAssignments;
   const exportExcelBtn = document.getElementById('export-excel');
   const exportPdfBtn = document.getElementById('export-pdf');
-  if (exportExcelBtn) exportExcelBtn.onclick = exportExcel;
-  if (exportPdfBtn) exportPdfBtn.onclick = exportPdf;
+  if (exportExcelBtn) exportExcelBtn.onclick = ()=>{ state.exportFormat = 'excel'; state.showExportModal = true; render(); };
+  if (exportPdfBtn) exportPdfBtn.onclick = ()=>{ state.exportFormat = 'pdf'; state.showExportModal = true; render(); };
   const lockBtn = document.getElementById('lock-admin');
   if (lockBtn) lockBtn.onclick = lockAdmin;
   const openPwBtn = document.getElementById('open-pw-modal');
