@@ -421,6 +421,7 @@ let state = {
   showPasswordModal: false,
   showCodeModal: false,
   showTshirtModal: false,
+  showPhoneModal: false,
   showExportModal: false,
   exportFormat: null,
   exportPanels: { shiftPlan: true, employees: true, tshirt: false, shiftTypes: false, posten: false },
@@ -607,11 +608,6 @@ function setMaxShifts(empId, value){
   if (!emp) return;
   const n = parseInt(value);
   emp.maxShiftsPerDay = (isNaN(n) || n < 1) ? 2 : n;
-}
-function setEmployeePhone(empId, value){
-  const emp = state.employees.find(e=>e.id===empId);
-  if (!emp) return;
-  emp.phone = (value || '').trim();
 }
 function setAvailabilityWindow(startVal, endVal){
   state.availabilityWindowStart = startVal || null;
@@ -855,6 +851,23 @@ function changeSelfCode(){
   showToast('Dein Code wurde ge\u00e4ndert.');
   render();
 }
+function changeSelfPhone(){
+  const input = document.getElementById('self-phone-new');
+  if (!input) return;
+  const empId = state.employeeViewSelectedId;
+  const emp = state.employees.find(e=>e.id===empId);
+  if (!emp) return;
+
+  const val = (input.value || '').trim();
+  if (!val) { showToast('Bitte eine Telefonnummer eingeben.', 'error'); return; }
+  const digits = val.replace(/\D/g, '');
+  if (digits.length < 4) { showToast('Bitte eine g\u00fcltige Telefonnummer eingeben (mindestens 4 Ziffern).', 'error'); return; }
+
+  emp.phone = val;
+  state.showPhoneModal = false;
+  showToast('Deine Telefonnummer wurde ge\u00e4ndert.');
+  render();
+}
 function tryEmployeeLogin(){
   const nameInput = document.getElementById('emp-login-name');
   const codeInput = document.getElementById('emp-login-code');
@@ -877,6 +890,7 @@ function employeeLogout(){
   state.employeeViewJustRegisteredCode = null;
   state.selfRegisterError = null;
   state.showCodeModal = false;
+  state.showPhoneModal = false;
   state.showTshirtModal = false;
   try { localStorage.removeItem('schichtplan_emp_id'); } catch(e) {}
   render();
@@ -1270,6 +1284,9 @@ function render(){
   if (state.showCodeModal) {
     html += renderCodeChangeModal();
   }
+  if (state.showPhoneModal) {
+    html += renderPhoneModal();
+  }
   if (state.showTshirtModal) {
     html += renderTshirtModal();
   }
@@ -1291,6 +1308,7 @@ function render(){
   else wireAdminView();
   if (state.showPasswordModal) wirePasswordModal();
   if (state.showCodeModal) wireCodeChangeModal();
+  if (state.showPhoneModal) wirePhoneModal();
   if (state.showTshirtModal) wireTshirtModal();
   if (state.showExportModal) wireExportModal();
   if (state.confirmModal) wireConfirmModal();
@@ -1373,6 +1391,7 @@ function renderEmployeeView(){
   html += '<p class="panel-label" style="margin:0;">Angemeldet als '+emp.name+'</p>';
   html += '<div style="display:flex; gap:8px; flex-wrap:wrap;">';
   html += '<button id="emp-open-code-modal-btn">Code &auml;ndern</button>';
+  html += '<button id="emp-open-phone-modal-btn">Telefonnummer &auml;ndern'+(emp.phone ? ' ('+emp.phone+')' : '')+'</button>';
   html += '<button id="emp-open-tshirt-modal-btn">T-Shirt-Gr&ouml;&szlig;e'+(emp.tshirtSize ? ' ('+emp.tshirtSize+')' : '')+'</button>';
   html += '<button id="emp-logout-btn">Abmelden</button>';
   html += '</div>';
@@ -1484,6 +1503,8 @@ function wireEmployeeView(){
   };
   const openCodeModalBtn = document.getElementById('emp-open-code-modal-btn');
   if (openCodeModalBtn) openCodeModalBtn.onclick = ()=>{ state.showCodeModal = true; render(); };
+  const openPhoneModalBtn = document.getElementById('emp-open-phone-modal-btn');
+  if (openPhoneModalBtn) openPhoneModalBtn.onclick = ()=>{ state.showPhoneModal = true; render(); };
   const openTshirtModalBtn = document.getElementById('emp-open-tshirt-modal-btn');
   if (openTshirtModalBtn) openTshirtModalBtn.onclick = ()=>{ state.showTshirtModal = true; render(); };
   wireDateNav();
@@ -1654,6 +1675,37 @@ function wireCodeChangeModal(){
   });
   const firstInput = document.getElementById('self-code-old');
   if (firstInput) firstInput.focus();
+}
+
+function renderPhoneModal(){
+  const emp = state.employees.find(e=>e.id===state.employeeViewSelectedId);
+  const current = emp ? (emp.phone || '') : '';
+  let html = '<div class="modal-overlay" id="phone-modal-overlay">';
+  html += '<div class="modal-box">';
+  html += '<p style="font-weight:600; font-size:15px; margin:0 0 12px;">Telefonnummer &auml;ndern</p>';
+  html += '<div style="display:flex; flex-direction:column; gap:8px;">';
+  html += '<input type="tel" id="self-phone-new" placeholder="Neue Telefonnummer" value="'+current+'" autocomplete="off" />';
+  html += '</div>';
+  html += '<div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">';
+  html += '<button id="phone-modal-cancel">Abbrechen</button>';
+  html += '<button id="phone-modal-save">Speichern</button>';
+  html += '</div>';
+  html += '</div></div>';
+  return html;
+}
+function wirePhoneModal(){
+  const overlay = document.getElementById('phone-modal-overlay');
+  const cancelBtn = document.getElementById('phone-modal-cancel');
+  const saveBtn = document.getElementById('phone-modal-save');
+  if (cancelBtn) cancelBtn.onclick = ()=>{ state.showPhoneModal = false; render(); };
+  if (saveBtn) saveBtn.onclick = changeSelfPhone;
+  if (overlay) overlay.onclick = (e)=>{ if (e.target === overlay) { state.showPhoneModal = false; render(); } };
+  const input = document.getElementById('self-phone-new');
+  if (input) {
+    input.onkeydown = (e)=>{ if(e.key==='Enter') changeSelfPhone(); };
+    input.focus();
+    input.select();
+  }
 }
 
 function renderTshirtModal(){
@@ -1875,7 +1927,7 @@ function renderAdminView(){
     html += '<span style="font-weight:600;">'+emp.name+(emp.phone ? ' <a href="tel:'+emp.phone.replace(/\s+/g,'')+'" target="_top" style="color:var(--text-muted); text-decoration:none; font-weight:400; font-size:12px;" title="'+emp.phone+' anrufen">&#128222;</a>' : '')+'</span>';
     html += '<div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">';
     html += '<span style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">Code <input type="text" value="'+(emp.code||'')+'" data-code-emp="'+emp.id+'" maxlength="8" style="width:80px; height:28px; padding:4px 6px; font-family:monospace; font-size:13px; letter-spacing:1px; text-transform:uppercase;" /> <button data-regen-code-emp="'+emp.id+'" title="Zuf&auml;lligen Code generieren" style="padding:4px 8px; font-size:11px;">&#8635;</button></span>';
-    html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">Telefon <input type="tel" value="'+(emp.phone||'')+'" placeholder="Telefonnummer" data-phone-emp="'+emp.id+'" style="width:140px; height:30px; padding:4px 8px;" /></label>';
+    html += '<span style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">Telefon <span style="font-family:monospace; color:var(--text);">'+(emp.phone || '\u2013')+'</span></span>';
     html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">Max. Schichten/Tag <input type="number" min="1" max="'+state.shiftTypes.length+'" value="'+getMaxShifts(emp)+'" data-max-shifts-emp="'+emp.id+'" style="width:54px; height:30px; padding:4px 6px; text-align:center;" /></label>';
     html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">T-Shirt <select data-tshirt-emp="'+emp.id+'" style="height:30px; padding:2px 6px;">';
     html += '<option value=""'+(!emp.tshirtSize ? ' selected' : '')+'>&ndash;</option>';
@@ -1912,6 +1964,23 @@ function renderAdminView(){
         } else {
           html += '<span class="hint" style="margin:0;">Keine Verf&uuml;gbarkeit gemeldet</span>';
         }
+      }
+      html += '</div>';
+      const assignedEntries = state.shiftTypes.map(st=>{
+        const postenId = findPostenForEmployeeInShift(dKey, st.id, emp.id);
+        if (!postenId) return null;
+        const posten = state.posten.find(p=>p.id===postenId);
+        return { st, posten };
+      }).filter(Boolean);
+      html += '<div style="margin-top:6px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">';
+      html += '<span style="font-size:12px; color:var(--text-muted);">Zuweisung am '+fmtDate(state.selectedDate)+':</span>';
+      if (assignedEntries.length) {
+        assignedEntries.forEach(entry=>{
+          html += '<span class="chip-dot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:'+entry.st.color+';"></span>';
+          html += '<span style="font-size:12px; margin-right:8px;">'+entry.st.name+(entry.posten ? ' \u2013 '+entry.posten.name : '')+'</span>';
+        });
+      } else {
+        html += '<span class="hint" style="margin:0;">Keine Zuweisung</span>';
       }
       html += '</div>';
     }
@@ -2045,6 +2114,13 @@ function renderAdminView(){
       html += '<tr><td style="padding:6px 8px;">Ohne Angabe</td><td style="padding:6px 8px;">'+unsetCount+'</td></tr>';
     }
     html += '</tbody></table>';
+    html += '<p style="font-weight:600; font-size:14px; margin:18px 0 10px;">T-Shirt-Gr&ouml;&szlig;en pro Mitarbeiter</p>';
+    html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">';
+    html += '<thead><tr><th style="text-align:left; border-bottom:1px solid #d6d3c9; padding:6px 8px;">Name</th><th style="text-align:left; border-bottom:1px solid #d6d3c9; padding:6px 8px;">Gr&ouml;&szlig;e</th></tr></thead><tbody>';
+    [...state.employees].sort((a,b)=>a.name.localeCompare(b.name,'de')).forEach(emp=>{
+      html += '<tr><td style="padding:6px 8px; border-bottom:1px solid #eeece4;">'+emp.name+'</td><td style="padding:6px 8px; border-bottom:1px solid #eeece4;">'+(emp.tshirtSize || '\u2013')+'</td></tr>';
+    });
+    html += '</tbody></table>';
     html += '</div>';
   }
 
@@ -2128,9 +2204,6 @@ function wireAdminView(){
   });
   app.querySelectorAll('[data-tshirt-emp]').forEach(el=>{
     el.onchange = ()=>setEmployeeTshirtSize(el.getAttribute('data-tshirt-emp'), el.value);
-  });
-  app.querySelectorAll('[data-phone-emp]').forEach(el=>{
-    el.onchange = ()=>{ setEmployeePhone(el.getAttribute('data-phone-emp'), el.value); };
   });
   app.querySelectorAll('[data-code-emp]').forEach(el=>{
     el.onchange = ()=>setEmployeeCode(el.getAttribute('data-code-emp'), el.value);
