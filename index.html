@@ -801,19 +801,30 @@ function regenerateEmployeeCode(empId){
   render();
 }
 function requestSelfCodeChange(){
-  const input = document.getElementById('self-code-input');
-  if (!input) return;
+  const oldInput = document.getElementById('self-code-old');
+  const newInput = document.getElementById('self-code-new');
+  const repeatInput = document.getElementById('self-code-new2');
+  if (!oldInput || !newInput || !repeatInput) return;
   const empId = state.employeeViewSelectedId;
   const emp = state.employees.find(e=>e.id===empId);
   if (!emp) return;
-  const val = (input.value || '').trim().toUpperCase();
-  if (!val) { showToast('Bitte einen Code eingeben.', 'error'); render(); return; }
-  if (val.length < 3) { showToast('Der Code muss mindestens 3 Zeichen haben.', 'error'); render(); return; }
-  if (val === (emp.code||'').toUpperCase()) { showToast('Das ist bereits dein aktueller Code.'); return; }
+
+  const oldVal = (oldInput.value || '').trim().toUpperCase();
+  const newVal = (newInput.value || '').trim().toUpperCase();
+  const repeatVal = (repeatInput.value || '').trim().toUpperCase();
+
+  if (!oldVal) { showToast('Bitte deinen aktuellen Code eingeben.', 'error'); return; }
+  if (oldVal !== (emp.code||'').toUpperCase()) { showToast('Der aktuelle Code ist nicht korrekt.', 'error'); return; }
+  if (!newVal) { showToast('Bitte einen neuen Code eingeben.', 'error'); return; }
+  if (newVal.length < 3) { showToast('Der neue Code muss mindestens 3 Zeichen haben.', 'error'); return; }
+  if (newVal === oldVal) { showToast('Der neue Code muss sich vom aktuellen unterscheiden.', 'error'); return; }
+  if (!repeatVal) { showToast('Bitte den neuen Code wiederholen.', 'error'); return; }
+  if (newVal !== repeatVal) { showToast('Die Wiederholung stimmt nicht mit dem neuen Code \u00fcberein.', 'error'); return; }
+
   showConfirm(
-    'M\u00f6chtest du deinen Zugangscode wirklich auf <strong>'+val+'</strong> \u00e4ndern?<br>Du brauchst diesen Code k\u00fcnftig zum Anmelden.',
+    'M\u00f6chtest du deinen Zugangscode wirklich auf <strong>'+newVal+'</strong> \u00e4ndern?<br>Du brauchst diesen Code k\u00fcnftig zum Anmelden.',
     ()=>{
-      setEmployeeCode(empId, val);
+      setEmployeeCode(empId, newVal);
       showToast('Dein Code wurde ge\u00e4ndert.');
     },
     { confirmLabel: '\u00c4ndern', cancelLabel: 'Abbrechen', danger: false }
@@ -1255,13 +1266,21 @@ function renderEmployeeView(){
   html += '</label>';
   html += '</div>';
 
+  const codeFieldStyle = 'height:34px; padding:4px 8px; font-family:monospace; font-size:14px; letter-spacing:1px; text-transform:uppercase; text-align:center; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--text);';
   html += '<div class="panel">';
-  html += '<p class="panel-label">Mein Zugangscode</p>';
-  html += '<p class="hint" style="margin:0 0 10px;">Mit deinem Namen und diesem Code meldest du dich k&uuml;nftig an.</p>';
-  html += '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">';
-  html += '<input type="text" id="self-code-input" value="'+(emp.code||'')+'" maxlength="8" style="width:120px; height:34px; padding:4px 8px; font-family:monospace; font-size:14px; letter-spacing:1px; text-transform:uppercase; text-align:center; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--text);" />';
-  html += '<button id="self-regen-code-btn" title="Zuf&auml;lligen Code vorschlagen">&#8635; Zuf&auml;llig</button>';
-  html += '<button id="self-save-code-btn">Speichern</button>';
+  html += '<p class="panel-label">Meinen Zugangscode &auml;ndern</p>';
+  html += '<p class="hint" style="margin:0 0 12px;">Mit deinem Namen und diesem Code meldest du dich k&uuml;nftig an.</p>';
+  html += '<div style="display:flex; flex-direction:column; gap:10px; max-width:220px;">';
+  html += '<label style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-muted);">Aktueller Code';
+  html += '<input type="text" id="self-code-old" maxlength="8" autocomplete="off" style="'+codeFieldStyle+'" /></label>';
+  html += '<label style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-muted);">Neuer Code';
+  html += '<input type="text" id="self-code-new" maxlength="8" autocomplete="off" style="'+codeFieldStyle+'" /></label>';
+  html += '<label style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-muted);">Neuer Code wiederholen';
+  html += '<input type="text" id="self-code-new2" maxlength="8" autocomplete="off" style="'+codeFieldStyle+'" /></label>';
+  html += '</div>';
+  html += '<div style="display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;">';
+  html += '<button id="self-save-code-btn">Code &auml;ndern</button>';
+  html += '<button id="self-regen-code-btn" style="font-size:12px;" title="F&uuml;llt Neuer Code + Wiederholung mit einem Vorschlag">&#8635; Zuf&auml;llig vorschlagen</button>';
   html += '</div>';
   html += '</div>';
 
@@ -1365,11 +1384,17 @@ function wireEmployeeView(){
     setMaxShifts(state.employeeViewSelectedId, maxShiftsInput.value);
     render();
   };
-  const selfCodeInput = document.getElementById('self-code-input');
-  if (selfCodeInput) selfCodeInput.onkeydown = (e)=>{ if(e.key==='Enter') requestSelfCodeChange(); };
+  const selfCodeOld = document.getElementById('self-code-old');
+  const selfCodeNew = document.getElementById('self-code-new');
+  const selfCodeNew2 = document.getElementById('self-code-new2');
+  [selfCodeOld, selfCodeNew, selfCodeNew2].forEach(el=>{
+    if (el) el.onkeydown = (e)=>{ if(e.key==='Enter') requestSelfCodeChange(); };
+  });
   const selfRegenCodeBtn = document.getElementById('self-regen-code-btn');
   if (selfRegenCodeBtn) selfRegenCodeBtn.onclick = ()=>{
-    if (selfCodeInput) selfCodeInput.value = generateEmployeeCode();
+    const suggestion = generateEmployeeCode();
+    if (selfCodeNew) selfCodeNew.value = suggestion;
+    if (selfCodeNew2) selfCodeNew2.value = suggestion;
   };
   const selfSaveCodeBtn = document.getElementById('self-save-code-btn');
   if (selfSaveCodeBtn) selfSaveCodeBtn.onclick = requestSelfCodeChange;
