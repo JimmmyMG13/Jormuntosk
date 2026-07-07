@@ -419,6 +419,7 @@ let state = {
   adminLoginError: false,
   showPasswordModal: false,
   showCodeModal: false,
+  showTshirtModal: false,
   // null = no restriction (open for all dates)
   availabilityWindowStart: null,
   availabilityWindowEnd: null,
@@ -764,7 +765,7 @@ function addEmployee(){
   const name = (input.value || '').trim();
   if (!name) return;
   const phone = phoneInput ? (phoneInput.value || '').trim() : '';
-  state.employees.push({id:'e'+Date.now(), name, phone, code: generateEmployeeCode(), competencies: [], maxShiftsPerDay: 2});
+  state.employees.push({id:'e'+Date.now(), name, phone, code: generateEmployeeCode(), competencies: [], maxShiftsPerDay: 2, tshirtSize: null});
   input.value = '';
   if (phoneInput) phoneInput.value = '';
   render();
@@ -781,7 +782,7 @@ function addSelfEmployee(){
   if (digits.length < 4) { state.selfRegisterError = 'Bitte eine g\u00fcltige Telefonnummer eingeben (mindestens 4 Ziffern).'; render(); return; }
   const code = digits.slice(-4);
   const id = 'e'+Date.now();
-  state.employees.push({id, name, phone, code, competencies: [], maxShiftsPerDay: 2});
+  state.employees.push({id, name, phone, code, competencies: [], maxShiftsPerDay: 2, tshirtSize: null});
   state.employeeViewSelectedId = id;
   state.employeeViewJustRegisteredCode = code;
   input.value = '';
@@ -799,6 +800,29 @@ function regenerateEmployeeCode(empId){
   const emp = state.employees.find(e=>e.id===empId);
   if (!emp) return;
   emp.code = generateEmployeeCode();
+  render();
+}
+const TSHIRT_SIZES = ['XS','S','M','L','XL','XXL','XXXL'];
+function getTshirtSizeCounts(){
+  const counts = {};
+  TSHIRT_SIZES.forEach(s=>{ counts[s] = 0; });
+  state.employees.forEach(emp=>{
+    if (emp.tshirtSize && counts.hasOwnProperty(emp.tshirtSize)) counts[emp.tshirtSize]++;
+  });
+  return counts;
+}
+function setSelfTshirtSize(size){
+  const emp = state.employees.find(e=>e.id===state.employeeViewSelectedId);
+  if (!emp) return;
+  emp.tshirtSize = size;
+  state.showTshirtModal = false;
+  showToast('T-Shirt-Gr\u00f6\u00dfe gespeichert: '+size+'.');
+  render();
+}
+function setEmployeeTshirtSize(empId, size){
+  const emp = state.employees.find(e=>e.id===empId);
+  if (!emp) return;
+  emp.tshirtSize = size || null;
   render();
 }
 function changeSelfCode(){
@@ -849,6 +873,7 @@ function employeeLogout(){
   state.employeeViewJustRegisteredCode = null;
   state.selfRegisterError = null;
   state.showCodeModal = false;
+  state.showTshirtModal = false;
   try { localStorage.removeItem('schichtplan_emp_id'); } catch(e) {}
   render();
 }
@@ -1168,6 +1193,9 @@ function render(){
   if (state.showCodeModal) {
     html += renderCodeChangeModal();
   }
+  if (state.showTshirtModal) {
+    html += renderTshirtModal();
+  }
   if (state.confirmModal) {
     html += renderConfirmModal();
   }
@@ -1183,6 +1211,7 @@ function render(){
   else wireAdminView();
   if (state.showPasswordModal) wirePasswordModal();
   if (state.showCodeModal) wireCodeChangeModal();
+  if (state.showTshirtModal) wireTshirtModal();
   if (state.confirmModal) wireConfirmModal();
   scheduleCloudSave();
 }
@@ -1261,8 +1290,9 @@ function renderEmployeeView(){
   html += '<div class="panel">';
   html += '<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">';
   html += '<p class="panel-label" style="margin:0;">Angemeldet als '+emp.name+'</p>';
-  html += '<div style="display:flex; gap:8px;">';
+  html += '<div style="display:flex; gap:8px; flex-wrap:wrap;">';
   html += '<button id="emp-open-code-modal-btn">Code &auml;ndern</button>';
+  html += '<button id="emp-open-tshirt-modal-btn">T-Shirt-Gr&ouml;&szlig;e'+(emp.tshirtSize ? ' ('+emp.tshirtSize+')' : '')+'</button>';
   html += '<button id="emp-logout-btn">Abmelden</button>';
   html += '</div>';
   html += '</div>';
@@ -1373,6 +1403,8 @@ function wireEmployeeView(){
   };
   const openCodeModalBtn = document.getElementById('emp-open-code-modal-btn');
   if (openCodeModalBtn) openCodeModalBtn.onclick = ()=>{ state.showCodeModal = true; render(); };
+  const openTshirtModalBtn = document.getElementById('emp-open-tshirt-modal-btn');
+  if (openTshirtModalBtn) openTshirtModalBtn.onclick = ()=>{ state.showTshirtModal = true; render(); };
   wireDateNav();
   const dKey = dateKey(state.selectedDate);
   document.querySelectorAll('[data-avail-emp]').forEach(el=>{
@@ -1543,6 +1575,35 @@ function wireCodeChangeModal(){
   if (firstInput) firstInput.focus();
 }
 
+function renderTshirtModal(){
+  const emp = state.employees.find(e=>e.id===state.employeeViewSelectedId);
+  const current = emp ? emp.tshirtSize : null;
+  let html = '<div class="modal-overlay" id="tshirt-modal-overlay">';
+  html += '<div class="modal-box">';
+  html += '<p style="font-weight:600; font-size:15px; margin:0 0 6px;">T-Shirt-Gr&ouml;&szlig;e w&auml;hlen</p>';
+  html += '<p class="hint" style="margin:0 0 14px;">W&auml;hle deine Gr&ouml;&szlig;e aus &ndash; die Auswahl wird sofort gespeichert.</p>';
+  html += '<div style="display:flex; flex-wrap:wrap; gap:8px;">';
+  TSHIRT_SIZES.forEach(sz=>{
+    const active = current === sz;
+    html += '<button class="comp-tag'+(active?' comp-tag-active':'')+'" data-tshirt-size-select="'+sz+'" style="min-width:56px; text-align:center; font-size:13px; padding:8px 12px;">'+(active?'\u2713 ':'')+sz+'</button>';
+  });
+  html += '</div>';
+  html += '<div style="display:flex; gap:8px; justify-content:flex-end; margin-top:18px;">';
+  html += '<button id="tshirt-modal-close">Schlie&szlig;en</button>';
+  html += '</div>';
+  html += '</div></div>';
+  return html;
+}
+function wireTshirtModal(){
+  const overlay = document.getElementById('tshirt-modal-overlay');
+  const closeBtn = document.getElementById('tshirt-modal-close');
+  if (closeBtn) closeBtn.onclick = ()=>{ state.showTshirtModal = false; render(); };
+  if (overlay) overlay.onclick = (e)=>{ if (e.target === overlay) { state.showTshirtModal = false; render(); } };
+  document.querySelectorAll('[data-tshirt-size-select]').forEach(btn=>{
+    btn.onclick = ()=> setSelfTshirtSize(btn.getAttribute('data-tshirt-size-select'));
+  });
+}
+
 function renderAdminLockScreen(){
   let html = '<div class="panel" style="max-width:340px; margin:40px auto; text-align:center;">';
   html += '<p style="font-size:28px; margin:0 0 8px;">&#128274;</p>';
@@ -1661,6 +1722,20 @@ function renderAdminView(){
   html += panelHeaderHtml('employees', 'Mitarbeiter & Kompetenzen');
   if (!isPanelCollapsed('employees')) {
   html += '<p class="hint" style="margin:0 0 12px;">Markiere pro Mitarbeiter, f&uuml;r welche Posten er qualifiziert ist. Nur qualifizierte Mitarbeiter sind sp&auml;ter bei diesem Posten ausw&auml;hlbar.</p>';
+  (function(){
+    const sizeCounts = getTshirtSizeCounts();
+    const unsetCount = state.employees.filter(e=>!e.tshirtSize).length;
+    html += '<div style="margin-bottom:14px;">';
+    html += '<p style="font-size:12px; color:var(--text-muted); margin:0 0 6px;">T-Shirt-Gr&ouml;&szlig;en im Team</p>';
+    html += '<div style="display:flex; flex-wrap:wrap; gap:8px;">';
+    TSHIRT_SIZES.forEach(sz=>{
+      html += '<span class="chip" style="gap:6px; padding:5px 10px;"><strong>'+sz+'</strong><span style="color:var(--text-muted);">'+sizeCounts[sz]+'</span></span>';
+    });
+    if (unsetCount) {
+      html += '<span class="chip" style="gap:6px; padding:5px 10px; opacity:0.7;">Ohne Angabe<span style="color:var(--text-muted);">'+unsetCount+'</span></span>';
+    }
+    html += '</div></div>';
+  })();
   html += '<div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">';
   [...state.employees].sort((a,b)=>a.name.localeCompare(b.name,'de')).forEach(emp=>{
     html += '<div class="emp-card">';
@@ -1670,6 +1745,12 @@ function renderAdminView(){
     html += '<span style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">Code <input type="text" value="'+(emp.code||'')+'" data-code-emp="'+emp.id+'" maxlength="8" style="width:80px; height:28px; padding:4px 6px; font-family:monospace; font-size:13px; letter-spacing:1px; text-transform:uppercase;" /> <button data-regen-code-emp="'+emp.id+'" title="Zuf&auml;lligen Code generieren" style="padding:4px 8px; font-size:11px;">&#8635;</button></span>';
     html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">Telefon <input type="tel" value="'+(emp.phone||'')+'" placeholder="Telefonnummer" data-phone-emp="'+emp.id+'" style="width:140px; height:30px; padding:4px 8px;" /></label>';
     html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">Max. Schichten/Tag <input type="number" min="1" max="'+state.shiftTypes.length+'" value="'+getMaxShifts(emp)+'" data-max-shifts-emp="'+emp.id+'" style="width:54px; height:30px; padding:4px 6px; text-align:center;" /></label>';
+    html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">T-Shirt <select data-tshirt-emp="'+emp.id+'" style="height:30px; padding:2px 6px;">';
+    html += '<option value=""'+(!emp.tshirtSize ? ' selected' : '')+'>&ndash;</option>';
+    TSHIRT_SIZES.forEach(sz=>{
+      html += '<option value="'+sz+'"'+(emp.tshirtSize===sz ? ' selected' : '')+'>'+sz+'</option>';
+    });
+    html += '</select></label>';
     html += '<button data-clear-assign-emp="'+emp.id+'" title="Alle Schicht-Zuweisungen dieses Mitarbeiters l&ouml;schen" style="padding:4px 10px; font-size:11px;">Zuweisungen l&ouml;schen</button>';
     html += '<button class="chip-remove" data-remove-emp="'+emp.id+'" aria-label="Mitarbeiter entfernen">&times;</button>';
     html += '</div></div>';
@@ -1867,6 +1948,9 @@ function wireAdminView(){
   });
   app.querySelectorAll('[data-max-shifts-emp]').forEach(el=>{
     el.onchange = ()=>{ setMaxShifts(el.getAttribute('data-max-shifts-emp'), el.value); render(); };
+  });
+  app.querySelectorAll('[data-tshirt-emp]').forEach(el=>{
+    el.onchange = ()=>setEmployeeTshirtSize(el.getAttribute('data-tshirt-emp'), el.value);
   });
   app.querySelectorAll('[data-phone-emp]').forEach(el=>{
     el.onchange = ()=>{ setEmployeePhone(el.getAttribute('data-phone-emp'), el.value); };
