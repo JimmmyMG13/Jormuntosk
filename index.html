@@ -443,6 +443,7 @@ const CLOUD_SYNC_KEYS = [
 let applyingRemoteUpdate = false;
 let cloudSaveTimer = null;
 let initialDateJumpApplied = false;
+let cloudDataLoaded = false; // NEU: verhindert Speichern, solange die echten Cloud-Daten noch nicht geladen wurden
 
 const SYNC_STATUS_LABELS = {
   saving: '&#8635; Speichert\u2026',
@@ -460,6 +461,7 @@ function setSyncStatus(status){
 
 function scheduleCloudSave(){
   if (applyingRemoteUpdate) return;      // Änderung kam gerade aus der Cloud -> nicht zurückschreiben
+  if (!cloudDataLoaded) return;          // NEU: verhindert Überschreiben, bevor die echten Cloud-Daten geladen wurden
   if (!window.dbSaveState) { setSyncStatus('offline'); return; }       // Firebase noch nicht bereit
   clearTimeout(cloudSaveTimer);
   setSyncStatus('saving');
@@ -483,6 +485,7 @@ function restoreRememberedLogin(){
   }
 }
 function mergeIncomingState(remote){
+  cloudDataLoaded = true; // NEU: ab hier ist bekannt, ob und welche Daten in der Cloud liegen -> Speichern jetzt sicher
   if (!remote) {
     setSyncStatus('saved');
     if (!initialDateJumpApplied) {
