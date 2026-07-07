@@ -425,6 +425,7 @@ let state = {
   showExportModal: false,
   exportFormat: null,
   exportPanels: { shiftPlan: true, employees: true, tshirt: false, shiftTypes: false, posten: false },
+  dayResponsible: {},
   // null = no restriction (open for all dates)
   availabilityWindowStart: null,
   availabilityWindowEnd: null,
@@ -544,6 +545,17 @@ function setWish(empId, dKey, text){
 function ensurePostenSlot(dKey, shiftId){
   if (!state.postenAssignments[dKey]) state.postenAssignments[dKey] = {};
   if (!state.postenAssignments[dKey][shiftId]) state.postenAssignments[dKey][shiftId] = {};
+}
+function getDayResponsible(dKey){
+  if (!state.dayResponsible) return null;
+  const empId = state.dayResponsible[dKey];
+  if (!empId) return null;
+  return state.employees.find(e=>e.id===empId) || null;
+}
+function setDayResponsible(dKey, empId){
+  if (!state.dayResponsible) state.dayResponsible = {};
+  state.dayResponsible[dKey] = empId || null;
+  render();
 }
 function getPostenAssignment(dKey, shiftId, postenId){
   ensurePostenSlot(dKey, shiftId);
@@ -1544,14 +1556,28 @@ function renderDailyView(){
   html += '</div></div>';
   html += '<p style="font-weight:600; font-size:15px; margin:0 0 14px;">'+dayLabelFor(state.selectedDate)+'</p>';
 
+  const dKey = dateKey(state.selectedDate);
+  const responsibleEmp = getDayResponsible(dKey);
+  if (responsibleEmp) {
+    html += '<div class="chip" style="display:inline-flex; gap:8px; margin:0 0 16px; font-size:13px;">';
+    html += '<span>&#128100;</span><span>Tagesverantwortlich: <strong>'+responsibleEmp.name+'</strong>';
+    if (responsibleEmp.phone) {
+      html += ' <a href="tel:'+responsibleEmp.phone.replace(/\s+/g,'')+'" target="_top" style="color:var(--text-muted); text-decoration:none; font-weight:400;" title="'+responsibleEmp.phone+' anrufen">&#128222; '+responsibleEmp.phone+'</a>';
+    }
+    html += '</span>';
+    html += '</div>';
+  }
+
   if (!state.posten.length || !state.shiftTypes.length) {
     html += '<p style="color:#6b6a63; font-size:14px;">Lege zuerst Schichttypen und Posten in der Planung an.</p>';
     return html;
   }
 
-  const dKey = dateKey(state.selectedDate);
-  const sortedEmployees = [...state.employees].sort((a,b)=>a.name.localeCompare(b.name, 'de'));
+  const sortedEmployees = [...state.employees]
+    .filter(emp=>shiftsAssignedCount(emp.id, dKey) > 0)
+    .sort((a,b)=>a.name.localeCompare(b.name, 'de'));
 
+  if (sortedEmployees.length) {
   html += '<div class="grid-wrap"><table><thead><tr><th>Mitarbeiter</th>';
   state.shiftTypes.forEach(st=>{
     html += '<th style="font-weight:600;">'+st.name+'<div class="day-sub">'+st.time+'</div></th>';
@@ -1583,6 +1609,9 @@ function renderDailyView(){
     html += '</tr>';
   });
   html += '</tbody></table></div>';
+  } else {
+    html += '<p style="color:#6b6a63; font-size:14px;">F&uuml;r diesen Tag ist noch niemand eingeteilt.</p>';
+  }
 
   const hasDescriptions = state.posten.some(p=>(p.description||'').trim());
   if (hasDescriptions) {
@@ -2001,6 +2030,18 @@ function renderAdminView(){
 
   html += '<p style="font-weight:600; font-size:15px; margin:0 0 14px;">'+dayLabelFor(state.selectedDate)+'</p>';
 
+  (function(){
+    const responsibleEmp = getDayResponsible(dKey);
+    html += '<div style="display:flex; align-items:center; gap:8px; margin:0 0 16px; flex-wrap:wrap;">';
+    html += '<label style="display:flex; align-items:center; gap:8px; font-size:13px;">&#128100; Tagesverantwortlicher <select id="day-responsible-select">';
+    html += '<option value=""'+(!responsibleEmp ? ' selected' : '')+'>&ndash; keiner &ndash;</option>';
+    [...state.employees].sort((a,b)=>a.name.localeCompare(b.name,'de')).forEach(emp=>{
+      html += '<option value="'+emp.id+'"'+(responsibleEmp && responsibleEmp.id===emp.id ? ' selected' : '')+'>'+emp.name+'</option>';
+    });
+    html += '</select></label>';
+    html += '</div>';
+  })();
+
   if (!state.posten.length) {
     html += '<p style="color:#6b6a63; font-size:14px;">Lege zuerst oben mindestens einen Posten an.</p>';
     return html;
@@ -2158,6 +2199,10 @@ function wireAdminView(){
   if (autoAssignBtn) autoAssignBtn.onclick = autoAssignDay;
   const clearDayBtn = document.getElementById('clear-day-assign');
   if (clearDayBtn) clearDayBtn.onclick = clearDayAssignments;
+  const dayResponsibleSelect = document.getElementById('day-responsible-select');
+  if (dayResponsibleSelect) dayResponsibleSelect.onchange = ()=>{
+    setDayResponsible(dateKey(state.selectedDate), dayResponsibleSelect.value);
+  };
   const exportExcelBtn = document.getElementById('export-excel');
   const exportPdfBtn = document.getElementById('export-pdf');
   if (exportExcelBtn) exportExcelBtn.onclick = ()=>{ state.exportFormat = 'excel'; state.showExportModal = true; render(); };
