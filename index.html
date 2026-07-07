@@ -1236,6 +1236,15 @@ function renderEmployeeView(){
   html += '</label>';
   html += '</div>';
 
+  html += '<div class="panel">';
+  html += '<p class="panel-label">Mein Zugangscode</p>';
+  html += '<p class="hint" style="margin:0 0 10px;">Mit deinem Namen und diesem Code meldest du dich k&uuml;nftig an. Du kannst ihn hier &auml;ndern.</p>';
+  html += '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">';
+  html += '<input type="text" id="self-code-input" value="'+(emp.code||'')+'" maxlength="8" style="width:120px; height:34px; padding:4px 8px; font-family:monospace; font-size:14px; letter-spacing:1px; text-transform:uppercase; text-align:center; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--text);" />';
+  html += '<button id="self-regen-code-btn" title="Zuf&auml;lligen Code generieren">&#8635; Zuf&auml;llig</button>';
+  html += '</div>';
+  html += '</div>';
+
   const upcomingShifts = getUpcomingShiftsForEmployee(empId);
   const SHIFTS_PREVIEW_COUNT = 8;
   const expanded = state.employeeShiftsExpanded;
@@ -1335,6 +1344,22 @@ function wireEmployeeView(){
   if (maxShiftsInput) maxShiftsInput.onchange = ()=>{
     setMaxShifts(state.employeeViewSelectedId, maxShiftsInput.value);
     render();
+  };
+  const selfCodeInput = document.getElementById('self-code-input');
+  if (selfCodeInput) {
+    selfCodeInput.onkeydown = (e)=>{ if(e.key==='Enter') selfCodeInput.blur(); };
+    selfCodeInput.onchange = ()=>{
+      const val = (selfCodeInput.value || '').trim().toUpperCase();
+      if (!val) { showToast('Bitte einen Code eingeben.', 'error'); render(); return; }
+      if (val.length < 3) { showToast('Der Code muss mindestens 3 Zeichen haben.', 'error'); render(); return; }
+      setEmployeeCode(state.employeeViewSelectedId, val);
+      showToast('Dein Code wurde ge\u00e4ndert.');
+    };
+  }
+  const selfRegenCodeBtn = document.getElementById('self-regen-code-btn');
+  if (selfRegenCodeBtn) selfRegenCodeBtn.onclick = ()=>{
+    regenerateEmployeeCode(state.employeeViewSelectedId);
+    showToast('Neuer Code wurde erstellt.');
   };
   wireDateNav();
   const dKey = dateKey(state.selectedDate);
