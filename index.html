@@ -418,6 +418,7 @@ let state = {
   adminUnlocked: false,
   adminLoginError: false,
   showPasswordModal: false,
+  showCodeModal: false,
   // null = no restriction (open for all dates)
   availabilityWindowStart: null,
   availabilityWindowEnd: null,
@@ -800,7 +801,7 @@ function regenerateEmployeeCode(empId){
   emp.code = generateEmployeeCode();
   render();
 }
-function requestSelfCodeChange(){
+function changeSelfCode(){
   const oldInput = document.getElementById('self-code-old');
   const newInput = document.getElementById('self-code-new');
   const repeatInput = document.getElementById('self-code-new2');
@@ -821,14 +822,10 @@ function requestSelfCodeChange(){
   if (!repeatVal) { showToast('Bitte den neuen Code wiederholen.', 'error'); return; }
   if (newVal !== repeatVal) { showToast('Die Wiederholung stimmt nicht mit dem neuen Code \u00fcberein.', 'error'); return; }
 
-  showConfirm(
-    'M\u00f6chtest du deinen Zugangscode wirklich auf <strong>'+newVal+'</strong> \u00e4ndern?<br>Du brauchst diesen Code k\u00fcnftig zum Anmelden.',
-    ()=>{
-      setEmployeeCode(empId, newVal);
-      showToast('Dein Code wurde ge\u00e4ndert.');
-    },
-    { confirmLabel: '\u00c4ndern', cancelLabel: 'Abbrechen', danger: false }
-  );
+  emp.code = newVal;
+  state.showCodeModal = false;
+  showToast('Dein Code wurde ge\u00e4ndert.');
+  render();
 }
 function tryEmployeeLogin(){
   const nameInput = document.getElementById('emp-login-name');
@@ -851,6 +848,7 @@ function employeeLogout(){
   state.employeeViewLoginError = false;
   state.employeeViewJustRegisteredCode = null;
   state.selfRegisterError = null;
+  state.showCodeModal = false;
   try { localStorage.removeItem('schichtplan_emp_id'); } catch(e) {}
   render();
 }
@@ -1167,6 +1165,9 @@ function render(){
   if (state.showPasswordModal) {
     html += renderPasswordModal();
   }
+  if (state.showCodeModal) {
+    html += renderCodeChangeModal();
+  }
   if (state.confirmModal) {
     html += renderConfirmModal();
   }
@@ -1181,6 +1182,7 @@ function render(){
   else if (!state.adminUnlocked) wireAdminLockScreen();
   else wireAdminView();
   if (state.showPasswordModal) wirePasswordModal();
+  if (state.showCodeModal) wireCodeChangeModal();
   if (state.confirmModal) wireConfirmModal();
   scheduleCloudSave();
 }
@@ -1259,29 +1261,14 @@ function renderEmployeeView(){
   html += '<div class="panel">';
   html += '<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">';
   html += '<p class="panel-label" style="margin:0;">Angemeldet als '+emp.name+'</p>';
+  html += '<div style="display:flex; gap:8px;">';
+  html += '<button id="emp-open-code-modal-btn">Code &auml;ndern</button>';
   html += '<button id="emp-logout-btn">Abmelden</button>';
+  html += '</div>';
   html += '</div>';
   html += '<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-top:10px;">Wie viele Schichten kannst/willst du maximal pro Tag arbeiten? ';
   html += '<input type="number" min="1" max="'+state.shiftTypes.length+'" value="'+getMaxShifts(emp)+'" id="self-max-shifts" style="width:60px; text-align:center;" />';
   html += '</label>';
-  html += '</div>';
-
-  const codeFieldStyle = 'height:34px; padding:4px 8px; font-family:monospace; font-size:14px; letter-spacing:1px; text-transform:uppercase; text-align:center; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--text);';
-  html += '<div class="panel">';
-  html += '<p class="panel-label">Meinen Zugangscode &auml;ndern</p>';
-  html += '<p class="hint" style="margin:0 0 12px;">Mit deinem Namen und diesem Code meldest du dich k&uuml;nftig an.</p>';
-  html += '<div style="display:flex; flex-direction:column; gap:10px; max-width:220px;">';
-  html += '<label style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-muted);">Aktueller Code';
-  html += '<input type="text" id="self-code-old" maxlength="8" autocomplete="off" style="'+codeFieldStyle+'" /></label>';
-  html += '<label style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-muted);">Neuer Code';
-  html += '<input type="text" id="self-code-new" maxlength="8" autocomplete="off" style="'+codeFieldStyle+'" /></label>';
-  html += '<label style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-muted);">Neuer Code wiederholen';
-  html += '<input type="text" id="self-code-new2" maxlength="8" autocomplete="off" style="'+codeFieldStyle+'" /></label>';
-  html += '</div>';
-  html += '<div style="display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;">';
-  html += '<button id="self-save-code-btn">Code &auml;ndern</button>';
-  html += '<button id="self-regen-code-btn" style="font-size:12px;" title="F&uuml;llt Neuer Code + Wiederholung mit einem Vorschlag">&#8635; Zuf&auml;llig vorschlagen</button>';
-  html += '</div>';
   html += '</div>';
 
   const upcomingShifts = getUpcomingShiftsForEmployee(empId);
@@ -1384,20 +1371,8 @@ function wireEmployeeView(){
     setMaxShifts(state.employeeViewSelectedId, maxShiftsInput.value);
     render();
   };
-  const selfCodeOld = document.getElementById('self-code-old');
-  const selfCodeNew = document.getElementById('self-code-new');
-  const selfCodeNew2 = document.getElementById('self-code-new2');
-  [selfCodeOld, selfCodeNew, selfCodeNew2].forEach(el=>{
-    if (el) el.onkeydown = (e)=>{ if(e.key==='Enter') requestSelfCodeChange(); };
-  });
-  const selfRegenCodeBtn = document.getElementById('self-regen-code-btn');
-  if (selfRegenCodeBtn) selfRegenCodeBtn.onclick = ()=>{
-    const suggestion = generateEmployeeCode();
-    if (selfCodeNew) selfCodeNew.value = suggestion;
-    if (selfCodeNew2) selfCodeNew2.value = suggestion;
-  };
-  const selfSaveCodeBtn = document.getElementById('self-save-code-btn');
-  if (selfSaveCodeBtn) selfSaveCodeBtn.onclick = requestSelfCodeChange;
+  const openCodeModalBtn = document.getElementById('emp-open-code-modal-btn');
+  if (openCodeModalBtn) openCodeModalBtn.onclick = ()=>{ state.showCodeModal = true; render(); };
   wireDateNav();
   const dKey = dateKey(state.selectedDate);
   document.querySelectorAll('[data-avail-emp]').forEach(el=>{
@@ -1534,6 +1509,37 @@ function wirePasswordModal(){
   if (saveBtn) saveBtn.onclick = changeAdminPassword;
   if (overlay) overlay.onclick = (e)=>{ if (e.target === overlay) { state.showPasswordModal = false; render(); } };
   const firstInput = document.getElementById('admin-pw-current');
+  if (firstInput) firstInput.focus();
+}
+
+function renderCodeChangeModal(){
+  let html = '<div class="modal-overlay" id="code-modal-overlay">';
+  html += '<div class="modal-box">';
+  html += '<p style="font-weight:600; font-size:15px; margin:0 0 12px;">Zugangscode &auml;ndern</p>';
+  html += '<div style="display:flex; flex-direction:column; gap:8px;">';
+  html += '<input type="text" id="self-code-old" placeholder="Aktueller Code" maxlength="8" autocomplete="off" style="text-transform:uppercase; font-family:monospace; letter-spacing:1px;" />';
+  html += '<input type="text" id="self-code-new" placeholder="Neuer Code" maxlength="8" autocomplete="off" style="text-transform:uppercase; font-family:monospace; letter-spacing:1px;" />';
+  html += '<input type="text" id="self-code-new2" placeholder="Neuen Code wiederholen" maxlength="8" autocomplete="off" style="text-transform:uppercase; font-family:monospace; letter-spacing:1px;" />';
+  html += '</div>';
+  html += '<div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">';
+  html += '<button id="code-modal-cancel">Abbrechen</button>';
+  html += '<button id="code-modal-save">Speichern</button>';
+  html += '</div>';
+  html += '</div></div>';
+  return html;
+}
+function wireCodeChangeModal(){
+  const overlay = document.getElementById('code-modal-overlay');
+  const cancelBtn = document.getElementById('code-modal-cancel');
+  const saveBtn = document.getElementById('code-modal-save');
+  if (cancelBtn) cancelBtn.onclick = ()=>{ state.showCodeModal = false; render(); };
+  if (saveBtn) saveBtn.onclick = changeSelfCode;
+  if (overlay) overlay.onclick = (e)=>{ if (e.target === overlay) { state.showCodeModal = false; render(); } };
+  ['self-code-old','self-code-new','self-code-new2'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.onkeydown = (e)=>{ if(e.key==='Enter') changeSelfCode(); };
+  });
+  const firstInput = document.getElementById('self-code-old');
   if (firstInput) firstInput.focus();
 }
 
