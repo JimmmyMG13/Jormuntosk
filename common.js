@@ -1,6 +1,6 @@
 // Jörmuntösk – gemeinsame Basis für alle Web-Tools
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyLmY1kfzjbs6iXBnjQd-bkc5iQXFZcDo",
@@ -68,4 +68,42 @@ export function timeDiffHours(start, end){
   let mins = (eh * 60 + em) - (sh * 60 + sm);
   if (mins < 0) mins += 24 * 60;
   return Math.round((mins / 60) * 100) / 100;
+}
+
+// Wendet zentral gespeicherte Vereinsdaten (Adresse/Kontakt) und Corporate Design
+// (Akzentfarbe, Logo) live auf jede Seite an, die diese Funktion aufruft.
+export function applyBranding({ logoImgIds = [], footerId = null } = {}){
+  onSnapshot(doc(db, "einstellungen", "design"), snap => {
+    const data = snap.exists() ? snap.data() : {};
+    if (data.accentColor){
+      document.documentElement.style.setProperty("--accent", data.accentColor);
+    }
+    if (data.logo){
+      logoImgIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.src = data.logo;
+      });
+    }
+  });
+  if (footerId){
+    onSnapshot(doc(db, "einstellungen", "allgemein"), snap => {
+      const data = snap.exists() ? snap.data() : {};
+      const el = document.getElementById(footerId);
+      if (el){
+        const adresse = data.adresse || "5024 Küttigen, Schweiz";
+        const email = data.email || "jormuntosk@gmail.com";
+        const telefon = data.telefon ? " · " + data.telefon : "";
+        el.textContent = `Jörmuntösk · ${adresse} · ${email}${telefon}`;
+      }
+    });
+  }
+}
+
+// Schreibt einen Eintrag ins Aktivitätsprotokoll (nur im Admin-Bereich verwendet).
+export async function logActivity(adminName, aktion){
+  try{
+    await addDoc(collection(db, "aktivitaeten"), { admin: adminName, aktion, zeitpunkt: Date.now() });
+  } catch(err){
+    console.warn("Protokoll konnte nicht geschrieben werden:", err.message);
+  }
 }
