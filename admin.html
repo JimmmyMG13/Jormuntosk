@@ -193,8 +193,10 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     const pw2 = document.getElementById("loginPwConfirm").value;
     if (pw !== pw2){ err.textContent = "Passwörter stimmen nicht überein."; return; }
     const hash = await sha256(pw);
-    const ref = await addDoc(collection(db, COL_ADMINS), { name, password: hash });
-    currentAdmin = { id: ref.id, name };
+    const ref = await addDoc(collection(db, COL_ADMINS), { name, password: hash, rolle: "Präsident" });
+    currentAdmin = { id: ref.id, name, rolle: "Präsident" };
+    sessionStorage.setItem("jt_admin_id", currentAdmin.id);
+    sessionStorage.setItem("jt_admin_name", currentAdmin.name);
     enterShell();
     return;
   }
@@ -204,7 +206,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const adminDoc = snap.docs[0];
   const hash = await sha256(pw);
   if (hash !== adminDoc.data().password){ err.textContent = "Unbekannter Name oder falsches Passwort."; return; }
-  currentAdmin = { id: adminDoc.id, name: adminDoc.data().name };
+  currentAdmin = { id: adminDoc.id, name: adminDoc.data().name, rolle: adminDoc.data().rolle || "" };
   sessionStorage.setItem("jt_admin_id", currentAdmin.id);
   sessionStorage.setItem("jt_admin_name", currentAdmin.name);
   enterShell();
@@ -235,10 +237,18 @@ function resetInactivityTimer(){
 }
 ["mousemove", "keydown", "click", "scroll"].forEach(evt => document.addEventListener(evt, resetInactivityTimer));
 
+function canManageAdmin(){
+  // Aus Kompatibilitätsgründen: Zugänge ohne gesetzte Rolle (vor diesem Update angelegt) behalten vollen Zugriff.
+  return !currentAdmin.rolle || currentAdmin.rolle === "Präsident";
+}
+
 function enterShell(){
   document.getElementById("loginRoot").style.display = "none";
   document.getElementById("shellRoot").style.display = "block";
-  document.getElementById("whoName").textContent = currentAdmin.name;
+  document.getElementById("whoName").textContent = currentAdmin.name + (currentAdmin.rolle ? " (" + currentAdmin.rolle + ")" : "");
+  const restricted = !canManageAdmin();
+  document.querySelector('.sidebar button[data-mod="vorstand"]').style.display = restricted ? "none" : "block";
+  document.querySelector('.sidebar button[data-mod="einstellungen"]').style.display = restricted ? "none" : "block";
   loadModule("schichtplanung");
   resetInactivityTimer();
 }
@@ -336,6 +346,7 @@ function renderSchichtplanungModule(container){
         <button class="btn secondary small" id="planPrevDay">◄</button>
         <input type="date" id="planDate">
         <button class="btn secondary small" id="planNextDay">►</button>
+        <button class="btn secondary" id="autoAssignBtn">⚡ Automatisch zuweisen</button>
         <button class="btn secondary" id="exportExcelBtn">Excel-Export</button>
       </div>
     </div>
@@ -377,11 +388,45 @@ function renderSchichtplanungModule(container){
     el.innerHTML = schichttypen.map(s => `
       <div class="list-item">
         <span><span class="swatch" style="background:${s.farbe}"></span>${escapeHtml(s.name)} (${s.start}–${s.end})</span>
-        <button class="btn secondary small" data-del-st="${s.id}">Entfernen</button>
+        <span style="display:flex;gap:6px;">
+          <button class="btn secondary small" data-edit-st="${s.id}">Bearbeiten</button>
+          <button class="btn secondary small" data-del-st="${s.id}">Entfernen</button>
+        </span>
       </div>`).join("") || `<p style="color:var(--text-muted);font-size:13px;">Noch keine Schichttypen.</p>`;
     el.querySelectorAll("[data-del-st]").forEach(b => b.addEventListener("click", async () => {
       if (confirm("Schichttyp entfernen?")) await deleteDoc(doc(db, COL_SCHICHTTYPEN, b.dataset.delSt));
     }));
+    el.querySelectorAll("[data-edit-st]").forEach(b => b.addEventListener("click", () => {
+      openSchichttypEditModal(schichttypen.find(s => s.id === b.dataset.editSt));
+    }));
+  }
+
+  function openSchichttypEditModal(s){
+    showModal(`
+      <h2>Schichttyp bearbeiten</h2>
+      <div class="field"><label>Name</label><input type="text" id="stEditName" value="${escapeHtml(s.name)}"></div>
+      <div class="field"><label>Von</label><input type="time" id="stEditStart" value="${s.start}"></div>
+      <div class="field"><label>Bis</label><input type="time" id="stEditEnd" value="${s.end}"></div>
+      <div class="field"><label>Farbe</label><input type="color" id="stEditColor" value="${s.farbe}"></div>
+      <div class="modal-actions">
+        <div></div>
+        <div class="right">
+          <button class="btn secondary" id="stEditCancelBtn">Abbrechen</button>
+          <button class="btn" id="stEditSaveBtn">Speichern</button>
+        </div>
+      </div>
+    `);
+    document.getElementById("stEditCancelBtn").addEventListener("click", closeModal);
+    document.getElementById("stEditSaveBtn").addEventListener("click", async () => {
+      const name = document.getElementById("stEditName").value.trim();
+      const start = document.getElementById("stEditStart").value;
+      const end = document.getElementById("stEditEnd").value;
+      const farbe = document.getElementById("stEditColor").value;
+      if (!name || !start || !end){ alert("Bitte Name, Von und Bis ausfüllen."); return; }
+      await updateDoc(doc(db, COL_SCHICHTTYPEN, s.id), { name, start, end, farbe });
+      logActivity(currentAdmin.name, `hat den Schichttyp „${name}" bearbeitet`);
+      closeModal();
+    });
   }
 
   document.getElementById("addPostenBtn").addEventListener("click", async () => {
@@ -397,14 +442,46 @@ function renderSchichtplanungModule(container){
     el.innerHTML = posten.map(p => `
       <div class="list-item">
         <span><span class="swatch" style="background:${p.farbe}"></span>${escapeHtml(p.name)}</span>
-        <button class="btn secondary small" data-del-p="${p.id}">Entfernen</button>
+        <span style="display:flex;gap:6px;">
+          <button class="btn secondary small" data-edit-p="${p.id}">Bearbeiten</button>
+          <button class="btn secondary small" data-del-p="${p.id}">Entfernen</button>
+        </span>
       </div>`).join("") || `<p style="color:var(--text-muted);font-size:13px;">Noch keine Posten.</p>`;
     el.querySelectorAll("[data-del-p]").forEach(b => b.addEventListener("click", async () => {
       if (confirm("Posten entfernen?")) await deleteDoc(doc(db, COL_POSTEN, b.dataset.delP));
     }));
+    el.querySelectorAll("[data-edit-p]").forEach(b => b.addEventListener("click", () => {
+      openPostenEditModal(posten.find(p => p.id === b.dataset.editP));
+    }));
     const chips = document.getElementById("mKompetenzChips");
     chips.innerHTML = posten.map(p => `<div class="chip-check" data-kid="${p.id}">${escapeHtml(p.name)}</div>`).join("");
     chips.querySelectorAll(".chip-check").forEach(c => c.addEventListener("click", () => c.classList.toggle("on")));
+  }
+
+  function openPostenEditModal(p){
+    showModal(`
+      <h2>Posten bearbeiten</h2>
+      <div class="field"><label>Name</label><input type="text" id="pEditName" value="${escapeHtml(p.name)}"></div>
+      <div class="field"><label>Farbe</label><input type="color" id="pEditColor" value="${p.farbe}"></div>
+      <div class="field"><label>Beschreibung</label><input type="text" id="pEditDesc" value="${escapeHtml(p.beschreibung || "")}"></div>
+      <div class="modal-actions">
+        <div></div>
+        <div class="right">
+          <button class="btn secondary" id="pEditCancelBtn">Abbrechen</button>
+          <button class="btn" id="pEditSaveBtn">Speichern</button>
+        </div>
+      </div>
+    `);
+    document.getElementById("pEditCancelBtn").addEventListener("click", closeModal);
+    document.getElementById("pEditSaveBtn").addEventListener("click", async () => {
+      const name = document.getElementById("pEditName").value.trim();
+      const farbe = document.getElementById("pEditColor").value;
+      const beschreibung = document.getElementById("pEditDesc").value.trim();
+      if (!name){ alert("Bitte einen Namen angeben."); return; }
+      await updateDoc(doc(db, COL_POSTEN, p.id), { name, farbe, beschreibung });
+      logActivity(currentAdmin.name, `hat den Posten „${name}" bearbeitet`);
+      closeModal();
+    });
   }
 
   document.getElementById("addMitarbeiterBtn").addEventListener("click", async () => {
@@ -440,6 +517,15 @@ function renderSchichtplanungModule(container){
     }));
   }
 
+  function toMinutes(t){ const [h, m] = t.split(":").map(Number); return h * 60 + m; }
+  function shiftOverlap(aStart, aEnd, bStart, bEnd){
+    let as = toMinutes(aStart), ae = toMinutes(aEnd);
+    let bs = toMinutes(bStart), be = toMinutes(bEnd);
+    if (ae <= as) ae += 24 * 60;
+    if (be <= bs) be += 24 * 60;
+    return as < be && bs < ae;
+  }
+
   function loadZuweisungForDate(){
     if (unsubZ) unsubZ();
     if (unsubV) unsubV();
@@ -470,7 +556,7 @@ function renderSchichtplanungModule(container){
         return `
           <div class="post-row">
             <span class="post-name">${escapeHtml(p.name)}</span>
-            <select data-st="${st.id}" data-p="${p.id}" data-zid="${zug ? zug.id : ''}">
+            <select data-st="${st.id}" data-p="${p.id}" data-zid="${zug ? zug.id : ''}" data-prev="${zug ? zug.mitarbeiterId : ''}">
               <option value="">— nicht besetzt —</option>
               ${options}
             </select>
@@ -488,9 +574,26 @@ function renderSchichtplanungModule(container){
         const docId = `${currentPlanDate}_${stId}_${pId}`;
         if (!mId){
           if (zid) await deleteDoc(doc(db, COL_ZUWEISUNG, zid));
-        } else {
-          await setDoc(doc(db, COL_ZUWEISUNG, docId), { datum: currentPlanDate, schichttypId: stId, postenId: pId, mitarbeiterId: mId });
+          return;
         }
+        const st = schichttypen.find(s => s.id === stId);
+        const conflicts = zuweisungen.filter(z => z.mitarbeiterId === mId && z.id !== zid).filter(z => {
+          const ost = schichttypen.find(s => s.id === z.schichttypId);
+          return ost && shiftOverlap(st.start, st.end, ost.start, ost.end);
+        });
+        if (conflicts.length > 0){
+          const namen = conflicts.map(z => {
+            const p2 = posten.find(pp => pp.id === z.postenId);
+            const st2 = schichttypen.find(s => s.id === z.schichttypId);
+            return `${st2 ? st2.name : "?"} (${p2 ? p2.name : "?"})`;
+          }).join(", ");
+          const mName = (mitarbeiter.find(m => m.id === mId) || {}).name || "Diese Person";
+          if (!confirm(`${mName} ist bereits für folgende überschneidende Schicht(en) eingeteilt: ${namen}.\n\nTrotzdem zuweisen?`)){
+            sel.value = sel.dataset.prev;
+            return;
+          }
+        }
+        await setDoc(doc(db, COL_ZUWEISUNG, docId), { datum: currentPlanDate, schichttypId: stId, postenId: pId, mitarbeiterId: mId });
       });
     });
   }
@@ -498,6 +601,58 @@ function renderSchichtplanungModule(container){
   document.getElementById("planDate").addEventListener("change", e => { currentPlanDate = e.target.value; loadZuweisungForDate(); });
   document.getElementById("planPrevDay").addEventListener("click", () => { currentPlanDate = addDays(currentPlanDate, -1); document.getElementById("planDate").value = currentPlanDate; loadZuweisungForDate(); });
   document.getElementById("planNextDay").addEventListener("click", () => { currentPlanDate = addDays(currentPlanDate, 1); document.getElementById("planDate").value = currentPlanDate; loadZuweisungForDate(); });
+
+  document.getElementById("autoAssignBtn").addEventListener("click", async () => {
+    if (schichttypen.length === 0 || posten.length === 0 || mitarbeiter.length === 0){
+      alert("Bitte zuerst Schichttypen, Posten und Mitarbeiter anlegen.");
+      return;
+    }
+    const zSnap = await getDocs(query(collection(db, COL_ZUWEISUNG), where("datum", "==", currentPlanDate)));
+    const existingZ = zSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const vSnap = await getDocs(query(collection(db, COL_VERFUEGBARKEIT), where("datum", "==", currentPlanDate)));
+    const verfList = vSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const dailyCount = {};
+    const assignedIntervals = {};
+    existingZ.forEach(z => {
+      dailyCount[z.mitarbeiterId] = (dailyCount[z.mitarbeiterId] || 0) + 1;
+      const st = schichttypen.find(s => s.id === z.schichttypId);
+      if (st){
+        assignedIntervals[z.mitarbeiterId] = assignedIntervals[z.mitarbeiterId] || [];
+        assignedIntervals[z.mitarbeiterId].push({ start: st.start, end: st.end });
+      }
+    });
+
+    let assignedCount = 0, unfilled = 0;
+    const writes = [];
+    for (const st of schichttypen){
+      for (const p of posten){
+        const already = existingZ.find(z => z.schichttypId === st.id && z.postenId === p.id);
+        if (already) continue;
+        const kandidaten = mitarbeiter.filter(m => (m.kompetenzen || []).includes(p.id));
+        const geeignete = kandidaten.filter(m => {
+          const verfuegbar = verfList.find(v => v.mitarbeiterId === m.id && (v.schichten || []).includes(st.id) && !v.nichtMoeglich);
+          if (!verfuegbar) return false;
+          const count = dailyCount[m.id] || 0;
+          if (count >= (m.tageslimit || 1)) return false;
+          const intervals = assignedIntervals[m.id] || [];
+          return !intervals.some(iv => shiftOverlap(st.start, st.end, iv.start, iv.end));
+        });
+        if (geeignete.length === 0){ unfilled++; continue; }
+        geeignete.sort((a, b) => (dailyCount[a.id] || 0) - (dailyCount[b.id] || 0));
+        const chosen = geeignete[0];
+        const docId = `${currentPlanDate}_${st.id}_${p.id}`;
+        writes.push(setDoc(doc(db, COL_ZUWEISUNG, docId), { datum: currentPlanDate, schichttypId: st.id, postenId: p.id, mitarbeiterId: chosen.id }));
+        dailyCount[chosen.id] = (dailyCount[chosen.id] || 0) + 1;
+        assignedIntervals[chosen.id] = assignedIntervals[chosen.id] || [];
+        assignedIntervals[chosen.id].push({ start: st.start, end: st.end });
+        assignedCount++;
+      }
+    }
+    await Promise.all(writes);
+    logActivity(currentAdmin.name, `hat für ${currentPlanDate} automatisch ${assignedCount} Zuweisung(en) vorgenommen`);
+    alert(`Automatische Zuweisung abgeschlossen: ${assignedCount} Posten besetzt${unfilled > 0 ? `, ${unfilled} konnten nicht besetzt werden (keine verfügbare/qualifizierte Person)` : ""}.`);
+  });
 
   document.getElementById("exportExcelBtn").addEventListener("click", async () => {
     const qz = query(collection(db, COL_ZUWEISUNG), where("datum", "==", currentPlanDate));
@@ -624,8 +779,9 @@ function renderVorstandModule(container){
     if (!el) return;
     el.innerHTML = admins.map(a => `
       <div class="list-item">
-        <span>${escapeHtml(a.name)}${a.id === currentAdmin.id ? " (du)" : ""}</span>
+        <span>${escapeHtml(a.name)}${a.id === currentAdmin.id ? " (du)" : ""}${a.rolle ? ` <span style="color:var(--text-muted);">— ${escapeHtml(a.rolle)}</span>` : ""}</span>
         <span style="display:flex;gap:6px;">
+          <button class="btn secondary small" data-role="${a.id}">Rolle</button>
           <button class="btn secondary small" data-pw="${a.id}">Passwort ändern</button>
           <button class="btn secondary small" data-del="${a.id}">Entfernen</button>
         </span>
@@ -639,6 +795,40 @@ function renderVorstandModule(container){
       }
     }));
     el.querySelectorAll("[data-pw]").forEach(b => b.addEventListener("click", () => openAdminModal(admins.find(a => a.id === b.dataset.pw), true)));
+    el.querySelectorAll("[data-role]").forEach(b => b.addEventListener("click", () => openRoleModal(admins.find(a => a.id === b.dataset.role))));
+  });
+}
+
+const ROLLEN = ["Präsident", "Vizepräsident", "Kassier", "Aktuar", "Beisitzer"];
+
+function openRoleModal(admin){
+  showModal(`
+    <h2>Rolle ändern — ${escapeHtml(admin.name)}</h2>
+    <div class="field"><label>Rolle</label>
+      <select id="rRolle">
+        <option value="">— keine —</option>
+        ${ROLLEN.map(r => `<option value="${r}" ${admin.rolle === r ? "selected" : ""}>${r}</option>`).join("")}
+      </select>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);">Nur die Rolle „Präsident" hat Zugriff auf Vorstand-Zugänge und Einstellungen.</p>
+    <div class="modal-actions">
+      <div></div>
+      <div class="right">
+        <button class="btn secondary" id="rCancelBtn">Abbrechen</button>
+        <button class="btn" id="rSaveBtn">Speichern</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("rCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("rSaveBtn").addEventListener("click", async () => {
+    const rolle = document.getElementById("rRolle").value;
+    await updateDoc(doc(db, COL_ADMINS, admin.id), { rolle });
+    logActivity(currentAdmin.name, `hat die Rolle von „${admin.name}" auf „${rolle || "keine"}" gesetzt`);
+    if (admin.id === currentAdmin.id){
+      currentAdmin.rolle = rolle;
+      enterShell();
+    }
+    closeModal();
   });
 }
 
@@ -646,6 +836,7 @@ function openAdminModal(admin, pwOnly){
   showModal(`
     <h2>${admin ? "Passwort ändern — " + escapeHtml(admin.name) : "Neuer Vorstand-Zugang"}</h2>
     ${admin ? "" : `<div class="field"><label>Name</label><input type="text" id="vName"></div>`}
+    ${admin ? "" : `<div class="field"><label>Rolle</label><select id="vRolle"><option value="">— keine —</option>${ROLLEN.map(r => `<option value="${r}">${r}</option>`).join("")}</select></div>`}
     <div class="field"><label>${admin ? "Neues Passwort" : "Passwort"}</label><input type="password" id="vPw"></div>
     <div class="modal-actions">
       <div></div>
@@ -665,8 +856,9 @@ function openAdminModal(admin, pwOnly){
       logActivity(currentAdmin.name, `hat das Passwort von „${admin.name}" geändert`);
     } else {
       const name = document.getElementById("vName").value.trim();
+      const rolle = document.getElementById("vRolle").value;
       if (!name){ alert("Bitte einen Namen angeben."); return; }
-      await addDoc(collection(db, COL_ADMINS), { name, password: hash });
+      await addDoc(collection(db, COL_ADMINS), { name, password: hash, rolle });
       logActivity(currentAdmin.name, `hat den Zugang „${name}" angelegt`);
     }
     closeModal();
@@ -807,7 +999,19 @@ function renderEinstellungenModule(container){
    ========================================================= */
 function renderProtokollModule(container){
   container.innerHTML = `
-    <h1>Aktivitätsprotokoll</h1>
+    <div class="toolbar">
+      <h1 style="margin:0;">Aktivitätsprotokoll</h1>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="cleanupThreshold">
+          <option value="30">älter als 30 Tage</option>
+          <option value="90" selected>älter als 90 Tage</option>
+          <option value="180">älter als 180 Tage</option>
+          <option value="365">älter als 1 Jahr</option>
+        </select>
+        <button class="btn secondary" id="cleanupBtn">Alte Einträge löschen</button>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:-8px;">Angezeigt werden die letzten 100 Einträge.</p>
     <div class="card pad" id="logList"><p style="color:var(--text-muted);font-size:13px;">Lädt…</p></div>
   `;
   const q = query(collection(db, COL_AKTIVITAETEN), orderBy("zeitpunkt", "desc"), limit(100));
@@ -825,6 +1029,18 @@ function renderProtokollModule(container){
       return `<div class="list-item"><span><b>${escapeHtml(r.admin || "?")}</b> ${escapeHtml(r.aktion || "")}</span><span style="color:var(--text-muted);">${dtStr}</span></div>`;
     }).join("");
   });
+
+  document.getElementById("cleanupBtn").addEventListener("click", async () => {
+    const days = parseInt(document.getElementById("cleanupThreshold").value);
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    if (!confirm(`Alle Protokoll-Einträge älter als ${days} Tage werden unwiderruflich gelöscht. Fortfahren?`)) return;
+    const oldQ = query(collection(db, COL_AKTIVITAETEN), where("zeitpunkt", "<", cutoff));
+    const snap = await getDocs(oldQ);
+    if (snap.empty){ alert("Keine Einträge zum Löschen gefunden."); return; }
+    await Promise.all(snap.docs.map(d => deleteDoc(doc(db, COL_AKTIVITAETEN, d.id))));
+    logActivity(currentAdmin.name, `hat ${snap.size} alte Protokoll-Einträge gelöscht (älter als ${days} Tage)`);
+    alert(`${snap.size} Einträge gelöscht.`);
+  });
 }
 
 // ---------- Init ----------
@@ -835,7 +1051,7 @@ function renderProtokollModule(container){
   if (savedId && savedName && !bootstrapMode){
     const snap = await getDoc(doc(db, COL_ADMINS, savedId));
     if (snap.exists()){
-      currentAdmin = { id: savedId, name: snap.data().name };
+      currentAdmin = { id: savedId, name: snap.data().name, rolle: snap.data().rolle || "" };
       enterShell();
     }
   }
