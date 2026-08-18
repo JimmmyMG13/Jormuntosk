@@ -120,9 +120,9 @@
     <div class="brand-text"><span class="name">Jörmuntösk</span><span class="sub">Schichtplanung</span></div>
   </div>
   <nav class="tabs">
-    <button data-tab="planung" class="active">Planung</button>
+    <button data-tab="planung">Planung</button>
     <button data-tab="tagesuebersicht">Tagesübersicht</button>
-    <button data-tab="eingabe">Mitarbeiter-Eingabe</button>
+    <button data-tab="eingabe" class="active">Mitarbeiter-Eingabe</button>
   </nav>
   <div class="header-actions">
     <a href="uebersicht.html" class="icon-btn" title="Zur Übersicht">⌂</a>
@@ -133,7 +133,7 @@
 <main>
 
 <!-- PLANUNG TAB -->
-<div class="tabpage active" id="tab-planung">
+<div class="tabpage" id="tab-planung">
   <div id="planungLogin" class="login-box">
     <h2>Planung — Anmeldung</h2>
     <p style="color:var(--text-muted);font-size:14px;">Bitte Admin-Passwort eingeben.</p>
@@ -236,7 +236,7 @@
 </div>
 
 <!-- MITARBEITER-EINGABE TAB -->
-<div class="tabpage" id="tab-eingabe">
+<div class="tabpage active" id="tab-eingabe">
   <div id="eingabeLogin" class="login-box">
     <h2>Anmelden</h2>
     <div class="field"><label>Name</label><input type="text" id="eLoginName"></div>
