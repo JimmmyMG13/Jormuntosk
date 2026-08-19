@@ -49,6 +49,15 @@
   nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:24px;}
   nav.tools a{font-size:13px;color:var(--accent);text-decoration:none;}
   nav.tools a:hover{text-decoration:underline;}
+  .abzeichen-section{margin-bottom:18px;}
+  .abzeichen-section:last-child{margin-bottom:0;}
+  .abzeichen-section h3{font-size:13px;margin:0 0 10px 0;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .abzeichen-grid{display:flex;flex-wrap:wrap;gap:10px;}
+  .abzeichen-item{width:100px;text-align:center;padding:10px 6px;border-radius:10px;border:1px solid var(--border);opacity:.35;}
+  .abzeichen-item.erreicht{opacity:1;border-color:var(--accent);background:rgba(42,163,41,0.08);}
+  .abzeichen-item .icon{font-size:26px;line-height:1;margin-bottom:6px;}
+  .abzeichen-item .name{font-size:11px;font-weight:bold;line-height:1.2;}
+  .abzeichen-item .stufe{font-size:10px;color:var(--text-muted);margin-top:2px;}
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
 </head>
@@ -97,6 +106,19 @@
   </div>
 
   <div class="card">
+    <h2>Meine Abzeichen</h2>
+    <p class="hint">Automatisch ermittelt aus Markttagebuch-Beiträgen und Mitgliedsdauer.</p>
+    <div class="abzeichen-section">
+      <h3>Markttagebuch</h3>
+      <div class="abzeichen-grid" id="abzeichenMarkt"></div>
+    </div>
+    <div class="abzeichen-section">
+      <h3>Zugehörigkeit</h3>
+      <div class="abzeichen-grid" id="abzeichenZugehoerigkeit"></div>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Passwort ändern</h2>
     <p class="hint">Wähle ein neues Passwort für deinen Zugang.</p>
     <div class="field">
@@ -122,8 +144,8 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256 } from "./common.js";
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, ermittleMarktAbzeichen, ermittleZugehoerigkeitAbzeichen } from "./common.js";
+import { doc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const member = await requireMemberLogin();
 
@@ -144,6 +166,31 @@ function fillProfile(m){
 }
 
 fillProfile(member);
+
+// Ermittelt und rendert die erreichten (und noch offenen) Abzeichen des Mitglieds.
+const MARKT_ICONS = { chronist: "📝", geschichtenerzaehler: "📖", skalde: "🏆" };
+const ZUGEHOERIGKEIT_ICONS = { neu_in_der_sippe: "🌱", "1_jahr": "🥉", "3_jahre": "🥈", "5_jahre": "🥇", urgestein: "🪨" };
+
+function renderAbzeichenListe(containerId, abzeichenListe, iconMap){
+  const el = document.getElementById(containerId);
+  el.innerHTML = abzeichenListe.map(a => `
+    <div class="abzeichen-item${a.erreicht ? " erreicht" : ""}" title="${a.beschreibung.replace(/"/g, "&quot;")}">
+      <div class="icon">${iconMap[a.id] || "🎖️"}</div>
+      <div class="name">${a.name}</div>
+      ${a.stufe ? `<div class="stufe">${a.stufe}</div>` : ""}
+    </div>`).join("");
+}
+
+async function ladeAbzeichen(){
+  renderAbzeichenListe("abzeichenZugehoerigkeit", ermittleZugehoerigkeitAbzeichen(member), ZUGEHOERIGKEIT_ICONS);
+  try {
+    const snap = await getDocs(query(collection(db, "markttagebuch_eintraege"), where("erstelltVonId", "==", member.id)));
+    renderAbzeichenListe("abzeichenMarkt", ermittleMarktAbzeichen(snap.size), MARKT_ICONS);
+  } catch (err) {
+    renderAbzeichenListe("abzeichenMarkt", ermittleMarktAbzeichen(0), MARKT_ICONS);
+  }
+}
+ladeAbzeichen();
 
 document.getElementById("saveProfilBtn").addEventListener("click", async () => {
   const msgEl = document.getElementById("profilMsg");

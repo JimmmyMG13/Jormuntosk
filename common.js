@@ -151,11 +151,6 @@ export function fileToLimitedDataUrl(file, { maxDim = 512, maxBytes = 700000 } =
     reader.readAsDataURL(file);
   });
 }
-
-// =========================================================
-// Mitglieder-Login (für alle öffentlichen Werkzeuge: Übersicht,
-// Schichtplanung, Markttagebuch, Mitgliederbereich)
-// =========================================================
 const COL_MITGLIEDER = "mitglieder";
 let _currentMember = null;
 
@@ -163,6 +158,60 @@ let _currentMember = null;
 export function getCurrentMember(){ return _currentMember; }
 
 // Prüft, ob ein Mitglied Verwaltungsrechte besitzt (Zugriff auf den Admin-Bereich).
+// =========================================================
+// Abzeichen / Achievements
+// Umgesetzt gemäss Konzeptdokument "Achievement-System für Jörmuntösk":
+// Markttagebuch-Abzeichen (Kategorie 2) und Zugehörigkeits-/Jubiläums-
+// Abzeichen (Kategorie 3), beide vollständig automatisch berechnet.
+// Teilnahme-Abzeichen (Kategorie 1) und manuell vergebene Abzeichen sind
+// bewusst nicht Teil dieser Umsetzung.
+// =========================================================
+
+export const MARKT_ABZEICHEN = [
+  { id: "chronist", name: "Chronist", stufe: "Bronze", schwelle: 1, beschreibung: "1 Markttagebuch-Eintrag" },
+  { id: "geschichtenerzaehler", name: "Geschichtenerzähler", stufe: "Silber", schwelle: 5, beschreibung: "5 Markttagebuch-Einträge" },
+  { id: "skalde", name: "Skalde", stufe: "Gold", schwelle: 15, beschreibung: "15 Markttagebuch-Einträge" }
+];
+
+export const ZUGEHOERIGKEIT_ABZEICHEN = [
+  { id: "neu_in_der_sippe", name: "Neu in der Sippe", beschreibung: "Probezeit erfolgreich abgeschlossen" },
+  { id: "1_jahr", name: "1 Jahr Sippe", jahre: 1, beschreibung: "1 Jahr Mitgliedschaft" },
+  { id: "3_jahre", name: "3 Jahre Sippe", jahre: 3, beschreibung: "3 Jahre Mitgliedschaft" },
+  { id: "5_jahre", name: "5 Jahre Sippe", jahre: 5, beschreibung: "5 Jahre Mitgliedschaft" },
+  { id: "urgestein", name: "Urgestein", jahre: 10, beschreibung: "10 Jahre Mitgliedschaft" }
+];
+
+// Ermittelt die vollen Jahre seit einem Datum (yyyy-mm-dd), inkl. Schaltjahr-Handling.
+function vergangeneJahre(datumStr){
+  if (!datumStr) return null;
+  const start = new Date(datumStr + "T00:00:00");
+  if (isNaN(start.getTime())) return null;
+  const heute = new Date();
+  let jahre = heute.getFullYear() - start.getFullYear();
+  const vorJahrestag = (heute.getMonth() < start.getMonth()) ||
+    (heute.getMonth() === start.getMonth() && heute.getDate() < start.getDate());
+  if (vorJahrestag) jahre -= 1;
+  return Math.max(0, jahre);
+}
+
+// Liefert die Markttagebuch-Abzeichen eines Mitglieds anhand der Anzahl
+// selbst verfasster Einträge, inkl. Info, ob das Abzeichen erreicht ist.
+export function ermittleMarktAbzeichen(anzahlEintraege){
+  return MARKT_ABZEICHEN.map(a => ({ ...a, erreicht: (anzahlEintraege || 0) >= a.schwelle }));
+}
+
+// Liefert die Zugehörigkeits-/Jubiläums-Abzeichen eines Mitglieds anhand von
+// Beitrittsdatum und Status ("aktiv" = Probezeit abgeschlossen).
+export function ermittleZugehoerigkeitAbzeichen(member){
+  const jahre = vergangeneJahre(member && member.beitrittsdatum);
+  return ZUGEHOERIGKEIT_ABZEICHEN.map(a => {
+    if (a.id === "neu_in_der_sippe"){
+      return { ...a, erreicht: !!(member && member.status === "aktiv" && member.beitrittsdatum) };
+    }
+    return { ...a, erreicht: jahre !== null && jahre >= a.jahre };
+  });
+}
+
 export function isAdmin(member){ return !!(member && member.verwaltung === true); }
 
 // Meldet das Mitglied ab und lädt die Seite neu, damit wieder der Login erscheint.

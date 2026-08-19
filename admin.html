@@ -987,7 +987,12 @@ function openMtModal(entry){
     }
     try{
       if (entry) await updateDoc(doc(db, COL_MARKT, entry.id), data);
-      else { data.erstelltAm = new Date().toISOString(); await addDoc(collection(db, COL_MARKT), data); }
+      else {
+        data.erstelltAm = new Date().toISOString();
+        data.erstelltVonId = currentAdmin.id;
+        data.erstelltVonName = currentAdmin.name;
+        await addDoc(collection(db, COL_MARKT), data);
+      }
       logActivity(currentAdmin.name, `hat Marktbesuch „${data.marktname}" ${entry ? "bearbeitet" : "angelegt"}`);
       closeModal();
     } catch(err){ alert("Fehler beim Speichern: " + err.message); }
@@ -1072,6 +1077,9 @@ function openMitgliedModal(mitglied, alleMitglieder){
     <div class="field"><label>E-Mail</label><input type="email" id="mEmail" value="${mitglied && mitglied.email ? escapeHtml(mitglied.email) : ""}" placeholder="optional"></div>
     <div class="field"><label>Telefon</label><input type="tel" id="mTelefon" value="${mitglied && mitglied.telefon ? escapeHtml(mitglied.telefon) : ""}" placeholder="optional"></div>
     <div class="field"><label>Adresse</label><input type="text" id="mAdresse" value="${mitglied && mitglied.adresse ? escapeHtml(mitglied.adresse) : ""}" placeholder="optional"></div>
+    <div class="field"><label>Beitrittsdatum</label><input type="date" id="mBeitritt" value="${mitglied && mitglied.beitrittsdatum ? mitglied.beitrittsdatum : ""}">
+      <p style="font-size:11px;color:var(--text-muted);margin:4px 0 0;">Grundlage für die Zugehörigkeits- und Jubiläums-Abzeichen.</p>
+    </div>
     <div class="field">
       <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
         <input type="checkbox" id="mVerwaltung" style="width:auto;" ${istVerwaltung ? "checked" : ""}>
@@ -1093,6 +1101,7 @@ function openMitgliedModal(mitglied, alleMitglieder){
     const email = document.getElementById("mEmail").value.trim();
     const telefon = document.getElementById("mTelefon").value.trim();
     const adresse = document.getElementById("mAdresse").value.trim();
+    const beitrittsdatum = document.getElementById("mBeitritt").value;
     const verwaltung = document.getElementById("mVerwaltung").checked;
     if (!name){ alert("Bitte einen Namen angeben."); return; }
     if (mitglied && istVerwaltung && !verwaltung && alleMitglieder){
@@ -1104,7 +1113,7 @@ function openMitgliedModal(mitglied, alleMitglieder){
     }
     try {
       if (mitglied){
-        await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { name, status, email, telefon, adresse, verwaltung });
+        await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { name, status, email, telefon, adresse, beitrittsdatum, verwaltung });
         logActivity(currentAdmin.name, `hat das Mitglied „${name}" bearbeitet` + (verwaltung !== istVerwaltung ? ` (Verwaltungsrechte ${verwaltung ? "erteilt" : "entzogen"})` : ""));
         if (mitglied.id === currentAdmin.id && !verwaltung){
           closeModal();
@@ -1116,7 +1125,7 @@ function openMitgliedModal(mitglied, alleMitglieder){
         const pw = document.getElementById("mPw").value;
         if (!pw){ alert("Bitte ein Initialpasswort angeben."); return; }
         const hash = await sha256(pw);
-        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status, email, telefon, adresse, verwaltung });
+        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status, email, telefon, adresse, beitrittsdatum, verwaltung });
         logActivity(currentAdmin.name, `hat das Mitglied „${name}" angelegt` + (verwaltung ? " (mit Verwaltungsrechten)" : ""));
       }
       closeModal();
