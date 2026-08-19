@@ -107,3 +107,47 @@ export async function logActivity(adminName, aktion){
     console.warn("Protokoll konnte nicht geschrieben werden:", err.message);
   }
 }
+
+// Verkleinert/komprimiert ein Bild (z.B. Logo-Upload) auf eine Data-URL, die sicher
+// unter dem Firestore-Dokumentlimit von 1 MB bleibt. Firestore lehnt zu grosse
+// Dokumente sonst kommentarlos ab, wodurch ein Speichervorgang wirkungslos bliebe.
+export function fileToLimitedDataUrl(file, { maxDim = 512, maxBytes = 700000 } = {}){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Bild konnte nicht gelesen werden."));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim){
+          const scale = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Erst PNG probieren (verlustfrei, gut für Logos mit Transparenz),
+        // bei Bedarf auf komprimiertes JPEG mit sinkender Qualität ausweichen.
+        let dataUrl = canvas.toDataURL("image/png");
+        if (dataUrl.length > maxBytes){
+          for (const quality of [0.9, 0.75, 0.6, 0.45, 0.3]){
+            dataUrl = canvas.toDataURL("image/jpeg", quality);
+            if (dataUrl.length <= maxBytes) break;
+          }
+        }
+        if (dataUrl.length > maxBytes){
+          reject(new Error("Das Bild ist auch nach dem Verkleinern noch zu gross. Bitte ein kleineres Bild verwenden."));
+          return;
+        }
+        resolve(dataUrl);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
