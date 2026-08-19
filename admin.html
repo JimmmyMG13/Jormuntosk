@@ -157,6 +157,7 @@
       <div class="who">Angemeldet als<br><b id="whoName"></b><br><button class="btn secondary small" style="margin-top:8px;" id="logoutBtn">Abmelden</button></div>
       <button data-mod="schichtplanung" class="active">Schichtplanung</button>
       <button data-mod="markttagebuch">Markttagebuch</button>
+      <button data-mod="mitglieder">Mitglieder</button>
       <button data-mod="vorstand">Vorstand-Zugänge</button>
       <button data-mod="einstellungen">Einstellungen</button>
       <button data-mod="protokoll">Protokoll</button>
@@ -194,6 +195,7 @@ const COL_VERFUEGBARKEIT = "verfuegbarkeiten";
 const COL_ZUWEISUNG = "zuweisungen";
 const COL_MARKT = "markttagebuch_eintraege";
 const COL_AKTIVITAETEN = "aktivitaeten";
+const COL_MITGLIEDER = "mitglieder";
 const SETTINGS_SP = doc(db, "einstellungen", "schichtplanung");
 const SETTINGS_ALLGEMEIN = doc(db, "einstellungen", "allgemein");
 const SETTINGS_DESIGN = doc(db, "einstellungen", "design");
@@ -300,6 +302,7 @@ function loadModule(mod){
   container.innerHTML = "";
   if (mod === "schichtplanung") renderSchichtplanungModule(container);
   if (mod === "markttagebuch") renderMarkttagebuchModule(container);
+  if (mod === "mitglieder") renderMitgliederModule(container);
   if (mod === "vorstand") renderVorstandModule(container);
   if (mod === "einstellungen") renderEinstellungenModule(container);
   if (mod === "protokoll") renderProtokollModule(container);
@@ -1006,6 +1009,123 @@ function openMtModal(entry){
       closeModal();
     });
   }
+}
+
+/* =========================================================
+   MODUL: MITGLIEDER
+   ========================================================= */
+const MITGLIED_STATUS = ["aktiv", "probezeit"];
+
+function renderMitgliederModule(container){
+  container.innerHTML = `
+    <div class="toolbar">
+      <h1 style="margin:0;">Mitglieder</h1>
+      <button class="btn" id="mNewBtn">+ Mitglied anlegen</button>
+    </div>
+    <div class="card pad" id="mList"></div>
+  `;
+  document.getElementById("mNewBtn").addEventListener("click", () => openMitgliedModal());
+  onSnapshot(collection(db, COL_MITGLIEDER), snap => {
+    const mitglieder = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+    const el = document.getElementById("mList");
+    if (!el) return;
+    el.innerHTML = mitglieder.map(m => `
+      <div class="list-item">
+        <span>${escapeHtml(m.name)}
+          <span style="color:var(--text-muted);">— ${m.status === "probezeit" ? "Probezeit" : "Aktiv"}</span>
+          ${m.email ? ` <span style="color:var(--text-muted);">· ${escapeHtml(m.email)}</span>` : ""}
+        </span>
+        <span style="display:flex;gap:6px;">
+          <button class="btn secondary small" data-edit="${m.id}">Bearbeiten</button>
+          <button class="btn secondary small" data-pw="${m.id}">Passwort zurücksetzen</button>
+          <button class="btn secondary small" data-del="${m.id}">Entfernen</button>
+        </span>
+      </div>`).join("") || `<p style="color:var(--text-muted);font-size:13px;">Keine Mitglieder vorhanden.</p>`;
+    el.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+      const target = mitglieder.find(m => m.id === b.dataset.del);
+      if (confirm(`Mitglied „${target ? target.name : "?"}" wirklich entfernen?`)){
+        await deleteDoc(doc(db, COL_MITGLIEDER, b.dataset.del));
+        logActivity(currentAdmin.name, `hat das Mitglied „${target ? target.name : "?"}" entfernt`);
+      }
+    }));
+    el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openMitgliedModal(mitglieder.find(m => m.id === b.dataset.edit))));
+    el.querySelectorAll("[data-pw]").forEach(b => b.addEventListener("click", () => openMitgliedPwModal(mitglieder.find(m => m.id === b.dataset.pw))));
+  });
+}
+
+function openMitgliedModal(mitglied){
+  showModal(`
+    <h2>${mitglied ? "Mitglied bearbeiten — " + escapeHtml(mitglied.name) : "Neues Mitglied anlegen"}</h2>
+    <div class="field"><label>Name</label><input type="text" id="mName" value="${mitglied ? escapeHtml(mitglied.name) : ""}"></div>
+    ${mitglied ? "" : `<div class="field"><label>Initialpasswort</label><input type="password" id="mPw"></div>`}
+    <div class="field"><label>Status</label>
+      <select id="mStatus">
+        ${MITGLIED_STATUS.map(s => `<option value="${s}" ${(mitglied ? mitglied.status : "probezeit") === s ? "selected" : ""}>${s === "probezeit" ? "Probezeit" : "Aktiv"}</option>`).join("")}
+      </select>
+    </div>
+    <div class="field"><label>E-Mail</label><input type="email" id="mEmail" value="${mitglied && mitglied.email ? escapeHtml(mitglied.email) : ""}" placeholder="optional"></div>
+    <div class="field"><label>Telefon</label><input type="tel" id="mTelefon" value="${mitglied && mitglied.telefon ? escapeHtml(mitglied.telefon) : ""}" placeholder="optional"></div>
+    <div class="field"><label>Adresse</label><input type="text" id="mAdresse" value="${mitglied && mitglied.adresse ? escapeHtml(mitglied.adresse) : ""}" placeholder="optional"></div>
+    <div class="modal-actions">
+      <div></div>
+      <div class="right">
+        <button class="btn secondary" id="mCancelBtn">Abbrechen</button>
+        <button class="btn" id="mSaveBtn">Speichern</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("mCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("mSaveBtn").addEventListener("click", async () => {
+    const name = document.getElementById("mName").value.trim();
+    const status = document.getElementById("mStatus").value;
+    const email = document.getElementById("mEmail").value.trim();
+    const telefon = document.getElementById("mTelefon").value.trim();
+    const adresse = document.getElementById("mAdresse").value.trim();
+    if (!name){ alert("Bitte einen Namen angeben."); return; }
+    try {
+      if (mitglied){
+        await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { name, status, email, telefon, adresse });
+        logActivity(currentAdmin.name, `hat das Mitglied „${name}" bearbeitet`);
+      } else {
+        const pw = document.getElementById("mPw").value;
+        if (!pw){ alert("Bitte ein Initialpasswort angeben."); return; }
+        const hash = await sha256(pw);
+        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status, email, telefon, adresse });
+        logActivity(currentAdmin.name, `hat das Mitglied „${name}" angelegt`);
+      }
+      closeModal();
+    } catch (err) {
+      alert("Fehler beim Speichern: " + err.message);
+    }
+  });
+}
+
+function openMitgliedPwModal(mitglied){
+  showModal(`
+    <h2>Passwort zurücksetzen — ${escapeHtml(mitglied.name)}</h2>
+    <div class="field"><label>Neues Passwort</label><input type="password" id="mPwNeu"></div>
+    <div class="modal-actions">
+      <div></div>
+      <div class="right">
+        <button class="btn secondary" id="mPwCancelBtn">Abbrechen</button>
+        <button class="btn" id="mPwSaveBtn">Speichern</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("mPwCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("mPwSaveBtn").addEventListener("click", async () => {
+    const pw = document.getElementById("mPwNeu").value;
+    if (!pw){ alert("Bitte ein Passwort angeben."); return; }
+    try {
+      const hash = await sha256(pw);
+      await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { password: hash });
+      logActivity(currentAdmin.name, `hat das Passwort von „${mitglied.name}" zurückgesetzt`);
+      closeModal();
+    } catch (err) {
+      alert("Fehler beim Speichern: " + err.message);
+    }
+  });
 }
 
 /* =========================================================

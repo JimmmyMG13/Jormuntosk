@@ -41,12 +41,17 @@
 </head>
 <body>
 
+<div id="appRoot" style="display:none;">
 <header>
   <div class="brand">
     <img id="logoImg" src="" alt="Jörmuntösk Logo">
     <div class="brand-text"><span class="name">Jörmuntösk</span><span class="sub">Tools</span></div>
   </div>
-  <button class="icon-btn" id="themeToggle" title="Hell/Dunkel">☾</button>
+  <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
+    <a class="icon-btn" href="mitglieder.html" title="Mitgliederbereich" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">👤</a>
+    <button class="icon-btn" id="themeToggle" title="Hell/Dunkel">☾</button>
+    <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
+  </div>
 </header>
 
 <main>
@@ -65,6 +70,11 @@
       <h3>Markttagebuch</h3>
       <p>Marktbesuche ansehen.</p>
     </a>
+    <a class="tile" href="mitglieder.html" id="tile-mitglieder">
+      <div class="emoji">👤</div>
+      <h3>Mitgliederbereich</h3>
+      <p>Eigene Kontaktdaten ansehen und aktualisieren.</p>
+    </a>
     <a class="tile" href="admin.html" id="tile-admin">
       <div class="emoji">⚙</div>
       <h3>Admin</h3>
@@ -74,12 +84,18 @@
 </main>
 
 <footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
+</div>
+
+</div>
 
 <script type="module">
-import { db, initTheme, applyBranding } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout } from "./common.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
+await requireMemberLogin();
+
 initTheme("themeToggle");
+document.getElementById("logoutBtn").addEventListener("click", memberLogout);
 applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
 
 onSnapshot(doc(db, "einstellungen", "sichtbarkeit"), snap => {
