@@ -174,7 +174,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl } from "./common.js";
+import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen } from "./common.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -987,12 +987,7 @@ function openMtModal(entry){
     }
     try{
       if (entry) await updateDoc(doc(db, COL_MARKT, entry.id), data);
-      else {
-        data.erstelltAm = new Date().toISOString();
-        data.erstelltVonId = currentAdmin.id;
-        data.erstelltVonName = currentAdmin.name;
-        await addDoc(collection(db, COL_MARKT), data);
-      }
+      else { data.erstelltAm = new Date().toISOString(); await addDoc(collection(db, COL_MARKT), data); }
       logActivity(currentAdmin.name, `hat Marktbesuch „${data.marktname}" ${entry ? "bearbeitet" : "angelegt"}`);
       closeModal();
     } catch(err){ alert("Fehler beim Speichern: " + err.message); }
@@ -1077,8 +1072,19 @@ function openMitgliedModal(mitglied, alleMitglieder){
     <div class="field"><label>E-Mail</label><input type="email" id="mEmail" value="${mitglied && mitglied.email ? escapeHtml(mitglied.email) : ""}" placeholder="optional"></div>
     <div class="field"><label>Telefon</label><input type="tel" id="mTelefon" value="${mitglied && mitglied.telefon ? escapeHtml(mitglied.telefon) : ""}" placeholder="optional"></div>
     <div class="field"><label>Adresse</label><input type="text" id="mAdresse" value="${mitglied && mitglied.adresse ? escapeHtml(mitglied.adresse) : ""}" placeholder="optional"></div>
-    <div class="field"><label>Beitrittsdatum</label><input type="date" id="mBeitritt" value="${mitglied && mitglied.beitrittsdatum ? mitglied.beitrittsdatum : ""}">
-      <p style="font-size:11px;color:var(--text-muted);margin:4px 0 0;">Grundlage für die Zugehörigkeits- und Jubiläums-Abzeichen.</p>
+    <div class="field">
+      <label>Abzeichen (manuelle Vergabe)</label>
+      <div id="mAbzeichenListe" style="max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+        ${abzeichenNachKategorie().map(gruppe => `
+          <div style="margin-bottom:10px;">
+            <div style="font-size:12px;font-weight:bold;color:var(--text-muted);margin-bottom:4px;">${gruppe.kategorieEmoji} ${gruppe.kategorie}</div>
+            ${gruppe.items.map(a => `
+              <label style="display:flex;align-items:flex-start;gap:6px;font-weight:normal;font-size:13px;padding:3px 0;cursor:pointer;">
+                <input type="checkbox" class="mAbzeichenCb" value="${a.id}" style="width:auto;margin-top:3px;" ${mitglied && mitgliedHatAbzeichen(mitglied, a.id) ? "checked" : ""}>
+                <span>${a.seltenheitEmoji} <b>${escapeHtml(a.name)}</b><br><span style="color:var(--text-muted);font-size:11px;">${escapeHtml(a.bedingung)}</span></span>
+              </label>`).join("")}
+          </div>`).join("")}
+      </div>
     </div>
     <div class="field">
       <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
@@ -1101,7 +1107,7 @@ function openMitgliedModal(mitglied, alleMitglieder){
     const email = document.getElementById("mEmail").value.trim();
     const telefon = document.getElementById("mTelefon").value.trim();
     const adresse = document.getElementById("mAdresse").value.trim();
-    const beitrittsdatum = document.getElementById("mBeitritt").value;
+    const abzeichen = Array.from(document.querySelectorAll(".mAbzeichenCb:checked")).map(cb => cb.value);
     const verwaltung = document.getElementById("mVerwaltung").checked;
     if (!name){ alert("Bitte einen Namen angeben."); return; }
     if (mitglied && istVerwaltung && !verwaltung && alleMitglieder){
@@ -1113,8 +1119,10 @@ function openMitgliedModal(mitglied, alleMitglieder){
     }
     try {
       if (mitglied){
-        await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { name, status, email, telefon, adresse, beitrittsdatum, verwaltung });
-        logActivity(currentAdmin.name, `hat das Mitglied „${name}" bearbeitet` + (verwaltung !== istVerwaltung ? ` (Verwaltungsrechte ${verwaltung ? "erteilt" : "entzogen"})` : ""));
+        const vorherAbzeichen = Array.isArray(mitglied.abzeichen) ? mitglied.abzeichen : [];
+        const neuVerliehen = abzeichen.filter(id => !vorherAbzeichen.includes(id));
+        await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { name, status, email, telefon, adresse, abzeichen, verwaltung });
+        logActivity(currentAdmin.name, `hat das Mitglied „${name}" bearbeitet` + (verwaltung !== istVerwaltung ? ` (Verwaltungsrechte ${verwaltung ? "erteilt" : "entzogen"})` : "") + (neuVerliehen.length ? ` (${neuVerliehen.length} Abzeichen neu verliehen)` : ""));
         if (mitglied.id === currentAdmin.id && !verwaltung){
           closeModal();
           alert("Dir wurden soeben die eigenen Verwaltungsrechte entzogen. Du wirst abgemeldet.");
@@ -1125,7 +1133,7 @@ function openMitgliedModal(mitglied, alleMitglieder){
         const pw = document.getElementById("mPw").value;
         if (!pw){ alert("Bitte ein Initialpasswort angeben."); return; }
         const hash = await sha256(pw);
-        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status, email, telefon, adresse, beitrittsdatum, verwaltung });
+        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status, email, telefon, adresse, abzeichen, verwaltung });
         logActivity(currentAdmin.name, `hat das Mitglied „${name}" angelegt` + (verwaltung ? " (mit Verwaltungsrechten)" : ""));
       }
       closeModal();

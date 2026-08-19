@@ -158,61 +158,117 @@ let _currentMember = null;
 export function getCurrentMember(){ return _currentMember; }
 
 // Prüft, ob ein Mitglied Verwaltungsrechte besitzt (Zugriff auf den Admin-Bereich).
+export function isAdmin(member){ return !!(member && member.verwaltung === true); }
+
 // =========================================================
 // Abzeichen / Achievements
-// Umgesetzt gemäss Konzeptdokument "Achievement-System für Jörmuntösk":
-// Markttagebuch-Abzeichen (Kategorie 2) und Zugehörigkeits-/Jubiläums-
-// Abzeichen (Kategorie 3), beide vollständig automatisch berechnet.
-// Teilnahme-Abzeichen (Kategorie 1) und manuell vergebene Abzeichen sind
-// bewusst nicht Teil dieser Umsetzung.
+// Vollständig manuell durch den Vorstand vergebene Auszeichnungen (kein
+// automatisches Kriterium). Katalog gemäss Vereinsliste. Vergabe erfolgt im
+// Admin-Bereich; Mitglieder sehen ihre erreichten und offenen Abzeichen im
+// Mitgliederbereich.
 // =========================================================
 
-export const MARKT_ABZEICHEN = [
-  { id: "chronist", name: "Chronist", stufe: "Bronze", schwelle: 1, beschreibung: "1 Markttagebuch-Eintrag" },
-  { id: "geschichtenerzaehler", name: "Geschichtenerzähler", stufe: "Silber", schwelle: 5, beschreibung: "5 Markttagebuch-Einträge" },
-  { id: "skalde", name: "Skalde", stufe: "Gold", schwelle: 15, beschreibung: "15 Markttagebuch-Einträge" }
+export const ABZEICHEN_KATALOG = [
+  { id: "erster-schritt-ins-langhaus", name: "Erster Schritt ins Langhaus", bedingung: "Zum ersten Mal an einem offiziellen Sippenlager teilnehmen", kategorie: "Sippenleben", kategorieEmoji: "🛡️", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "schildbruder-schildschwester", name: "Schildbruder / Schildschwester", bedingung: "Einem anderen Mitglied bei einem Projekt helfen", kategorie: "Sippenleben", kategorieEmoji: "🛡️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "treue-zur-sippe", name: "Treue zur Sippe", bedingung: "5 offizielle Veranstaltungen besuchen", kategorie: "Sippenleben", kategorieEmoji: "🛡️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "alte-hand", name: "Alte Hand", bedingung: "10 offizielle Veranstaltungen besuchen", kategorie: "Sippenleben", kategorieEmoji: "🛡️", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "sippenveteran", name: "Sippenveteran", bedingung: "25 offizielle Veranstaltungen besuchen", kategorie: "Sippenleben", kategorieEmoji: "🛡️", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "bruder-schwester-der-tafelrunde", name: "Bruder / Schwester der Tafelrunde", bedingung: "An einem gemeinsamen Sippenfestmahl teilnehmen", kategorie: "Sippenleben", kategorieEmoji: "🛡️", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "gastfreund", name: "Gastfreund", bedingung: "Zum ersten Mal einen Gast zu einer Sippenveranstaltung mitbringen", kategorie: "Sippenleben", kategorieEmoji: "🛡️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "stimme-der-sippe", name: "Stimme der Sippe", bedingung: "Sich aktiv an einer Mitgliederversammlung beteiligen", kategorie: "Sippenleben", kategorieEmoji: "🛡️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "huter-der-glut", name: "Hüter der Glut", bedingung: "Zum ersten Mal selbstständig ein Lagerfeuer entzünden", kategorie: "Lager & Survival", kategorieEmoji: "🔥", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "feuermeister", name: "Feuermeister", bedingung: "Unter schwierigen Bedingungen erfolgreich ein Feuer entzünden", kategorie: "Lager & Survival", kategorieEmoji: "🔥", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "kind-der-wildnis", name: "Kind der Wildnis", bedingung: "Eine Nacht im Sippenlager verbringen", kategorie: "Lager & Survival", kategorieEmoji: "🔥", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "nachtwache", name: "Nachtwache", bedingung: "Freiwillig eine Nachtwache übernehmen", kategorie: "Lager & Survival", kategorieEmoji: "🔥", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "wetterfest", name: "Wetterfest", bedingung: "Ein komplettes Lager bei starkem Regen oder schlechtem Wetter durchstehen", kategorie: "Lager & Survival", kategorieEmoji: "🔥", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "herr-des-feuers", name: "Herr des Feuers", bedingung: "Bei mindestens 10 Lagerfeuern für das Feuer verantwortlich gewesen sein", kategorie: "Lager & Survival", kategorieEmoji: "🔥", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "ohne-dach-und-furchtlos", name: "Ohne Dach und furchtlos", bedingung: "Eine Nacht unter freiem Himmel verbringen", kategorie: "Lager & Survival", kategorieEmoji: "🔥", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "der-letzte-der-schlaft", name: "Der Letzte, der schläft", bedingung: "Bei einer Veranstaltung bis zum Ende des Lagerabends wach bleiben", kategorie: "Lager & Survival", kategorieEmoji: "🔥", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "erster-funke", name: "Erster Funke", bedingung: "Zum ersten Mal ein Schmiedeprojekt beginnen und fertigstellen", kategorie: "Handwerk", kategorieEmoji: "⚒️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "hammer-und-amboss", name: "Hammer und Amboss", bedingung: "Das erste eigene Werkstück schmieden", kategorie: "Handwerk", kategorieEmoji: "⚒️", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "holzwurm", name: "Holzwurm", bedingung: "Das erste eigene Holzprojekt fertigstellen", kategorie: "Handwerk", kategorieEmoji: "⚒️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "faden-und-fasern", name: "Fäden und Fasern", bedingung: "Das erste eigene Textil- oder Lederprojekt herstellen", kategorie: "Handwerk", kategorieEmoji: "⚒️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "meister-der-klinge", name: "Meister der Klinge", bedingung: "Ein eigenes Messer oder Beil herstellen", kategorie: "Handwerk", kategorieEmoji: "⚒️", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "schmied-der-sippe", name: "Schmied der Sippe", bedingung: "5 eigene Schmiedeprojekte fertigstellen", kategorie: "Handwerk", kategorieEmoji: "⚒️", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "werkmeister", name: "Werkmeister", bedingung: "Einen Gegenstand speziell für die Sippe herstellen", kategorie: "Handwerk", kategorieEmoji: "⚒️", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "der-erfinder", name: "Der Erfinder", bedingung: "Ein eigenes handwerkliches Konzept entwickeln und umsetzen", kategorie: "Handwerk", kategorieEmoji: "⚒️", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "erster-schildwall", name: "Erster Schildwall", bedingung: "Zum ersten Mal an einem Schildkampf teilnehmen", kategorie: "Kampf & Geschick", kategorieEmoji: "⚔️", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "axtwerfer", name: "Axtwerfer", bedingung: "Zum ersten Mal erfolgreich eine Axt werfen", kategorie: "Kampf & Geschick", kategorieEmoji: "⚔️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "bogenschutze", name: "Bogenschütze", bedingung: "Zum ersten Mal an einem Bogenturnier teilnehmen", kategorie: "Kampf & Geschick", kategorieEmoji: "⚔️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "krieger-der-sippe", name: "Krieger der Sippe", bedingung: "An 3 Wettkämpfen teilnehmen", kategorie: "Kampf & Geschick", kategorieEmoji: "⚔️", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "kampfgefahrte", name: "Kampfgefährte", bedingung: "An einem offiziellen Turnier teilnehmen", kategorie: "Kampf & Geschick", kategorieEmoji: "⚔️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "schildbrecher", name: "Schildbrecher", bedingung: "Einen Wettkampf oder ein Turnier gewinnen", kategorie: "Kampf & Geschick", kategorieEmoji: "⚔️", seltenheit: "Hersir", seltenheitEmoji: "🟠" },
+  { id: "einer-gegen-alle", name: "Einer gegen Alle", bedingung: "Eine besondere Herausforderung erfolgreich meistern", kategorie: "Kampf & Geschick", kategorieEmoji: "⚔️", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "unbeugsam", name: "Unbeugsam", bedingung: "Nach einer Niederlage weitermachen und die Herausforderung zu Ende bringen", kategorie: "Kampf & Geschick", kategorieEmoji: "⚔️", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "erster-trunk", name: "Erster Trunk", bedingung: "Zum ersten Mal an einem Sippenfest teilnehmen", kategorie: "Essen & Trinken", kategorieEmoji: "🍖", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "metbruder-metschwester", name: "Metbruder / Metschwester", bedingung: "Zum ersten Mal an einer Metverkostung teilnehmen", kategorie: "Essen & Trinken", kategorieEmoji: "🍖", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "feuerkoch", name: "Feuerkoch", bedingung: "Zum ersten Mal ein Gericht über offenem Feuer zubereiten", kategorie: "Essen & Trinken", kategorieEmoji: "🍖", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "kesselmeister", name: "Kesselmeister", bedingung: "Ein vollständiges Gericht für die Sippe kochen", kategorie: "Essen & Trinken", kategorieEmoji: "🍖", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "fleischwolf", name: "Fleischwolf", bedingung: "Ein besonders ausgiebiges Sippenfestmahl überstehen", kategorie: "Essen & Trinken", kategorieEmoji: "🍖", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "tafelfreund", name: "Tafelfreund", bedingung: "An 5 gemeinsamen Sippenmahlzeiten teilnehmen", kategorie: "Essen & Trinken", kategorieEmoji: "🍖", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "kesselwache", name: "Kesselwache", bedingung: "Mehrfach bei der Zubereitung eines Sippenmahls helfen", kategorie: "Essen & Trinken", kategorieEmoji: "🍖", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "der-letzte-schluck", name: "Der letzte Schluck", bedingung: "Bis zum Ende einer Tafelrunde dabei bleiben", kategorie: "Essen & Trinken", kategorieEmoji: "🍖", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "der-aufbruch", name: "Der Aufbruch", bedingung: "Zum ersten Mal an einem gemeinsamen Abenteuer teilnehmen", kategorie: "Abenteuer & Reisen", kategorieEmoji: "🧭", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "weitgereist", name: "Weitgereist", bedingung: "Zum ersten Mal ein auswärtiges Lager besuchen", kategorie: "Abenteuer & Reisen", kategorieEmoji: "🧭", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "wanderer-midgards", name: "Wanderer Midgards", bedingung: "3 verschiedene Lager oder Märkte besuchen", kategorie: "Abenteuer & Reisen", kategorieEmoji: "🧭", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "wegefinder", name: "Wegefinder", bedingung: "Eine gemeinsame Tour oder ein Lager organisieren", kategorie: "Abenteuer & Reisen", kategorieEmoji: "🧭", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "grenzganger", name: "Grenzgänger", bedingung: "Eine Sippenveranstaltung ausserhalb der Schweiz besuchen", kategorie: "Abenteuer & Reisen", kategorieEmoji: "🧭", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "entdecker", name: "Entdecker", bedingung: "Einen neuen Markt oder ein Festival für die Sippe entdecken", kategorie: "Abenteuer & Reisen", kategorieEmoji: "🧭", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "fernfahrer", name: "Fernfahrer", bedingung: "Mehr als 100 km für eine Sippenveranstaltung anreisen", kategorie: "Abenteuer & Reisen", kategorieEmoji: "🧭", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "ruf-des-nordens", name: "Ruf des Nordens", bedingung: "An einem besonderen nordischen Event teilnehmen", kategorie: "Abenteuer & Reisen", kategorieEmoji: "🧭", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "zeltmeister", name: "Zeltmeister", bedingung: "Zum ersten Mal ein Sippenzelt vollständig aufbauen", kategorie: "Lagerbau", kategorieEmoji: "🏕️", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "pfahl-und-seil", name: "Pfahl und Seil", bedingung: "Aktiv beim Aufbau eines Sippenlagers helfen", kategorie: "Lagerbau", kategorieEmoji: "🏕️", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "baumeister", name: "Baumeister", bedingung: "Einen Teil der Lagerausstattung selbst herstellen", kategorie: "Lagerbau", kategorieEmoji: "🏕️", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "lagerherr", name: "Lagerherr", bedingung: "Einen kompletten Lagerplatz mit aufbauen", kategorie: "Lagerbau", kategorieEmoji: "🏕️", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "huter-des-langhauses", name: "Hüter des Langhauses", bedingung: "Ein Sippenlager über Nacht betreuen", kategorie: "Lagerbau", kategorieEmoji: "🏕️", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "der-letzte-pfahl", name: "Der letzte Pfahl", bedingung: "Bis zum vollständigen Abbau des Lagers helfen", kategorie: "Lagerbau", kategorieEmoji: "🏕️", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "skalde", name: "Skalde", bedingung: "Eine Geschichte, Sage oder ein Lied vor der Sippe vortragen", kategorie: "Kultur & Geschichte", kategorieEmoji: "🪶", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "runenkenner", name: "Runenkenner", bedingung: "Erste grundlegende Kenntnisse der Runenschrift erwerben", kategorie: "Kultur & Geschichte", kategorieEmoji: "🪶", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "geschichtenerzahler", name: "Geschichtenerzähler", bedingung: "Eine nordische Sage frei vor der Sippe erzählen", kategorie: "Kultur & Geschichte", kategorieEmoji: "🪶", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "kenner-der-alten-wege", name: "Kenner der alten Wege", bedingung: "Einen historischen oder handwerklichen Workshop besuchen", kategorie: "Kultur & Geschichte", kategorieEmoji: "🪶", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "kind-odins", name: "Kind Odins", bedingung: "Ein anspruchsvolles Quiz über nordische Mythologie bestehen", kategorie: "Kultur & Geschichte", kategorieEmoji: "🪶", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "bewahrer-der-uberlieferung", name: "Bewahrer der Überlieferung", bedingung: "Eigenes Wissen über Geschichte, Handwerk oder Mythologie an andere weitergeben", kategorie: "Kultur & Geschichte", kategorieEmoji: "🪶", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "skaldenzunge", name: "Skaldenzunge", bedingung: "Ein eigenes Gedicht, Lied oder eine Saga verfassen", kategorie: "Kultur & Geschichte", kategorieEmoji: "🪶", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "odin-sieht-alles", name: "Odin sieht alles", bedingung: "Bei einer besonders peinlichen Situation erwischt werden", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "thor-sei-dank", name: "Thor sei Dank", bedingung: "Eine beinahe schiefgegangene Situation im letzten Moment retten", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "loki-war-s", name: "Loki war's", bedingung: "Für ein besonders chaotisches Ereignis verantwortlich sein", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "wo-ist-mein-hammer", name: "Wo ist mein Hammer?", bedingung: "Einen wichtigen Ausrüstungsgegenstand verlegen", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Neuling", seltenheitEmoji: "⚪" },
+  { id: "das-war-nicht-geplant", name: "Das war nicht geplant", bedingung: "Eine spontane Katastrophe erfolgreich lösen", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Hirdmann", seltenheitEmoji: "🔵" },
+  { id: "ich-hab-da-eine-idee", name: "Ich hab da eine Idee…", bedingung: "Ein völlig verrücktes, aber umsetzbares Projekt vorschlagen", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "bis-zur-letzten-axt", name: "Bis zur letzten Axt", bedingung: "Eine schwierige Aufgabe bis zum bitteren Ende durchziehen", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "schildkrote", name: "Schildkröte", bedingung: "Beim Lageraufbau nachweislich besonders langsam sein", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Sippenkind", seltenheitEmoji: "🟢" },
+  { id: "ragnarok-uberlebt", name: "Ragnarök überlebt", bedingung: "Eine besonders chaotische Veranstaltung überstehen", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Krieger", seltenheitEmoji: "🟣" },
+  { id: "loki-s-lieblingskind", name: "Loki's Lieblingskind", bedingung: "Ein aussergewöhnliches Mass an Chaos verursachen", kategorie: "Geheim & Humor", kategorieEmoji: "😈", seltenheit: "Hersir", seltenheitEmoji: "🟠" },
+  { id: "jarl-s-ehrenzeichen", name: "Jarl's Ehrenzeichen", bedingung: "Einen aussergewöhnlichen Einsatz für die Sippe zeigen", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Hersir", seltenheitEmoji: "🟠" },
+  { id: "blut-der-sippe", name: "Blut der Sippe", bedingung: "Sich über längere Zeit aussergewöhnlich für Jörmuntösk engagieren", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Hersir", seltenheitEmoji: "🟠" },
+  { id: "huter-von-jormuntosk", name: "Hüter von Jörmuntösk", bedingung: "Die Sippe in besonderer Weise unterstützen oder schützen", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Jarl", seltenheitEmoji: "🔴" },
+  { id: "meister-der-alten-kunste", name: "Meister der alten Künste", bedingung: "Mehrere historische Handwerke auf hohem Niveau beherrschen", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Jarl", seltenheitEmoji: "🔴" },
+  { id: "schild-der-sippe", name: "Schild der Sippe", bedingung: "Sich aussergewöhnlich für andere Mitglieder einsetzen", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Jarl", seltenheitEmoji: "🔴" },
+  { id: "wegbereiter", name: "Wegbereiter", bedingung: "Etwas Neues und Dauerhaftes für Jörmuntösk etablieren", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Jarl", seltenheitEmoji: "🔴" },
+  { id: "saga-von-jormuntosk", name: "Saga von Jörmuntösk", bedingung: "Eine Tat vollbringen, über die innerhalb der Sippe noch lange gesprochen wird", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Saga", seltenheitEmoji: "🟡" },
+  { id: "einherjar", name: "Einherjar", bedingung: "Die höchste Auszeichnung für aussergewöhnlichen Einsatz erhalten", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Saga", seltenheitEmoji: "🟡" },
+  { id: "jormuntosk-legende", name: "Jörmuntösk-Legende", bedingung: "Eine herausragende Lebensleistung innerhalb der Sippe erbringen", kategorie: "Legendär", kategorieEmoji: "👑", seltenheit: "Saga", seltenheitEmoji: "🟡" },
 ];
-
-export const ZUGEHOERIGKEIT_ABZEICHEN = [
-  { id: "neu_in_der_sippe", name: "Neu in der Sippe", beschreibung: "Probezeit erfolgreich abgeschlossen" },
-  { id: "1_jahr", name: "1 Jahr Sippe", jahre: 1, beschreibung: "1 Jahr Mitgliedschaft" },
-  { id: "3_jahre", name: "3 Jahre Sippe", jahre: 3, beschreibung: "3 Jahre Mitgliedschaft" },
-  { id: "5_jahre", name: "5 Jahre Sippe", jahre: 5, beschreibung: "5 Jahre Mitgliedschaft" },
-  { id: "urgestein", name: "Urgestein", jahre: 10, beschreibung: "10 Jahre Mitgliedschaft" }
-];
-
-// Ermittelt die vollen Jahre seit einem Datum (yyyy-mm-dd), inkl. Schaltjahr-Handling.
-function vergangeneJahre(datumStr){
-  if (!datumStr) return null;
-  const start = new Date(datumStr + "T00:00:00");
-  if (isNaN(start.getTime())) return null;
-  const heute = new Date();
-  let jahre = heute.getFullYear() - start.getFullYear();
-  const vorJahrestag = (heute.getMonth() < start.getMonth()) ||
-    (heute.getMonth() === start.getMonth() && heute.getDate() < start.getDate());
-  if (vorJahrestag) jahre -= 1;
-  return Math.max(0, jahre);
-}
-
-// Liefert die Markttagebuch-Abzeichen eines Mitglieds anhand der Anzahl
-// selbst verfasster Einträge, inkl. Info, ob das Abzeichen erreicht ist.
-export function ermittleMarktAbzeichen(anzahlEintraege){
-  return MARKT_ABZEICHEN.map(a => ({ ...a, erreicht: (anzahlEintraege || 0) >= a.schwelle }));
-}
-
-// Liefert die Zugehörigkeits-/Jubiläums-Abzeichen eines Mitglieds anhand von
-// Beitrittsdatum und Status ("aktiv" = Probezeit abgeschlossen).
-export function ermittleZugehoerigkeitAbzeichen(member){
-  const jahre = vergangeneJahre(member && member.beitrittsdatum);
-  return ZUGEHOERIGKEIT_ABZEICHEN.map(a => {
-    if (a.id === "neu_in_der_sippe"){
-      return { ...a, erreicht: !!(member && member.status === "aktiv" && member.beitrittsdatum) };
+// Gruppiert den Abzeichen-Katalog nach Kategorie (Reihenfolge = erstes Vorkommen im Katalog).
+export function abzeichenNachKategorie(){
+  const gruppen = [];
+  const index = {};
+  for (const a of ABZEICHEN_KATALOG){
+    if (!(a.kategorie in index)){
+      index[a.kategorie] = { kategorie: a.kategorie, kategorieEmoji: a.kategorieEmoji, items: [] };
+      gruppen.push(index[a.kategorie]);
     }
-    return { ...a, erreicht: jahre !== null && jahre >= a.jahre };
-  });
+    index[a.kategorie].items.push(a);
+  }
+  return gruppen;
 }
 
-export function isAdmin(member){ return !!(member && member.verwaltung === true); }
+// Prüft, ob ein Mitglied ein bestimmtes Abzeichen besitzt.
+export function mitgliedHatAbzeichen(member, abzeichenId){
+  return !!(member && Array.isArray(member.abzeichen) && member.abzeichen.includes(abzeichenId));
+}
+
 
 // Meldet das Mitglied ab und lädt die Seite neu, damit wieder der Login erscheint.
 export function memberLogout(){

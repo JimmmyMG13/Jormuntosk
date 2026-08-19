@@ -107,15 +107,8 @@
 
   <div class="card">
     <h2>Meine Abzeichen</h2>
-    <p class="hint">Automatisch ermittelt aus Markttagebuch-Beiträgen und Mitgliedsdauer.</p>
-    <div class="abzeichen-section">
-      <h3>Markttagebuch</h3>
-      <div class="abzeichen-grid" id="abzeichenMarkt"></div>
-    </div>
-    <div class="abzeichen-section">
-      <h3>Zugehörigkeit</h3>
-      <div class="abzeichen-grid" id="abzeichenZugehoerigkeit"></div>
-    </div>
+    <p class="hint">Manuell durch den Vorstand vergeben. Erreichte Abzeichen sind hervorgehoben.</p>
+    <div id="abzeichenContainer"></div>
   </div>
 
   <div class="card">
@@ -144,8 +137,8 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, ermittleMarktAbzeichen, ermittleZugehoerigkeitAbzeichen } from "./common.js";
-import { doc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen } from "./common.js";
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const member = await requireMemberLogin();
 
@@ -167,30 +160,28 @@ function fillProfile(m){
 
 fillProfile(member);
 
-// Ermittelt und rendert die erreichten (und noch offenen) Abzeichen des Mitglieds.
-const MARKT_ICONS = { chronist: "📝", geschichtenerzaehler: "📖", skalde: "🏆" };
-const ZUGEHOERIGKEIT_ICONS = { neu_in_der_sippe: "🌱", "1_jahr": "🥉", "3_jahre": "🥈", "5_jahre": "🥇", urgestein: "🪨" };
-
-function renderAbzeichenListe(containerId, abzeichenListe, iconMap){
-  const el = document.getElementById(containerId);
-  el.innerHTML = abzeichenListe.map(a => `
-    <div class="abzeichen-item${a.erreicht ? " erreicht" : ""}" title="${a.beschreibung.replace(/"/g, "&quot;")}">
-      <div class="icon">${iconMap[a.id] || "🎖️"}</div>
-      <div class="name">${a.name}</div>
-      ${a.stufe ? `<div class="stufe">${a.stufe}</div>` : ""}
+// Rendert den gesamten Abzeichen-Katalog, gruppiert nach Kategorie. Erreichte
+// Abzeichen (manuell vom Vorstand vergeben) sind hervorgehoben, offene Abzeichen
+// ausgegraut sichtbar, damit sie als Ansporn dienen.
+function renderAbzeichen(){
+  const container = document.getElementById("abzeichenContainer");
+  container.innerHTML = abzeichenNachKategorie().map(gruppe => `
+    <div class="abzeichen-section">
+      <h3>${gruppe.kategorieEmoji} ${gruppe.kategorie}</h3>
+      <div class="abzeichen-grid">
+        ${gruppe.items.map(a => {
+          const erreicht = mitgliedHatAbzeichen(member, a.id);
+          return `
+          <div class="abzeichen-item${erreicht ? " erreicht" : ""}" title="${a.bedingung.replace(/"/g, "&quot;")}">
+            <div class="icon">${a.seltenheitEmoji}</div>
+            <div class="name">${a.name}</div>
+            <div class="stufe">${a.seltenheit}</div>
+          </div>`;
+        }).join("")}
+      </div>
     </div>`).join("");
 }
-
-async function ladeAbzeichen(){
-  renderAbzeichenListe("abzeichenZugehoerigkeit", ermittleZugehoerigkeitAbzeichen(member), ZUGEHOERIGKEIT_ICONS);
-  try {
-    const snap = await getDocs(query(collection(db, "markttagebuch_eintraege"), where("erstelltVonId", "==", member.id)));
-    renderAbzeichenListe("abzeichenMarkt", ermittleMarktAbzeichen(snap.size), MARKT_ICONS);
-  } catch (err) {
-    renderAbzeichenListe("abzeichenMarkt", ermittleMarktAbzeichen(0), MARKT_ICONS);
-  }
-}
-ladeAbzeichen();
+renderAbzeichen();
 
 document.getElementById("saveProfilBtn").addEventListener("click", async () => {
   const msgEl = document.getElementById("profilMsg");
