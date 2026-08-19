@@ -86,6 +86,26 @@
   .modal-actions{display:flex;justify-content:space-between;gap:10px;margin-top:16px;}
   .modal-actions .right{display:flex;gap:8px;}
   .error-text{color:var(--danger);font-size:13px;margin-top:6px;min-height:16px;}
+  /* Markttagebuch-Eingabemaske: angelehnt an die ursprüngliche Dokumentvorlage */
+  .mt-mask .mt-title-field{margin-bottom:6px;}
+  .mt-mask .mt-title-field input{font-size:21px;font-weight:bold;padding:8px 10px;}
+  .mt-mask .mt-subtitle-row{display:flex;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid var(--accent);}
+  .mt-mask .mt-subtitle-row .field{flex:1;margin-bottom:0;}
+  .mt-mask .mt-section-title{font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;color:var(--accent);margin:18px 0 8px;}
+  .mt-mask .mt-section-title:first-of-type{margin-top:4px;}
+  .mt-mask .mt-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;}
+  .mt-mask .mt-grid .field{margin-bottom:8px;}
+  .mt-mask .mt-narrative .field{margin-bottom:14px;}
+  .mt-mask .mt-narrative textarea{min-height:64px;}
+  @media (max-width:560px){ .mt-mask .mt-grid{grid-template-columns:1fr;} .mt-mask .mt-subtitle-row{flex-direction:column;gap:10px;} }
+  .mt-mask label .mt-icon{margin-right:5px;}
+  .mt-mask .mt-quick{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 2px;}
+  .mt-mask .mt-quick-btn{border:1px solid var(--border);border-radius:12px;padding:3px 9px;font-size:11.5px;cursor:pointer;background:var(--bg);color:var(--text-muted);font-family:inherit;line-height:1.5;}
+  .mt-mask .mt-quick-btn:hover{border-color:var(--accent);color:var(--text);}
+  .mt-mask .mt-quick-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .mt-mask .mt-narrative textarea{min-height:56px;resize:none;overflow:hidden;}
+  .mt-mask .mt-prefill{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px dashed var(--border);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:12.5px;color:var(--text-muted);}
+  .mt-mask .mt-prefill button{font-size:12px;padding:5px 10px;}
   .login-box{max-width:340px;margin:80px auto;text-align:center;}
   .login-box img{height:56px;margin-bottom:10px;}
   .login-box input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;}
@@ -169,6 +189,7 @@ const SETTINGS_DESIGN = doc(db, "einstellungen", "design");
 const SETTINGS_SICHTBARKEIT = doc(db, "einstellungen", "sichtbarkeit");
 
 let currentAdmin = null; // {id, name}
+let mtEntriesCache = []; // zuletzt geladene Markttagebuch-Einträge, für Autovervollständigung
 let bootstrapMode = false;
 
 // ---------- Login / Bootstrap ----------
@@ -274,8 +295,10 @@ function loadModule(mod){
 }
 
 // ---------- Generic modal helpers ----------
-function showModal(html){
-  document.getElementById("genericModal").innerHTML = html;
+function showModal(html, opts){
+  const modalEl = document.getElementById("genericModal");
+  modalEl.style.maxWidth = (opts && opts.maxWidth) || "520px";
+  modalEl.innerHTML = html;
   document.getElementById("genericOverlay").classList.add("show");
 }
 function closeModal(){
@@ -689,6 +712,18 @@ const MT_LABELS = {
   atmosphaere:"Atmosphäre", marktangebot:"Marktangebot", unterhaltungsangebot:"Unterhaltungsangebot",
   speistrank:"Speis und Trank", bekanntschaften:"Neue Bekanntschaften", erwaehnenswert:"Erwähnenswert", fazit:"Fazit"
 };
+const MT_ICONS = {
+  marktname:"🏷️", datum:"📅", veranstalter:"🏛️", ort:"📍", teilnehmer:"👥", wetter:"🌤️", eintrittspreis:"💰", groesse:"📏",
+  preisleistung:"⚖️", atmosphaere:"🎭", marktangebot:"🏺", unterhaltungsangebot:"🎶",
+  speistrank:"🍖", bekanntschaften:"🤝", erwaehnenswert:"⭐", fazit:"📝"
+};
+// Schnellauswahl-Chips: ein Klick trägt den Text direkt ins Feld ein, freie Eingabe bleibt weiterhin möglich.
+const MT_CHIPS = {
+  wetter: ["☀️ Sonnig","⛅ Wechselhaft","☁️ Bewölkt","🌧️ Regnerisch","❄️ Kalt","🥵 Heiss"],
+  groesse: ["Klein","Mittel","Gross","Sehr gross"],
+  preisleistung: ["Günstig","Fair","Eher teuer","Teuer"],
+  atmosphaere: ["Familiär","Lebendig","Ruhig","Festlich","Historisch stimmig","Chaotisch"]
+};
 
 function renderMarkttagebuchModule(container){
   container.innerHTML = `
@@ -701,6 +736,7 @@ function renderMarkttagebuchModule(container){
   document.getElementById("mtNewBtn").addEventListener("click", () => openMtModal(null));
   onSnapshot(collection(db, COL_MARKT), snap => {
     const entries = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.datum || "").localeCompare(a.datum || ""));
+    mtEntriesCache = entries;
     const list = document.getElementById("mtList");
     if (!list) return;
     if (entries.length === 0){
@@ -722,36 +758,136 @@ function renderMarkttagebuchModule(container){
   });
 }
 
+const MT_GRID_FIELDS = ["ort","teilnehmer","wetter","eintrittspreis","groesse","preisleistung","atmosphaere"];
+const MT_NARRATIVE_FIELDS = ["marktangebot","unterhaltungsangebot","speistrank","bekanntschaften","erwaehnenswert","fazit"];
+
+function mtUniqueValues(fieldId){
+  const set = new Set();
+  mtEntriesCache.forEach(e => { if (e[fieldId]) set.add(e[fieldId]); });
+  return Array.from(set);
+}
+
+let mtKeydownHandler = null;
+
 function openMtModal(entry){
-  const fieldsHtml = MT_FIELDS.map(id => {
-    const isTextarea = ["atmosphaere","marktangebot","unterhaltungsangebot","speistrank","bekanntschaften","erwaehnenswert","fazit"].includes(id);
-    const type = id === "datum" ? "date" : "text";
-    const val = entry ? escapeHtml(entry[id] || "") : (id === "datum" ? todayStr() : "");
-    return `<div class="field"><label>${MT_LABELS[id]}</label>${isTextarea ? `<textarea id="mt_${id}">${val}</textarea>` : `<input type="${type}" id="mt_${id}" value="${val}">`}</div>`;
+  const val = id => entry ? escapeHtml(entry[id] || "") : (id === "datum" ? todayStr() : "");
+  const label = id => `${MT_ICONS[id] ? `<span class="mt-icon">${MT_ICONS[id]}</span>` : ""}${MT_LABELS[id]}`;
+
+  const gridHtml = MT_GRID_FIELDS.map(id => {
+    const listAttr = id === "ort" ? ' list="mt_ort_list"' : "";
+    const chips = MT_CHIPS[id] ? `<div class="mt-quick" data-chips-for="${id}">${MT_CHIPS[id].map(c => `<button type="button" class="mt-quick-btn" data-chip="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("")}</div>` : "";
+    return `<div class="field"><label>${label(id)}</label><input type="text" id="mt_${id}"${listAttr} value="${val(id)}">${chips}</div>`;
   }).join("");
+
+  const narrativeHtml = MT_NARRATIVE_FIELDS.map(id =>
+    `<div class="field"><label>${label(id)}</label><textarea id="mt_${id}" rows="1">${val(id)}</textarea></div>`
+  ).join("");
+
+  const veranstalterOptions = mtUniqueValues("veranstalter");
+  const ortOptions = mtUniqueValues("ort");
+  const lastEntry = mtEntriesCache[0];
+  const prefillHtml = (!entry && lastEntry) ? `
+    <div class="mt-prefill">
+      <span>Werte aus „${escapeHtml(lastEntry.marktname || "letztem Eintrag")}" übernehmen?</span>
+      <button type="button" class="btn secondary" id="mtPrefillBtn">Übernehmen</button>
+    </div>` : "";
+
   showModal(`
-    <h2>${entry ? "Marktbesuch bearbeiten" : "Neuer Marktbesuch"}</h2>
-    ${fieldsHtml}
+    <div class="mt-mask">
+      <h2>${entry ? "Marktbesuch bearbeiten" : "Neuer Marktbesuch"}</h2>
+      ${prefillHtml}
+
+      <div class="mt-title-field">
+        <label>${label('marktname')}</label>
+        <input type="text" id="mt_marktname" value="${val('marktname')}" placeholder="z. B. MPS Bad Säckingen">
+        <div class="error-text" id="mtError"></div>
+      </div>
+      <div class="mt-subtitle-row">
+        <div class="field"><label>${label('datum')}</label><input type="date" id="mt_datum" value="${val('datum')}"></div>
+        <div class="field"><label>${label('veranstalter')}</label><input type="text" id="mt_veranstalter" list="mt_veranstalter_list" value="${val('veranstalter')}"></div>
+      </div>
+      <datalist id="mt_veranstalter_list">${veranstalterOptions.map(v => `<option value="${escapeHtml(v)}">`).join("")}</datalist>
+      <datalist id="mt_ort_list">${ortOptions.map(v => `<option value="${escapeHtml(v)}">`).join("")}</datalist>
+
+      <div class="mt-section-title">Rahmendaten</div>
+      <div class="mt-grid">${gridHtml}</div>
+
+      <div class="mt-section-title">Eindrücke &amp; Fazit</div>
+      <div class="mt-narrative">${narrativeHtml}</div>
+    </div>
     <div class="modal-actions">
       <div>${entry ? `<button class="btn danger" id="mtDeleteBtn">Löschen</button>` : ""}</div>
       <div class="right">
         <button class="btn secondary" id="mtCancelBtn">Abbrechen</button>
-        <button class="btn" id="mtSaveBtn">Speichern</button>
+        <button class="btn" id="mtSaveBtn" title="Tipp: Strg+Enter speichert direkt">Speichern</button>
       </div>
     </div>
-  `);
-  document.getElementById("mtCancelBtn").addEventListener("click", closeModal);
-  document.getElementById("mtSaveBtn").addEventListener("click", async () => {
+  `, { maxWidth: "760px" });
+
+  // Schnellauswahl-Chips: Klick trägt den Text ins zugehörige Feld ein (Toggle bei erneutem Klick)
+  document.querySelectorAll(".mt-quick[data-chips-for]").forEach(row => {
+    const fieldId = row.dataset.chipsFor;
+    const input = document.getElementById("mt_" + fieldId);
+    const syncActive = () => {
+      row.querySelectorAll(".mt-quick-btn").forEach(btn => {
+        btn.classList.toggle("on", btn.dataset.chip === input.value);
+      });
+    };
+    syncActive();
+    row.querySelectorAll(".mt-quick-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        input.value = (input.value === btn.dataset.chip) ? "" : btn.dataset.chip;
+        syncActive();
+      });
+    });
+    input.addEventListener("input", syncActive);
+  });
+
+  // Textareas wachsen automatisch mit dem Inhalt statt intern zu scrollen
+  document.querySelectorAll(".mt-narrative textarea").forEach(ta => {
+    const grow = () => { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; };
+    ta.addEventListener("input", grow);
+    grow();
+  });
+
+  if (!entry){
+    const btn = document.getElementById("mtPrefillBtn");
+    if (btn) btn.addEventListener("click", () => {
+      ["veranstalter","ort","groesse","preisleistung","atmosphaere"].forEach(id => {
+        const el = document.getElementById("mt_" + id);
+        if (el && lastEntry[id]){
+          el.value = lastEntry[id];
+          el.dispatchEvent(new Event("input"));
+        }
+      });
+    });
+  }
+
+  const marktnameInput = document.getElementById("mt_marktname");
+  marktnameInput.focus();
+
+  const doSave = async () => {
     const data = {};
     MT_FIELDS.forEach(id => { data[id] = document.getElementById("mt_" + id).value.trim(); });
-    if (!data.marktname){ alert("Bitte einen Marktnamen angeben."); return; }
+    if (!data.marktname){
+      document.getElementById("mtError").textContent = "Bitte einen Marktnamen angeben.";
+      marktnameInput.focus();
+      return;
+    }
     try{
       if (entry) await updateDoc(doc(db, COL_MARKT, entry.id), data);
       else { data.erstelltAm = new Date().toISOString(); await addDoc(collection(db, COL_MARKT), data); }
       logActivity(currentAdmin.name, `hat Marktbesuch „${data.marktname}" ${entry ? "bearbeitet" : "angelegt"}`);
       closeModal();
     } catch(err){ alert("Fehler beim Speichern: " + err.message); }
-  });
+  };
+
+  document.getElementById("mtCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("mtSaveBtn").addEventListener("click", doSave);
+  const modalEl = document.getElementById("genericModal");
+  if (mtKeydownHandler) modalEl.removeEventListener("keydown", mtKeydownHandler);
+  mtKeydownHandler = e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") doSave(); };
+  modalEl.addEventListener("keydown", mtKeydownHandler);
   if (entry){
     document.getElementById("mtDeleteBtn").addEventListener("click", async () => {
       if (!confirm("Diesen Eintrag wirklich löschen?")) return;
