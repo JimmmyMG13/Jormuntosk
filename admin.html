@@ -106,6 +106,17 @@
   .mt-mask .mt-narrative textarea{min-height:56px;resize:none;overflow:hidden;}
   .mt-mask .mt-prefill{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px dashed var(--border);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:12.5px;color:var(--text-muted);}
   .mt-mask .mt-prefill button{font-size:12px;padding:5px 10px;}
+  .mt-mask .mt-stars{display:flex;gap:4px;margin:6px 0 2px;font-size:22px;line-height:1;}
+  .mt-mask .mt-star{cursor:pointer;color:var(--border);transition:color .1s;user-select:none;}
+  .mt-mask .mt-star.on{color:var(--accent);}
+  .mt-mask .mt-star.hover{color:var(--accent);opacity:.6;}
+  .mt-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .mt-filter-bar input, .mt-filter-bar select{
+    padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:13px;
+    font-family:inherit;background:var(--surface);color:var(--text);
+  }
+  .mt-filter-bar input{flex:1;min-width:180px;}
+  .mt-filter-bar select{min-width:130px;}
   .login-box{max-width:340px;margin:80px auto;text-align:center;}
   .login-box img{height:56px;margin-bottom:10px;}
   .login-box input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;}
@@ -295,6 +306,7 @@ function loadModule(mod){
 }
 
 // ---------- Generic modal helpers ----------
+let modalDirtyCheck = null; // optionale Funktion: liefert true, wenn ungespeicherte Änderungen vorliegen
 function showModal(html, opts){
   const modalEl = document.getElementById("genericModal");
   modalEl.style.maxWidth = (opts && opts.maxWidth) || "520px";
@@ -302,11 +314,18 @@ function showModal(html, opts){
   document.getElementById("genericOverlay").classList.add("show");
 }
 function closeModal(){
+  modalDirtyCheck = null;
   document.getElementById("genericOverlay").classList.remove("show");
   document.getElementById("genericModal").innerHTML = "";
 }
+function requestCloseModal(){
+  if (modalDirtyCheck && modalDirtyCheck()){
+    if (!confirm("Es gibt ungespeicherte Änderungen. Formular wirklich schliessen?")) return;
+  }
+  closeModal();
+}
 document.getElementById("genericOverlay").addEventListener("click", e => {
-  if (e.target.id === "genericOverlay") closeModal();
+  if (e.target.id === "genericOverlay") requestCloseModal();
 });
 
 /* =========================================================
@@ -720,10 +739,10 @@ const MT_ICONS = {
 // Schnellauswahl-Chips: ein Klick trägt den Text direkt ins Feld ein, freie Eingabe bleibt weiterhin möglich.
 const MT_CHIPS = {
   wetter: ["☀️ Sonnig","⛅ Wechselhaft","☁️ Bewölkt","🌧️ Regnerisch","❄️ Kalt","🥵 Heiss"],
-  groesse: ["Klein","Mittel","Gross","Sehr gross"],
-  preisleistung: ["Günstig","Fair","Eher teuer","Teuer"],
-  atmosphaere: ["Familiär","Lebendig","Ruhig","Festlich","Historisch stimmig","Chaotisch"]
+  groesse: ["Klein","Mittel","Gross","Sehr gross"]
 };
+// Für diese Felder gibt es statt Text-Chips ein Sterne-Widget (schnelleres Bewerten per Klick).
+const MT_STARS = ["preisleistung","atmosphaere"];
 
 function renderMarkttagebuchModule(container){
   container.innerHTML = `
@@ -731,19 +750,60 @@ function renderMarkttagebuchModule(container){
       <h1 style="margin:0;">Marktbesuche</h1>
       <button class="btn" id="mtNewBtn">+ Neuer Eintrag</button>
     </div>
+    <div class="mt-filter-bar">
+      <input type="text" id="mtSearch" placeholder="🔍 Suche (Name, Ort, Veranstalter)">
+      <select id="mtFilterJahr"><option value="">Alle Jahre</option></select>
+      <select id="mtFilterVeranstalter"><option value="">Alle Veranstalter</option></select>
+      <select id="mtFilterOrt"><option value="">Alle Orte</option></select>
+    </div>
     <div id="mtList"></div>
   `;
   document.getElementById("mtNewBtn").addEventListener("click", () => openMtModal(null));
-  onSnapshot(collection(db, COL_MARKT), snap => {
-    const entries = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.datum || "").localeCompare(a.datum || ""));
-    mtEntriesCache = entries;
+
+  let lastEntries = [];
+  const searchEl = document.getElementById("mtSearch");
+  const jahrEl = document.getElementById("mtFilterJahr");
+  const veranstalterEl = document.getElementById("mtFilterVeranstalter");
+  const ortEl = document.getElementById("mtFilterOrt");
+
+  function populateFilterOptions(entries){
+    const years = Array.from(new Set(entries.map(e => (e.datum || "").slice(0, 4)).filter(Boolean))).sort().reverse();
+    const veranstalterList = Array.from(new Set(entries.map(e => e.veranstalter).filter(Boolean))).sort();
+    const ortList = Array.from(new Set(entries.map(e => e.ort).filter(Boolean))).sort();
+    const fill = (el, values, allLabel) => {
+      const current = el.value;
+      el.innerHTML = `<option value="">${allLabel}</option>` + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+      if (values.includes(current)) el.value = current;
+    };
+    fill(jahrEl, years, "Alle Jahre");
+    fill(veranstalterEl, veranstalterList, "Alle Veranstalter");
+    fill(ortEl, ortList, "Alle Orte");
+  }
+
+  function renderFilteredList(){
+    const q = searchEl.value.trim().toLowerCase();
+    const jahr = jahrEl.value, ven = veranstalterEl.value, ort = ortEl.value;
+    const filtered = lastEntries.filter(e => {
+      if (jahr && (e.datum || "").slice(0, 4) !== jahr) return false;
+      if (ven && e.veranstalter !== ven) return false;
+      if (ort && e.ort !== ort) return false;
+      if (q){
+        const hay = `${e.marktname || ""} ${e.ort || ""} ${e.veranstalter || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
     const list = document.getElementById("mtList");
     if (!list) return;
-    if (entries.length === 0){
+    if (lastEntries.length === 0){
       list.innerHTML = `<div class="empty">Noch keine Marktbesuche erfasst.</div>`;
       return;
     }
-    list.innerHTML = entries.map(e => `
+    if (filtered.length === 0){
+      list.innerHTML = `<div class="empty">Keine Einträge gefunden. Filter zurücksetzen?</div>`;
+      return;
+    }
+    list.innerHTML = filtered.map(e => `
       <div class="card pad" data-open="${e.id}" style="cursor:pointer;">
         <h2 style="color:var(--accent);margin-bottom:4px;">${escapeHtml(e.marktname || "(ohne Titel)")}</h2>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;">${formatDate(e.datum)}${e.veranstalter ? " · " + escapeHtml(e.veranstalter) : ""}${e.ort ? " · " + escapeHtml(e.ort) : ""}</div>
@@ -751,10 +811,23 @@ function renderMarkttagebuchModule(container){
       </div>`).join("");
     list.querySelectorAll("[data-open]").forEach(el => {
       el.addEventListener("click", () => {
-        const entry = entries.find(x => x.id === el.dataset.open);
+        const entry = lastEntries.find(x => x.id === el.dataset.open);
         openMtModal(entry);
       });
     });
+  }
+
+  [searchEl, jahrEl, veranstalterEl, ortEl].forEach(el => {
+    el.addEventListener("input", renderFilteredList);
+    el.addEventListener("change", renderFilteredList);
+  });
+
+  onSnapshot(collection(db, COL_MARKT), snap => {
+    const entries = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.datum || "").localeCompare(a.datum || ""));
+    mtEntriesCache = entries;
+    lastEntries = entries;
+    populateFilterOptions(entries);
+    renderFilteredList();
   });
 }
 
@@ -775,8 +848,14 @@ function openMtModal(entry){
 
   const gridHtml = MT_GRID_FIELDS.map(id => {
     const listAttr = id === "ort" ? ' list="mt_ort_list"' : "";
-    const chips = MT_CHIPS[id] ? `<div class="mt-quick" data-chips-for="${id}">${MT_CHIPS[id].map(c => `<button type="button" class="mt-quick-btn" data-chip="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("")}</div>` : "";
-    return `<div class="field"><label>${label(id)}</label><input type="text" id="mt_${id}"${listAttr} value="${val(id)}">${chips}</div>`;
+    let extra = "";
+    if (MT_STARS.includes(id)){
+      const filled = (val(id).match(/★/g) || []).length;
+      extra = `<div class="mt-stars" data-star-for="${id}">${[1,2,3,4,5].map(n => `<span class="mt-star${n <= filled ? ' on' : ''}" data-star="${n}">★</span>`).join("")}</div>`;
+    } else if (MT_CHIPS[id]){
+      extra = `<div class="mt-quick" data-chips-for="${id}">${MT_CHIPS[id].map(c => `<button type="button" class="mt-quick-btn" data-chip="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("")}</div>`;
+    }
+    return `<div class="field"><label>${label(id)}</label><input type="text" id="mt_${id}"${listAttr} value="${val(id)}">${extra}</div>`;
   }).join("");
 
   const narrativeHtml = MT_NARRATIVE_FIELDS.map(id =>
@@ -843,6 +922,29 @@ function openMtModal(entry){
     input.addEventListener("input", syncActive);
   });
 
+  // Sterne-Widget: Klick auf Stern n setzt n gefüllte + (5-n) leere Sterne als Feldwert; erneuter Klick auf den
+  // aktuellen Wert setzt zurück. Beim Hovern wird die Vorschau angezeigt.
+  document.querySelectorAll(".mt-stars[data-star-for]").forEach(row => {
+    const fieldId = row.dataset.starFor;
+    const input = document.getElementById("mt_" + fieldId);
+    const stars = Array.from(row.querySelectorAll(".mt-star"));
+    const paint = (count, cls) => stars.forEach(s => s.classList.toggle(cls, Number(s.dataset.star) <= count));
+    const currentCount = () => (input.value.match(/★/g) || []).length;
+    paint(currentCount(), "on");
+    stars.forEach(s => {
+      s.addEventListener("mouseenter", () => paint(Number(s.dataset.star), "hover"));
+      s.addEventListener("mouseleave", () => stars.forEach(st => st.classList.remove("hover")));
+      s.addEventListener("click", () => {
+        const n = Number(s.dataset.star);
+        const newCount = (currentCount() === n) ? 0 : n;
+        input.value = newCount > 0 ? "★".repeat(newCount) + "☆".repeat(5 - newCount) : "";
+        paint(newCount, "on");
+        input.dispatchEvent(new Event("input"));
+      });
+    });
+    input.addEventListener("input", () => paint(currentCount(), "on"));
+  });
+
   // Textareas wachsen automatisch mit dem Inhalt statt intern zu scrollen
   document.querySelectorAll(".mt-narrative textarea").forEach(ta => {
     const grow = () => { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; };
@@ -866,6 +968,14 @@ function openMtModal(entry){
   const marktnameInput = document.getElementById("mt_marktname");
   marktnameInput.focus();
 
+  // Ungespeicherte-Änderungen-Warnung: Ausgangswerte merken und beim Schliessen vergleichen.
+  const initialValues = {};
+  MT_FIELDS.forEach(id => { initialValues[id] = entry ? (entry[id] || "") : (id === "datum" ? todayStr() : ""); });
+  modalDirtyCheck = () => MT_FIELDS.some(id => {
+    const el = document.getElementById("mt_" + id);
+    return el && el.value.trim() !== (initialValues[id] || "").trim();
+  });
+
   const doSave = async () => {
     const data = {};
     MT_FIELDS.forEach(id => { data[id] = document.getElementById("mt_" + id).value.trim(); });
@@ -882,7 +992,7 @@ function openMtModal(entry){
     } catch(err){ alert("Fehler beim Speichern: " + err.message); }
   };
 
-  document.getElementById("mtCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("mtCancelBtn").addEventListener("click", requestCloseModal);
   document.getElementById("mtSaveBtn").addEventListener("click", doSave);
   const modalEl = document.getElementById("genericModal");
   if (mtKeydownHandler) modalEl.removeEventListener("keydown", mtKeydownHandler);
