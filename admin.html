@@ -141,8 +141,8 @@
 <!-- LOGIN / BOOTSTRAP -->
 <div id="loginRoot" class="login-box">
   <img id="logoImgLogin" src="" alt="Jörmuntösk Logo">
-  <h2 id="loginTitle">Admin-Anmeldung</h2>
-  <p id="loginHint" style="color:var(--text-muted);font-size:14px;">Bitte Name und Passwort eingeben.</p>
+  <h2 id="loginTitle">Anmeldung</h2>
+  <p id="loginHint" style="color:var(--text-muted);font-size:14px;">Bitte mit deinem Jörmuntösk-Zugang anmelden.</p>
   <input type="text" id="loginName" placeholder="Name">
   <input type="password" id="loginPw" placeholder="Passwort">
   <input type="password" id="loginPwConfirm" placeholder="Passwort bestätigen" style="display:none;">
@@ -157,8 +157,7 @@
       <div class="who">Angemeldet als<br><b id="whoName"></b><br><button class="btn secondary small" style="margin-top:8px;" id="logoutBtn">Abmelden</button></div>
       <button data-mod="schichtplanung" class="active">Schichtplanung</button>
       <button data-mod="markttagebuch">Markttagebuch</button>
-      <button data-mod="mitglieder">Mitglieder</button>
-      <button data-mod="vorstand">Vorstand-Zugänge</button>
+      <button data-mod="mitglieder">Mitglieder &amp; Verwaltungsrechte</button>
       <button data-mod="einstellungen">Einstellungen</button>
       <button data-mod="protokoll">Protokoll</button>
     </div>
@@ -187,7 +186,6 @@ const LOGO_SRC = "data:image/png;base64,/9j/4AAQSkZJRgABAgAAAQABAAD/wAARCAREBEQD
 document.getElementById("logoImg").src = LOGO_SRC;
 document.getElementById("logoImgLogin").src = LOGO_SRC;
 
-const COL_ADMINS = "admins";
 const COL_SCHICHTTYPEN = "schichttypen";
 const COL_POSTEN = "posten";
 const COL_MITARBEITER = "mitarbeiter";
@@ -201,17 +199,21 @@ const SETTINGS_ALLGEMEIN = doc(db, "einstellungen", "allgemein");
 const SETTINGS_DESIGN = doc(db, "einstellungen", "design");
 const SETTINGS_SICHTBARKEIT = doc(db, "einstellungen", "sichtbarkeit");
 
-let currentAdmin = null; // {id, name}
+let currentAdmin = null; // {id, name} — angemeldetes Mitglied mit Verwaltungsrechten
 let mtEntriesCache = []; // zuletzt geladene Markttagebuch-Einträge, für Autovervollständigung
 let bootstrapMode = false;
 
 // ---------- Login / Bootstrap ----------
+// Der Admin-Bereich verwendet dieselbe Mitglieder-Collection und denselben
+// Session-Speicher (jt_member_id/jt_member_name) wie alle anderen Werkzeuge.
+// Ein einmal erfolgter Login gilt somit überall, solange das Mitglied die
+// jeweils benötigten Berechtigungen besitzt (hier: Feld "verwaltung" = true).
 async function initLogin(){
-  const snap = await getDocs(collection(db, COL_ADMINS));
+  const snap = await getDocs(collection(db, COL_MITGLIEDER));
   if (snap.empty){
     bootstrapMode = true;
     document.getElementById("loginTitle").textContent = "Ersten Zugang anlegen";
-    document.getElementById("loginHint").textContent = "Noch keine Vorstand-Zugänge vorhanden. Lege den ersten Zugang an.";
+    document.getElementById("loginHint").textContent = "Noch keine Mitglieder vorhanden. Lege den ersten Zugang mit Verwaltungsrechten an.";
     document.getElementById("loginPwConfirm").style.display = "block";
     document.getElementById("loginBtn").textContent = "Zugang anlegen";
   }
@@ -228,30 +230,35 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     const pw2 = document.getElementById("loginPwConfirm").value;
     if (pw !== pw2){ err.textContent = "Passwörter stimmen nicht überein."; return; }
     const hash = await sha256(pw);
-    const ref = await addDoc(collection(db, COL_ADMINS), { name, password: hash, rolle: "Präsident" });
-    currentAdmin = { id: ref.id, name, rolle: "Präsident" };
-    sessionStorage.setItem("jt_admin_id", currentAdmin.id);
-    sessionStorage.setItem("jt_admin_name", currentAdmin.name);
+    const ref = await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status: "aktiv", verwaltung: true });
+    currentAdmin = { id: ref.id, name };
+    sessionStorage.setItem("jt_member_id", currentAdmin.id);
+    sessionStorage.setItem("jt_member_name", currentAdmin.name);
     enterShell();
     return;
   }
 
-  const snap = await getDocs(query(collection(db, COL_ADMINS), where("name", "==", name)));
+  const snap = await getDocs(query(collection(db, COL_MITGLIEDER), where("name", "==", name)));
   if (snap.empty){ err.textContent = "Unbekannter Name oder falsches Passwort."; return; }
-  const adminDoc = snap.docs[0];
+  const memberDoc = snap.docs[0];
   const hash = await sha256(pw);
-  if (hash !== adminDoc.data().password){ err.textContent = "Unbekannter Name oder falsches Passwort."; return; }
-  currentAdmin = { id: adminDoc.id, name: adminDoc.data().name, rolle: adminDoc.data().rolle || "" };
-  sessionStorage.setItem("jt_admin_id", currentAdmin.id);
-  sessionStorage.setItem("jt_admin_name", currentAdmin.name);
+  if (hash !== memberDoc.data().password){ err.textContent = "Unbekannter Name oder falsches Passwort."; return; }
+  const member = { id: memberDoc.id, name: memberDoc.data().name };
+  sessionStorage.setItem("jt_member_id", member.id);
+  sessionStorage.setItem("jt_member_name", member.name);
+  if (memberDoc.data().verwaltung !== true){
+    err.textContent = "Anmeldung erfolgreich, aber dieses Konto hat keine Verwaltungsrechte für den Admin-Bereich.";
+    return;
+  }
+  currentAdmin = member;
   enterShell();
 });
 
 document.getElementById("logoutBtn").addEventListener("click", () => logoutAdmin());
 
 function logoutAdmin(){
-  sessionStorage.removeItem("jt_admin_id");
-  sessionStorage.removeItem("jt_admin_name");
+  sessionStorage.removeItem("jt_member_id");
+  sessionStorage.removeItem("jt_member_name");
   currentAdmin = null;
   document.getElementById("shellRoot").style.display = "none";
   document.getElementById("loginRoot").style.display = "block";
@@ -272,18 +279,10 @@ function resetInactivityTimer(){
 }
 ["mousemove", "keydown", "click", "scroll"].forEach(evt => document.addEventListener(evt, resetInactivityTimer));
 
-function canManageAdmin(){
-  // Aus Kompatibilitätsgründen: Zugänge ohne gesetzte Rolle (vor diesem Update angelegt) behalten vollen Zugriff.
-  return !currentAdmin.rolle || currentAdmin.rolle === "Präsident";
-}
-
 function enterShell(){
   document.getElementById("loginRoot").style.display = "none";
   document.getElementById("shellRoot").style.display = "block";
-  document.getElementById("whoName").textContent = currentAdmin.name + (currentAdmin.rolle ? " (" + currentAdmin.rolle + ")" : "");
-  const restricted = !canManageAdmin();
-  document.querySelector('.sidebar button[data-mod="vorstand"]').style.display = restricted ? "none" : "block";
-  document.querySelector('.sidebar button[data-mod="einstellungen"]').style.display = restricted ? "none" : "block";
+  document.getElementById("whoName").textContent = currentAdmin.name;
   loadModule("schichtplanung");
   resetInactivityTimer();
 }
@@ -303,7 +302,6 @@ function loadModule(mod){
   if (mod === "schichtplanung") renderSchichtplanungModule(container);
   if (mod === "markttagebuch") renderMarkttagebuchModule(container);
   if (mod === "mitglieder") renderMitgliederModule(container);
-  if (mod === "vorstand") renderVorstandModule(container);
   if (mod === "einstellungen") renderEinstellungenModule(container);
   if (mod === "protokoll") renderProtokollModule(container);
 }
@@ -1032,8 +1030,9 @@ function renderMitgliederModule(container){
     if (!el) return;
     el.innerHTML = mitglieder.map(m => `
       <div class="list-item">
-        <span>${escapeHtml(m.name)}
+        <span>${escapeHtml(m.name)}${m.id === currentAdmin.id ? " (du)" : ""}
           <span style="color:var(--text-muted);">— ${m.status === "probezeit" ? "Probezeit" : "Aktiv"}</span>
+          ${m.verwaltung === true ? ` <span style="color:var(--accent);font-weight:bold;">· Verwaltungsrechte</span>` : ""}
           ${m.email ? ` <span style="color:var(--text-muted);">· ${escapeHtml(m.email)}</span>` : ""}
         </span>
         <span style="display:flex;gap:6px;">
@@ -1044,17 +1043,23 @@ function renderMitgliederModule(container){
       </div>`).join("") || `<p style="color:var(--text-muted);font-size:13px;">Keine Mitglieder vorhanden.</p>`;
     el.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
       const target = mitglieder.find(m => m.id === b.dataset.del);
+      const adminCount = mitglieder.filter(m => m.verwaltung === true).length;
+      if (target && target.verwaltung === true && adminCount <= 1){
+        alert("Das letzte Konto mit Verwaltungsrechten kann nicht entfernt werden.");
+        return;
+      }
       if (confirm(`Mitglied „${target ? target.name : "?"}" wirklich entfernen?`)){
         await deleteDoc(doc(db, COL_MITGLIEDER, b.dataset.del));
         logActivity(currentAdmin.name, `hat das Mitglied „${target ? target.name : "?"}" entfernt`);
       }
     }));
-    el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openMitgliedModal(mitglieder.find(m => m.id === b.dataset.edit))));
+    el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openMitgliedModal(mitglieder.find(m => m.id === b.dataset.edit), mitglieder)));
     el.querySelectorAll("[data-pw]").forEach(b => b.addEventListener("click", () => openMitgliedPwModal(mitglieder.find(m => m.id === b.dataset.pw))));
   });
 }
 
-function openMitgliedModal(mitglied){
+function openMitgliedModal(mitglied, alleMitglieder){
+  const istVerwaltung = mitglied ? mitglied.verwaltung === true : false;
   showModal(`
     <h2>${mitglied ? "Mitglied bearbeiten — " + escapeHtml(mitglied.name) : "Neues Mitglied anlegen"}</h2>
     <div class="field"><label>Name</label><input type="text" id="mName" value="${mitglied ? escapeHtml(mitglied.name) : ""}"></div>
@@ -1067,6 +1072,12 @@ function openMitgliedModal(mitglied){
     <div class="field"><label>E-Mail</label><input type="email" id="mEmail" value="${mitglied && mitglied.email ? escapeHtml(mitglied.email) : ""}" placeholder="optional"></div>
     <div class="field"><label>Telefon</label><input type="tel" id="mTelefon" value="${mitglied && mitglied.telefon ? escapeHtml(mitglied.telefon) : ""}" placeholder="optional"></div>
     <div class="field"><label>Adresse</label><input type="text" id="mAdresse" value="${mitglied && mitglied.adresse ? escapeHtml(mitglied.adresse) : ""}" placeholder="optional"></div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+        <input type="checkbox" id="mVerwaltung" style="width:auto;" ${istVerwaltung ? "checked" : ""}>
+        Verwaltungsrechte (Zugriff auf diesen Admin-Bereich)
+      </label>
+    </div>
     <div class="modal-actions">
       <div></div>
       <div class="right">
@@ -1082,17 +1093,31 @@ function openMitgliedModal(mitglied){
     const email = document.getElementById("mEmail").value.trim();
     const telefon = document.getElementById("mTelefon").value.trim();
     const adresse = document.getElementById("mAdresse").value.trim();
+    const verwaltung = document.getElementById("mVerwaltung").checked;
     if (!name){ alert("Bitte einen Namen angeben."); return; }
+    if (mitglied && istVerwaltung && !verwaltung && alleMitglieder){
+      const adminCount = alleMitglieder.filter(m => m.verwaltung === true).length;
+      if (adminCount <= 1){
+        alert("Diesem Mitglied können die Verwaltungsrechte nicht entzogen werden, da es das letzte Konto mit Verwaltungsrechten ist.");
+        return;
+      }
+    }
     try {
       if (mitglied){
-        await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { name, status, email, telefon, adresse });
-        logActivity(currentAdmin.name, `hat das Mitglied „${name}" bearbeitet`);
+        await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { name, status, email, telefon, adresse, verwaltung });
+        logActivity(currentAdmin.name, `hat das Mitglied „${name}" bearbeitet` + (verwaltung !== istVerwaltung ? ` (Verwaltungsrechte ${verwaltung ? "erteilt" : "entzogen"})` : ""));
+        if (mitglied.id === currentAdmin.id && !verwaltung){
+          closeModal();
+          alert("Dir wurden soeben die eigenen Verwaltungsrechte entzogen. Du wirst abgemeldet.");
+          logoutAdmin();
+          return;
+        }
       } else {
         const pw = document.getElementById("mPw").value;
         if (!pw){ alert("Bitte ein Initialpasswort angeben."); return; }
         const hash = await sha256(pw);
-        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status, email, telefon, adresse });
-        logActivity(currentAdmin.name, `hat das Mitglied „${name}" angelegt`);
+        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status, email, telefon, adresse, verwaltung });
+        logActivity(currentAdmin.name, `hat das Mitglied „${name}" angelegt` + (verwaltung ? " (mit Verwaltungsrechten)" : ""));
       }
       closeModal();
     } catch (err) {
@@ -1125,110 +1150,6 @@ function openMitgliedPwModal(mitglied){
     } catch (err) {
       alert("Fehler beim Speichern: " + err.message);
     }
-  });
-}
-
-/* =========================================================
-   MODUL: VORSTAND-ZUGÄNGE
-   ========================================================= */
-function renderVorstandModule(container){
-  container.innerHTML = `
-    <div class="toolbar">
-      <h1 style="margin:0;">Vorstand-Zugänge</h1>
-      <button class="btn" id="vNewBtn">+ Zugang anlegen</button>
-    </div>
-    <div class="card pad" id="vList"></div>
-  `;
-  document.getElementById("vNewBtn").addEventListener("click", () => openAdminModal());
-  onSnapshot(collection(db, COL_ADMINS), snap => {
-    const admins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const el = document.getElementById("vList");
-    if (!el) return;
-    el.innerHTML = admins.map(a => `
-      <div class="list-item">
-        <span>${escapeHtml(a.name)}${a.id === currentAdmin.id ? " (du)" : ""}${a.rolle ? ` <span style="color:var(--text-muted);">— ${escapeHtml(a.rolle)}</span>` : ""}</span>
-        <span style="display:flex;gap:6px;">
-          <button class="btn secondary small" data-role="${a.id}">Rolle</button>
-          <button class="btn secondary small" data-pw="${a.id}">Passwort ändern</button>
-          <button class="btn secondary small" data-del="${a.id}">Entfernen</button>
-        </span>
-      </div>`).join("") || `<p style="color:var(--text-muted);font-size:13px;">Keine Zugänge vorhanden.</p>`;
-    el.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
-      if (admins.length <= 1){ alert("Der letzte Zugang kann nicht entfernt werden."); return; }
-      const target = admins.find(a => a.id === b.dataset.del);
-      if (confirm("Diesen Zugang wirklich entfernen?")){
-        await deleteDoc(doc(db, COL_ADMINS, b.dataset.del));
-        logActivity(currentAdmin.name, `hat den Zugang von „${target ? target.name : "?"}" entfernt`);
-      }
-    }));
-    el.querySelectorAll("[data-pw]").forEach(b => b.addEventListener("click", () => openAdminModal(admins.find(a => a.id === b.dataset.pw), true)));
-    el.querySelectorAll("[data-role]").forEach(b => b.addEventListener("click", () => openRoleModal(admins.find(a => a.id === b.dataset.role))));
-  });
-}
-
-const ROLLEN = ["Präsident", "Vizepräsident", "Kassier", "Aktuar", "Beisitzer"];
-
-function openRoleModal(admin){
-  showModal(`
-    <h2>Rolle ändern — ${escapeHtml(admin.name)}</h2>
-    <div class="field"><label>Rolle</label>
-      <select id="rRolle">
-        <option value="">— keine —</option>
-        ${ROLLEN.map(r => `<option value="${r}" ${admin.rolle === r ? "selected" : ""}>${r}</option>`).join("")}
-      </select>
-    </div>
-    <p style="font-size:12px;color:var(--text-muted);">Nur die Rolle „Präsident" hat Zugriff auf Vorstand-Zugänge und Einstellungen.</p>
-    <div class="modal-actions">
-      <div></div>
-      <div class="right">
-        <button class="btn secondary" id="rCancelBtn">Abbrechen</button>
-        <button class="btn" id="rSaveBtn">Speichern</button>
-      </div>
-    </div>
-  `);
-  document.getElementById("rCancelBtn").addEventListener("click", closeModal);
-  document.getElementById("rSaveBtn").addEventListener("click", async () => {
-    const rolle = document.getElementById("rRolle").value;
-    await updateDoc(doc(db, COL_ADMINS, admin.id), { rolle });
-    logActivity(currentAdmin.name, `hat die Rolle von „${admin.name}" auf „${rolle || "keine"}" gesetzt`);
-    if (admin.id === currentAdmin.id){
-      currentAdmin.rolle = rolle;
-      enterShell();
-    }
-    closeModal();
-  });
-}
-
-function openAdminModal(admin, pwOnly){
-  showModal(`
-    <h2>${admin ? "Passwort ändern — " + escapeHtml(admin.name) : "Neuer Vorstand-Zugang"}</h2>
-    ${admin ? "" : `<div class="field"><label>Name</label><input type="text" id="vName"></div>`}
-    ${admin ? "" : `<div class="field"><label>Rolle</label><select id="vRolle"><option value="">— keine —</option>${ROLLEN.map(r => `<option value="${r}">${r}</option>`).join("")}</select></div>`}
-    <div class="field"><label>${admin ? "Neues Passwort" : "Passwort"}</label><input type="password" id="vPw"></div>
-    <div class="modal-actions">
-      <div></div>
-      <div class="right">
-        <button class="btn secondary" id="vCancelBtn">Abbrechen</button>
-        <button class="btn" id="vSaveBtn">Speichern</button>
-      </div>
-    </div>
-  `);
-  document.getElementById("vCancelBtn").addEventListener("click", closeModal);
-  document.getElementById("vSaveBtn").addEventListener("click", async () => {
-    const pw = document.getElementById("vPw").value;
-    if (!pw){ alert("Bitte ein Passwort angeben."); return; }
-    const hash = await sha256(pw);
-    if (admin){
-      await updateDoc(doc(db, COL_ADMINS, admin.id), { password: hash });
-      logActivity(currentAdmin.name, `hat das Passwort von „${admin.name}" geändert`);
-    } else {
-      const name = document.getElementById("vName").value.trim();
-      const rolle = document.getElementById("vRolle").value;
-      if (!name){ alert("Bitte einen Namen angeben."); return; }
-      await addDoc(collection(db, COL_ADMINS), { name, password: hash, rolle });
-      logActivity(currentAdmin.name, `hat den Zugang „${name}" angelegt`);
-    }
-    closeModal();
   });
 }
 
@@ -1343,13 +1264,13 @@ function renderEinstellungenModule(container){
   });
 
   document.getElementById("exportAllBtn").addEventListener("click", async () => {
-    const collections = [COL_SCHICHTTYPEN, COL_POSTEN, COL_MITARBEITER, COL_VERFUEGBARKEIT, COL_ZUWEISUNG, COL_MARKT, COL_ADMINS, COL_AKTIVITAETEN];
+    const collections = [COL_SCHICHTTYPEN, COL_POSTEN, COL_MITARBEITER, COL_VERFUEGBARKEIT, COL_ZUWEISUNG, COL_MARKT, COL_MITGLIEDER, COL_AKTIVITAETEN];
     const exportData = {};
     for (const colName of collections){
       const snap = await getDocs(collection(db, colName));
       exportData[colName] = snap.docs.map(d => {
         const data = { id: d.id, ...d.data() };
-        if (colName === COL_ADMINS) delete data.password;
+        if (colName === COL_MITGLIEDER) delete data.password;
         return data;
       });
     }
@@ -1425,12 +1346,12 @@ function renderProtokollModule(container){
 // ---------- Init ----------
 (async function init(){
   await initLogin();
-  const savedId = sessionStorage.getItem("jt_admin_id");
-  const savedName = sessionStorage.getItem("jt_admin_name");
+  const savedId = sessionStorage.getItem("jt_member_id");
+  const savedName = sessionStorage.getItem("jt_member_name");
   if (savedId && savedName && !bootstrapMode){
-    const snap = await getDoc(doc(db, COL_ADMINS, savedId));
-    if (snap.exists()){
-      currentAdmin = { id: savedId, name: snap.data().name, rolle: snap.data().rolle || "" };
+    const snap = await getDoc(doc(db, COL_MITGLIEDER, savedId));
+    if (snap.exists() && snap.data().verwaltung === true){
+      currentAdmin = { id: savedId, name: snap.data().name };
       enterShell();
     }
   }

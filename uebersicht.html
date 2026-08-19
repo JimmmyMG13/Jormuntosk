@@ -92,7 +92,9 @@
 import { db, initTheme, applyBranding, requireMemberLogin, memberLogout } from "./common.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-await requireMemberLogin();
+const currentMember = await requireMemberLogin();
+const tileAdmin = document.getElementById("tile-admin");
+if (tileAdmin && currentMember.verwaltung !== true) tileAdmin.style.display = "none";
 
 initTheme("themeToggle");
 document.getElementById("logoutBtn").addEventListener("click", memberLogout);

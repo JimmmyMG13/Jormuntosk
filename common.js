@@ -162,6 +162,9 @@ let _currentMember = null;
 // Liefert das aktuell angemeldete Mitglied (nach erfolgreichem requireMemberLogin()).
 export function getCurrentMember(){ return _currentMember; }
 
+// Prüft, ob ein Mitglied Verwaltungsrechte besitzt (Zugriff auf den Admin-Bereich).
+export function isAdmin(member){ return !!(member && member.verwaltung === true); }
+
 // Meldet das Mitglied ab und lädt die Seite neu, damit wieder der Login erscheint.
 export function memberLogout(){
   sessionStorage.removeItem("jt_member_id");

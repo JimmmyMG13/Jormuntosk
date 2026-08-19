@@ -81,7 +81,7 @@
     <button data-tab="eingabe">Mitarbeiter-Eingabe</button>
   </nav>
   <div class="header-actions">
-    <a href="admin.html" class="icon-btn" title="Admin">⚙</a>
+    <a href="admin.html" class="icon-btn" id="adminLink" title="Admin">⚙</a>
     <a href="uebersicht.html" class="icon-btn" title="Zur Übersicht">⌂</a>
     <button class="icon-btn" id="logoutBtn" title="Abmelden">⏻</button>
   <button class="icon-btn" id="themeToggle" title="Hell/Dunkel">☾</button>
@@ -158,7 +158,9 @@ import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, onSnapshot, query, where
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-await requireMemberLogin();
+const currentMember = await requireMemberLogin();
+const adminLink = document.getElementById("adminLink");
+if (adminLink && currentMember.verwaltung !== true) adminLink.style.display = "none";
 
 initTheme("themeToggle");
 document.getElementById("logoutBtn").addEventListener("click", memberLogout);
