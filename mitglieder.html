@@ -31,7 +31,11 @@
   .intro h1{font-size:22px;margin:0 0 6px 0;}
   .intro p{color:var(--text-muted);margin:0;font-size:14px;}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:22px;margin-bottom:20px;}
-  .card h2{margin:0 0 4px 0;font-size:16px;color:var(--accent);}
+  .card h2{margin:0 0 4px 0;font-size:16px;color:var(--accent);cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;}
+  .card h2::after{content:"▾";font-size:13px;color:var(--text-muted);transition:transform .15s ease;margin-left:10px;}
+  .card.collapsed h2{margin-bottom:0;}
+  .card.collapsed h2::after{transform:rotate(-90deg);}
+  .card.collapsed > *:not(h2){display:none;}
   .card p.hint{margin:0 0 16px 0;font-size:12px;color:var(--text-muted);}
   .field{margin-bottom:14px;}
   .field label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:4px;}
@@ -93,7 +97,7 @@
     <p>Hier kannst du deine Kontaktdaten und dein Passwort verwalten.</p>
   </div>
 
-  <div class="card">
+  <div class="card collapsed">
     <h2>Meine Daten</h2>
     <p class="hint">Status: <span id="statusBadge" class="status-badge">–</span></p>
     <div class="field">
@@ -131,13 +135,13 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card collapsed">
     <h2>Meine Abzeichen</h2>
     <p class="hint">Manuell durch den Vorstand vergeben. Erreichte Abzeichen sind hervorgehoben.</p>
     <div id="abzeichenContainer"></div>
   </div>
 
-  <div class="card">
+  <div class="card collapsed">
     <h2>Anliegen an den Vorstand</h2>
     <p class="hint">Ausrüstung, Finanzen, Organisatorisches oder Sonstiges — der Vorstand meldet sich hier zurück.</p>
     <div class="field">
@@ -157,7 +161,7 @@
     <div style="margin-top:20px;" id="anfrageListe"></div>
   </div>
 
-  <div class="card">
+  <div class="card collapsed">
     <h2>Passwort ändern</h2>
     <p class="hint">Wähle ein neues Passwort für deinen Zugang.</p>
     <div class="field">
@@ -341,6 +345,12 @@ document.getElementById("savePwBtn").addEventListener("click", async () => {
     msgEl.textContent = "Fehler beim Ändern: " + err.message;
     msgEl.className = "msg err";
   }
+});
+
+// Kacheln sind standardmässig eingeklappt (siehe class="card collapsed" im HTML);
+// Klick auf die Überschrift klappt die jeweilige Kachel auf/zu.
+document.querySelectorAll(".card > h2").forEach(h2 => {
+  h2.addEventListener("click", () => h2.closest(".card").classList.toggle("collapsed"));
 });
 </script>
 </body>
