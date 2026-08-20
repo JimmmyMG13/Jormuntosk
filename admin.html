@@ -174,7 +174,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen } from "./common.js";
+import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG } from "./common.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -1014,18 +1014,46 @@ function openMtModal(entry){
    ========================================================= */
 const MITGLIED_STATUS = ["aktiv", "probezeit"];
 
+// Exportiert die aktuelle Mitgliederliste inkl. verliehener Abzeichen als Excel-Datei.
+function exportMitgliederExcel(mitglieder){
+  if (!mitglieder || !mitglieder.length){ alert("Keine Mitglieder zum Exportieren vorhanden."); return; }
+  const abzeichenNamenById = Object.fromEntries(ABZEICHEN_KATALOG.map(a => [a.id, a.name]));
+  const rows = mitglieder.map(m => ({
+    "Name": m.name || "",
+    "Status": m.status === "probezeit" ? "Probezeit" : "Aktiv",
+    "E-Mail": m.email || "",
+    "Telefon": m.telefon || "",
+    "Adresse": m.adresse || "",
+    "Verwaltungsrechte": m.verwaltung === true ? "Ja" : "Nein",
+    "Anzahl Abzeichen": Array.isArray(m.abzeichen) ? m.abzeichen.length : 0,
+    "Abzeichen": Array.isArray(m.abzeichen) ? m.abzeichen.map(id => abzeichenNamenById[id] || id).join(", ") : ""
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws["!cols"] = [ { wch: 22 }, { wch: 12 }, { wch: 26 }, { wch: 16 }, { wch: 26 }, { wch: 16 }, { wch: 14 }, { wch: 60 } ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Mitglieder");
+  const heute = todayStr();
+  XLSX.writeFile(wb, `Jörmuntösk_Mitglieder_${heute}.xlsx`);
+}
+
 function renderMitgliederModule(container){
   container.innerHTML = `
     <div class="toolbar">
       <h1 style="margin:0;">Mitglieder</h1>
-      <button class="btn" id="mNewBtn">+ Mitglied anlegen</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn secondary" id="mExportBtn">Excel exportieren</button>
+        <button class="btn" id="mNewBtn">+ Mitglied anlegen</button>
+      </div>
     </div>
     <div class="card pad" id="mList"></div>
   `;
   document.getElementById("mNewBtn").addEventListener("click", () => openMitgliedModal());
+  let mitgliederFuerExport = [];
+  document.getElementById("mExportBtn").addEventListener("click", () => exportMitgliederExcel(mitgliederFuerExport));
   onSnapshot(collection(db, COL_MITGLIEDER), snap => {
     const mitglieder = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+    mitgliederFuerExport = mitglieder;
     const el = document.getElementById("mList");
     if (!el) return;
     el.innerHTML = mitglieder.map(m => `
