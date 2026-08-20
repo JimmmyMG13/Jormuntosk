@@ -45,6 +45,7 @@
   }
   .sidebar button:hover{background:var(--surface);}
   .sidebar button.active{background:var(--accent);color:#fff;font-weight:bold;}
+  .badge-count{display:inline-block;min-width:18px;padding:1px 6px;border-radius:999px;background:#c83c3c;color:#fff;font-size:11px;font-weight:bold;text-align:center;margin-left:4px;}
   .sidebar .who{font-size:12px;color:var(--text-muted);padding:0 12px 14px 12px;border-bottom:1px solid var(--border);margin-bottom:14px;}
   main{flex:1;padding:24px;min-width:0;}
   h1{font-size:20px;margin:0 0 16px 0;}
@@ -158,6 +159,7 @@
       <button data-mod="schichtplanung" class="active">Schichtplanung</button>
       <button data-mod="markttagebuch">Markttagebuch</button>
       <button data-mod="mitglieder">Mitglieder &amp; Verwaltungsrechte</button>
+      <button data-mod="anfragen">Anfragen <span id="anfragenBadge" class="badge-count" style="display:none;"></span></button>
       <button data-mod="einstellungen">Einstellungen</button>
       <button data-mod="protokoll">Protokoll</button>
     </div>
@@ -174,7 +176,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG } from "./common.js";
+import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel } from "./common.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -285,6 +287,12 @@ function enterShell(){
   document.getElementById("whoName").textContent = currentAdmin.name;
   loadModule("schichtplanung");
   resetInactivityTimer();
+  onSnapshot(query(collection(db, COL_ANFRAGEN), where("status", "==", "offen")), snap => {
+    const badge = document.getElementById("anfragenBadge");
+    if (!badge) return;
+    if (snap.size > 0){ badge.textContent = snap.size; badge.style.display = "inline-block"; }
+    else { badge.style.display = "none"; }
+  });
 }
 
 // ---------- Sidebar navigation ----------
@@ -302,6 +310,7 @@ function loadModule(mod){
   if (mod === "schichtplanung") renderSchichtplanungModule(container);
   if (mod === "markttagebuch") renderMarkttagebuchModule(container);
   if (mod === "mitglieder") renderMitgliederModule(container);
+  if (mod === "anfragen") renderAnfragenModule(container);
   if (mod === "einstellungen") renderEinstellungenModule(container);
   if (mod === "protokoll") renderProtokollModule(container);
 }
@@ -1342,6 +1351,82 @@ function renderEinstellungenModule(container){
 /* =========================================================
    MODUL: PROTOKOLL
    ========================================================= */
+function renderAnfragenModule(container){
+  container.innerHTML = `
+    <div class="toolbar">
+      <h1 style="margin:0;">Anfragen</h1>
+      <select id="anfrageFilter">
+        <option value="alle">Alle</option>
+        ${ANFRAGE_STATUS.map(s => `<option value="${s}">${anfrageStatusLabel(s)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="card pad" id="anfrageList"></div>
+  `;
+  const filterEl = document.getElementById("anfrageFilter");
+  let alleAnfragen = [];
+  function render(){
+    const el = document.getElementById("anfrageList");
+    if (!el) return;
+    const filter = filterEl.value;
+    const rows = filter === "alle" ? alleAnfragen : alleAnfragen.filter(a => a.status === filter);
+    if (rows.length === 0){
+      el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Keine Anfragen vorhanden.</p>`;
+      return;
+    }
+    el.innerHTML = rows.map(a => `
+      <div class="list-item">
+        <span>
+          <b>${escapeHtml(a.titel)}</b>
+          <span style="color:var(--text-muted);"> — ${escapeHtml(a.kategorie)} · von ${escapeHtml(a.mitgliedName)} · ${new Date(a.erstelltAm).toLocaleDateString("de-CH")}</span>
+          <br><span class="anfrage-status ${a.status}" style="display:inline-block;margin-top:4px;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);">${anfrageStatusLabel(a.status)}</span>
+        </span>
+        <span><button class="btn secondary small" data-open="${a.id}">Öffnen</button></span>
+      </div>`).join("");
+    el.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openAnfrageModal(alleAnfragen.find(a => a.id === b.dataset.open))));
+  }
+  filterEl.addEventListener("change", render);
+  onSnapshot(query(collection(db, COL_ANFRAGEN), orderBy("erstelltAm", "desc")), snap => {
+    alleAnfragen = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  });
+}
+
+function openAnfrageModal(anfrage){
+  if (!anfrage) return;
+  showModal(`
+    <h2>${escapeHtml(anfrage.titel)}</h2>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:-8px;">${escapeHtml(anfrage.kategorie)} · von ${escapeHtml(anfrage.mitgliedName)} · ${new Date(anfrage.erstelltAm).toLocaleString("de-CH")}</p>
+    <div class="field"><label>Beschreibung</label><p style="white-space:pre-wrap;">${escapeHtml(anfrage.beschreibung)}</p></div>
+    <div class="field"><label>Status</label>
+      <select id="aStatus">
+        ${ANFRAGE_STATUS.map(s => `<option value="${s}" ${anfrage.status === s ? "selected" : ""}>${anfrageStatusLabel(s)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="field"><label>Antwort an das Mitglied</label>
+      <textarea id="aAntwort" rows="4" placeholder="Sichtbar für das Mitglied">${anfrage.antwortVorstand ? escapeHtml(anfrage.antwortVorstand) : ""}</textarea>
+    </div>
+    <div class="modal-actions">
+      <div></div>
+      <div class="right">
+        <button class="btn secondary" id="aCancelBtn">Abbrechen</button>
+        <button class="btn" id="aSaveBtn">Speichern</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("aCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("aSaveBtn").addEventListener("click", async () => {
+    const status = document.getElementById("aStatus").value;
+    const antwortVorstand = document.getElementById("aAntwort").value.trim();
+    try {
+      await updateDoc(doc(db, COL_ANFRAGEN, anfrage.id), { status, antwortVorstand, bearbeitetVon: currentAdmin.name, bearbeitetAm: new Date().toISOString() });
+      logActivity(currentAdmin.name, `hat die Anfrage „${anfrage.titel}" auf „${anfrageStatusLabel(status)}" gesetzt`);
+      closeModal();
+    } catch (err) {
+      alert("Fehler beim Speichern: " + err.message);
+    }
+  });
+}
+
 function renderProtokollModule(container){
   container.innerHTML = `
     <div class="toolbar">

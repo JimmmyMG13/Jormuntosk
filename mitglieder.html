@@ -35,7 +35,7 @@
   .card p.hint{margin:0 0 16px 0;font-size:12px;color:var(--text-muted);}
   .field{margin-bottom:14px;}
   .field label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:4px;}
-  .field input{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box;}
+  .field input, .field select, .field textarea{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box;}
   .field input:disabled{opacity:.7;}
   .status-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:bold;}
   .status-aktiv{background:rgba(42,163,41,0.15);color:var(--accent-dark);}
@@ -58,6 +58,17 @@
   .abzeichen-item .icon{font-size:26px;line-height:1;margin-bottom:6px;}
   .abzeichen-item .name{font-size:11px;font-weight:bold;line-height:1.2;}
   .abzeichen-item .stufe{font-size:10px;color:var(--text-muted);margin-top:2px;}
+  .anfrage-item{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+  .anfrage-item:last-child{margin-bottom:0;}
+  .anfrage-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .anfrage-titel{font-weight:bold;}
+  .anfrage-status{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);white-space:nowrap;}
+  .anfrage-status.offen{background:rgba(42,163,41,0.12);border-color:var(--accent);color:var(--accent);}
+  .anfrage-status.in_bearbeitung{background:rgba(230,160,0,0.12);border-color:#e6a000;color:#e6a000;}
+  .anfrage-status.erledigt{background:rgba(120,120,120,0.12);color:var(--text-muted);}
+  .anfrage-status.abgelehnt{background:rgba(200,60,60,0.12);border-color:#c83c3c;color:#c83c3c;}
+  .anfrage-meta{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .anfrage-antwort{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:13px;}
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
 </head>
@@ -112,6 +123,26 @@
   </div>
 
   <div class="card">
+    <h2>Anliegen an den Vorstand</h2>
+    <p class="hint">Ausrüstung, Finanzen, Organisatorisches oder Sonstiges — der Vorstand meldet sich hier zurück.</p>
+    <div class="field">
+      <label for="anfrageKategorie">Kategorie</label>
+      <select id="anfrageKategorie"></select>
+    </div>
+    <div class="field">
+      <label for="anfrageTitel">Titel</label>
+      <input type="text" id="anfrageTitel" placeholder="Kurzer Titel">
+    </div>
+    <div class="field">
+      <label for="anfrageBeschreibung">Beschreibung</label>
+      <textarea id="anfrageBeschreibung" rows="4" placeholder="Worum geht es?"></textarea>
+    </div>
+    <button class="btn" id="anfrageSendenBtn">Anfrage einreichen</button>
+    <div class="msg" id="anfrageMsg"></div>
+    <div style="margin-top:20px;" id="anfrageListe"></div>
+  </div>
+
+  <div class="card">
     <h2>Passwort ändern</h2>
     <p class="hint">Wähle ein neues Passwort für deinen Zugang.</p>
     <div class="field">
@@ -137,8 +168,8 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen } from "./common.js";
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml } from "./common.js";
+import { doc, updateDoc, collection, addDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const member = await requireMemberLogin();
 
@@ -182,6 +213,55 @@ function renderAbzeichen(){
     </div>`).join("");
 }
 renderAbzeichen();
+
+// Befüllt das Kategorie-Dropdown und lädt/rendert die eigenen Anfragen live.
+document.getElementById("anfrageKategorie").innerHTML = ANFRAGE_KATEGORIEN.map(k => `<option value="${k}">${k}</option>`).join("");
+
+document.getElementById("anfrageSendenBtn").addEventListener("click", async () => {
+  const kategorie = document.getElementById("anfrageKategorie").value;
+  const titel = document.getElementById("anfrageTitel").value.trim();
+  const beschreibung = document.getElementById("anfrageBeschreibung").value.trim();
+  const msg = document.getElementById("anfrageMsg");
+  msg.textContent = "";
+  if (!titel || !beschreibung){ msg.textContent = "Bitte Titel und Beschreibung angeben."; msg.style.color = "#c83c3c"; return; }
+  try {
+    await addDoc(collection(db, COL_ANFRAGEN), {
+      mitgliedId: member.id,
+      mitgliedName: member.name,
+      titel, beschreibung, kategorie,
+      status: "offen",
+      erstelltAm: new Date().toISOString()
+    });
+    document.getElementById("anfrageTitel").value = "";
+    document.getElementById("anfrageBeschreibung").value = "";
+    msg.style.color = "var(--accent)";
+    msg.textContent = "Anfrage eingereicht.";
+  } catch (err) {
+    msg.style.color = "#c83c3c";
+    msg.textContent = "Fehler: " + err.message;
+  }
+});
+
+const anfrageQ = query(collection(db, COL_ANFRAGEN), where("mitgliedId", "==", member.id), orderBy("erstelltAm", "desc"));
+onSnapshot(anfrageQ, snap => {
+  const el = document.getElementById("anfrageListe");
+  if (!el) return;
+  const rows = snap.docs.map(d => d.data());
+  if (rows.length === 0){
+    el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Noch keine eigenen Anfragen.</p>`;
+    return;
+  }
+  el.innerHTML = rows.map(r => `
+    <div class="anfrage-item">
+      <div class="anfrage-head">
+        <span class="anfrage-titel">${escapeHtml(r.titel)}</span>
+        <span class="anfrage-status ${r.status}">${anfrageStatusLabel(r.status)}</span>
+      </div>
+      <div class="anfrage-meta">${escapeHtml(r.kategorie)} · ${new Date(r.erstelltAm).toLocaleDateString("de-CH")}</div>
+      <div style="font-size:13px;margin-top:6px;">${escapeHtml(r.beschreibung)}</div>
+      ${r.antwortVorstand ? `<div class="anfrage-antwort"><b>Antwort des Vorstands:</b><br>${escapeHtml(r.antwortVorstand)}</div>` : ""}
+    </div>`).join("");
+});
 
 document.getElementById("saveProfilBtn").addEventListener("click", async () => {
   const msgEl = document.getElementById("profilMsg");

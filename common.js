@@ -368,3 +368,21 @@ export function requireMemberLogin({ appRootId = "appRoot" } = {}){
     attemptRestore();
   });
 }
+
+// =========================================================
+// Anfragen an den Vorstand
+// Mitglieder reichen allgemeine Anliegen (z.B. Ausrüstung, Organisatorisches)
+// ein; der Vorstand bearbeitet sie im Admin-Bereich. Collection "anfragen".
+// =========================================================
+
+export const COL_ANFRAGEN = "anfragen";
+
+export const ANFRAGE_KATEGORIEN = ["Ausrüstung", "Finanzen", "Organisatorisches", "Sonstiges"];
+
+export const ANFRAGE_STATUS = ["offen", "in_bearbeitung", "erledigt", "abgelehnt"];
+
+export function anfrageStatusLabel(status){
+  const labels = { offen: "Offen", in_bearbeitung: "In Bearbeitung", erledigt: "Erledigt", abgelehnt: "Abgelehnt" };
+  return labels[status] || status;
+}
+
