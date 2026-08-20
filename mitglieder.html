@@ -169,7 +169,7 @@
 
 <script type="module">
 import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml } from "./common.js";
-import { doc, updateDoc, collection, addDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { doc, updateDoc, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const member = await requireMemberLogin();
 
@@ -242,11 +242,11 @@ document.getElementById("anfrageSendenBtn").addEventListener("click", async () =
   }
 });
 
-const anfrageQ = query(collection(db, COL_ANFRAGEN), where("mitgliedId", "==", member.id), orderBy("erstelltAm", "desc"));
+const anfrageQ = query(collection(db, COL_ANFRAGEN), where("mitgliedId", "==", member.id));
 onSnapshot(anfrageQ, snap => {
   const el = document.getElementById("anfrageListe");
   if (!el) return;
-  const rows = snap.docs.map(d => d.data());
+  const rows = snap.docs.map(d => d.data()).sort((a, b) => (b.erstelltAm || "").localeCompare(a.erstelltAm || ""));
   if (rows.length === 0){
     el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Noch keine eigenen Anfragen.</p>`;
     return;
