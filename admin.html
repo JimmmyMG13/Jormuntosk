@@ -754,11 +754,30 @@ const MT_CHIPS = {
 // Für diese Felder gibt es statt Text-Chips ein Sterne-Widget (schnelleres Bewerten per Klick).
 const MT_STARS = ["preisleistung","atmosphaere"];
 
+// Exportiert Markttagebuch-Einträge (bereits gefiltert) als Excel-Datei, eine Zeile pro Eintrag.
+function exportMarkttagebuchExcel(entries){
+  if (!entries || !entries.length){ alert("Keine Einträge zum Exportieren vorhanden."); return; }
+  const sorted = [...entries].sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
+  const rows = sorted.map(e => {
+    const row = {};
+    MT_FIELDS.forEach(id => { row[MT_LABELS[id].replace(" *", "")] = e[id] || ""; });
+    return row;
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws["!cols"] = MT_FIELDS.map(id => ({ wch: id === "fazit" || id === "erwaehnenswert" || id === "marktangebot" || id === "unterhaltungsangebot" ? 40 : 18 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Markttagebuch");
+  XLSX.writeFile(wb, `Jörmuntösk_Markttagebuch_${todayStr()}.xlsx`);
+}
+
 function renderMarkttagebuchModule(container){
   container.innerHTML = `
     <div class="toolbar">
       <h1 style="margin:0;">Marktbesuche</h1>
-      <button class="btn" id="mtNewBtn">+ Neuer Eintrag</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn secondary" id="mtExportBtn">Excel exportieren</button>
+        <button class="btn" id="mtNewBtn">+ Neuer Eintrag</button>
+      </div>
     </div>
     <div class="mt-filter-bar">
       <input type="text" id="mtSearch" placeholder="🔍 Suche (Name, Ort, Veranstalter)">
@@ -766,9 +785,11 @@ function renderMarkttagebuchModule(container){
       <select id="mtFilterVeranstalter"><option value="">Alle Veranstalter</option></select>
       <select id="mtFilterOrt"><option value="">Alle Orte</option></select>
     </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:-4px 0 0;">Der Export berücksichtigt die aktuell gesetzten Filter.</p>
     <div id="mtList"></div>
   `;
   document.getElementById("mtNewBtn").addEventListener("click", () => openMtModal(null));
+  document.getElementById("mtExportBtn").addEventListener("click", () => exportMarkttagebuchExcel(getFilteredEntries()));
 
   let lastEntries = [];
   const searchEl = document.getElementById("mtSearch");
@@ -790,10 +811,10 @@ function renderMarkttagebuchModule(container){
     fill(ortEl, ortList, "Alle Orte");
   }
 
-  function renderFilteredList(){
+  function getFilteredEntries(){
     const q = searchEl.value.trim().toLowerCase();
     const jahr = jahrEl.value, ven = veranstalterEl.value, ort = ortEl.value;
-    const filtered = lastEntries.filter(e => {
+    return lastEntries.filter(e => {
       if (jahr && (e.datum || "").slice(0, 4) !== jahr) return false;
       if (ven && e.veranstalter !== ven) return false;
       if (ort && e.ort !== ort) return false;
@@ -803,6 +824,10 @@ function renderMarkttagebuchModule(container){
       }
       return true;
     });
+  }
+
+  function renderFilteredList(){
+    const filtered = getFilteredEntries();
     const list = document.getElementById("mtList");
     if (!list) return;
     if (lastEntries.length === 0){
