@@ -114,6 +114,21 @@
     </div>
     <button class="btn" id="saveProfilBtn">Speichern</button>
     <div class="msg" id="profilMsg"></div>
+    <div id="vorstandFelderBlock" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:none;">
+      <p class="hint" style="margin-top:0;">Diese Angaben werden vom Vorstand gepflegt.</p>
+      <div class="field" id="fEintrittsdatumRow" style="display:none;">
+        <label>Eintrittsdatum</label>
+        <input type="text" id="fEintrittsdatum" disabled>
+      </div>
+      <div class="field" id="fFunktionRow" style="display:none;">
+        <label>Funktion</label>
+        <input type="text" id="fFunktion" disabled>
+      </div>
+      <div class="field" id="fSpitznameRow" style="display:none;">
+        <label>Spitzname</label>
+        <input type="text" id="fSpitzname" disabled>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -168,7 +183,7 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml, formatDate } from "./common.js";
 import { doc, updateDoc, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const member = await requireMemberLogin();
@@ -183,6 +198,25 @@ function fillProfile(m){
   document.getElementById("fEmail").value = m.email || "";
   document.getElementById("fTelefon").value = m.telefon || "";
   document.getElementById("fAdresse").value = m.adresse || "";
+
+  const vorstandFelder = [
+    ["fEintrittsdatumRow", "fEintrittsdatum", m.eintrittsdatum ? formatDate(m.eintrittsdatum) : ""],
+    ["fFunktionRow", "fFunktion", m.funktion || ""],
+    ["fSpitznameRow", "fSpitzname", m.spitzname || ""]
+  ];
+  let anyVorstandFeld = false;
+  vorstandFelder.forEach(([rowId, inputId, value]) => {
+    const row = document.getElementById(rowId);
+    if (value){
+      document.getElementById(inputId).value = value;
+      row.style.display = "block";
+      anyVorstandFeld = true;
+    } else {
+      row.style.display = "none";
+    }
+  });
+  document.getElementById("vorstandFelderBlock").style.display = anyVorstandFeld ? "block" : "none";
+
   const badge = document.getElementById("statusBadge");
   const status = m.status || "aktiv";
   badge.textContent = status === "probezeit" ? "Probezeit" : "Aktiv";
