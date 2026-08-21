@@ -112,6 +112,10 @@
   .mt-mask .mt-star.on{color:var(--accent);}
   .mt-mask .mt-star.hover{color:var(--accent);opacity:.6;}
   .mt-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .filter-toggle{cursor:pointer;font-size:13px;color:var(--accent);margin-bottom:10px;display:inline-flex;align-items:center;gap:6px;user-select:none;font-weight:bold;}
+  .filter-toggle::after{content:"▾";font-size:11px;transition:transform .15s ease;}
+  .filter-toggle.open::after{transform:rotate(180deg);}
+  .mt-filter-bar.hidden{display:none;}
   .mt-filter-bar input, .mt-filter-bar select{
     padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:13px;
     font-family:inherit;background:var(--surface);color:var(--text);
@@ -779,7 +783,8 @@ function renderMarkttagebuchModule(container){
         <button class="btn" id="mtNewBtn">+ Neuer Eintrag</button>
       </div>
     </div>
-    <div class="mt-filter-bar">
+    <div class="filter-toggle" id="mtFilterToggle">🔍 Filter &amp; Suche</div>
+    <div class="mt-filter-bar hidden" id="mtFilterBar">
       <input type="text" id="mtSearch" placeholder="🔍 Suche (Name, Ort, Veranstalter)">
       <select id="mtFilterJahr"><option value="">Alle Jahre</option></select>
       <select id="mtFilterVeranstalter"><option value="">Alle Veranstalter</option></select>
@@ -790,6 +795,10 @@ function renderMarkttagebuchModule(container){
   `;
   document.getElementById("mtNewBtn").addEventListener("click", () => openMtModal(null));
   document.getElementById("mtExportBtn").addEventListener("click", () => exportMarkttagebuchExcel(getFilteredEntries()));
+  document.getElementById("mtFilterToggle").addEventListener("click", () => {
+    document.getElementById("mtFilterBar").classList.toggle("hidden");
+    document.getElementById("mtFilterToggle").classList.toggle("open");
+  });
 
   let lastEntries = [];
   const searchEl = document.getElementById("mtSearch");
@@ -1082,18 +1091,54 @@ function renderMitgliederModule(container){
         <button class="btn" id="mNewBtn">+ Mitglied anlegen</button>
       </div>
     </div>
+    <div class="filter-toggle" id="mFilterToggle">🔍 Filter &amp; Suche</div>
+    <div class="mt-filter-bar hidden" id="mFilterBar">
+      <input type="text" id="mSearch" placeholder="🔍 Suche (Name, Spitzname, E-Mail)">
+      <select id="mFilterStatus"><option value="">Alle Status</option><option value="aktiv">Aktiv</option><option value="probezeit">Probezeit</option></select>
+      <select id="mFilterFunktion"><option value="">Alle Funktionen</option></select>
+      <select id="mFilterAbzeichen"><option value="">Alle Abzeichen</option>${ABZEICHEN_KATALOG.map(a => `<option value="${a.id}">${a.name}</option>`).join("")}</select>
+    </div>
     <div class="card pad" id="mList"></div>
   `;
   document.getElementById("mNewBtn").addEventListener("click", () => openMitgliedModal());
+  document.getElementById("mFilterToggle").addEventListener("click", () => {
+    document.getElementById("mFilterBar").classList.toggle("hidden");
+    document.getElementById("mFilterToggle").classList.toggle("open");
+  });
   let mitgliederFuerExport = [];
+  let lastMitglieder = [];
   document.getElementById("mExportBtn").addEventListener("click", () => exportMitgliederExcel(mitgliederFuerExport));
-  onSnapshot(collection(db, COL_MITGLIEDER), snap => {
-    const mitglieder = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
-    mitgliederFuerExport = mitglieder;
+  const searchEl = document.getElementById("mSearch");
+  const statusEl = document.getElementById("mFilterStatus");
+  const funktionEl = document.getElementById("mFilterFunktion");
+  const abzeichenEl = document.getElementById("mFilterAbzeichen");
+  [searchEl, statusEl, funktionEl, abzeichenEl].forEach(el => el.addEventListener("input", () => renderMList(lastMitglieder)));
+
+  function renderMList(mitglieder){
+    const q = searchEl.value.trim().toLowerCase();
+    const status = statusEl.value, funktion = funktionEl.value, abzeichenId = abzeichenEl.value;
+    const gefiltert = mitglieder.filter(m => {
+      if (status && (m.status || "aktiv") !== status) return false;
+      if (funktion && m.funktion !== funktion) return false;
+      if (abzeichenId && !mitgliedHatAbzeichen(m, abzeichenId)) return false;
+      if (q){
+        const hay = `${m.name || ""} ${m.spitzname || ""} ${m.email || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    mitgliederFuerExport = gefiltert;
     const el = document.getElementById("mList");
     if (!el) return;
-    el.innerHTML = mitglieder.map(m => `
+    if (mitglieder.length === 0){
+      el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Keine Mitglieder vorhanden.</p>`;
+      return;
+    }
+    if (gefiltert.length === 0){
+      el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Keine Mitglieder gefunden. Filter zurücksetzen?</p>`;
+      return;
+    }
+    el.innerHTML = gefiltert.map(m => `
       <div class="list-item">
         <span>${escapeHtml(m.name)}${m.spitzname ? ` „${escapeHtml(m.spitzname)}"` : ""}${m.id === currentAdmin.id ? " (du)" : ""}
           <span style="color:var(--text-muted);">— ${m.status === "probezeit" ? "Probezeit" : "Aktiv"}</span>
@@ -1106,10 +1151,10 @@ function renderMitgliederModule(container){
           <button class="btn secondary small" data-pw="${m.id}">Passwort zurücksetzen</button>
           <button class="btn secondary small" data-del="${m.id}">Entfernen</button>
         </span>
-      </div>`).join("") || `<p style="color:var(--text-muted);font-size:13px;">Keine Mitglieder vorhanden.</p>`;
+      </div>`).join("");
     el.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
-      const target = mitglieder.find(m => m.id === b.dataset.del);
-      const adminCount = mitglieder.filter(m => m.verwaltung === true).length;
+      const target = lastMitglieder.find(m => m.id === b.dataset.del);
+      const adminCount = lastMitglieder.filter(m => m.verwaltung === true).length;
       if (target && target.verwaltung === true && adminCount <= 1){
         alert("Das letzte Konto mit Verwaltungsrechten kann nicht entfernt werden.");
         return;
@@ -1119,8 +1164,18 @@ function renderMitgliederModule(container){
         logActivity(currentAdmin.name, `hat das Mitglied „${target ? target.name : "?"}" entfernt`);
       }
     }));
-    el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openMitgliedModal(mitglieder.find(m => m.id === b.dataset.edit), mitglieder)));
-    el.querySelectorAll("[data-pw]").forEach(b => b.addEventListener("click", () => openMitgliedPwModal(mitglieder.find(m => m.id === b.dataset.pw))));
+    el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openMitgliedModal(lastMitglieder.find(m => m.id === b.dataset.edit), lastMitglieder)));
+    el.querySelectorAll("[data-pw]").forEach(b => b.addEventListener("click", () => openMitgliedPwModal(lastMitglieder.find(m => m.id === b.dataset.pw))));
+  }
+
+  onSnapshot(collection(db, COL_MITGLIEDER), snap => {
+    lastMitglieder = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+    const funktionen = [...new Set(lastMitglieder.map(m => m.funktion).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
+    const bisher = funktionEl.value;
+    funktionEl.innerHTML = `<option value="">Alle Funktionen</option>` + funktionen.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
+    funktionEl.value = funktionen.includes(bisher) ? bisher : "";
+    renderMList(lastMitglieder);
   });
 }
 
@@ -1462,11 +1517,28 @@ function openAnfrageModal(anfrage){
   });
 }
 
+// Exportiert das aktuell geladene Aktivitätsprotokoll (bis zu 100 Einträge) als Excel-Datei.
+function exportProtokollExcel(rows){
+  if (!rows || !rows.length){ alert("Keine Einträge zum Exportieren vorhanden."); return; }
+  const sorted = [...rows].sort((a, b) => (a.zeitpunkt || "").localeCompare(b.zeitpunkt || ""));
+  const data = sorted.map(r => ({
+    "Zeitpunkt": r.zeitpunkt ? new Date(r.zeitpunkt).toLocaleString("de-CH") : "",
+    "Vorstandsmitglied": r.admin || "",
+    "Aktion": r.aktion || ""
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws["!cols"] = [ { wch: 20 }, { wch: 20 }, { wch: 70 } ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Aktivitätsprotokoll");
+  XLSX.writeFile(wb, `Jörmuntösk_Aktivitaetsprotokoll_${todayStr()}.xlsx`);
+}
+
 function renderProtokollModule(container){
   container.innerHTML = `
     <div class="toolbar">
       <h1 style="margin:0;">Aktivitätsprotokoll</h1>
       <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn secondary" id="logExportBtn">Excel exportieren</button>
         <select id="cleanupThreshold">
           <option value="30">älter als 30 Tage</option>
           <option value="90" selected>älter als 90 Tage</option>
@@ -1476,14 +1548,17 @@ function renderProtokollModule(container){
         <button class="btn secondary" id="cleanupBtn">Alte Einträge löschen</button>
       </div>
     </div>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:-8px;">Angezeigt werden die letzten 100 Einträge.</p>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:-8px;">Angezeigt werden die letzten 100 Einträge. Der Export enthält ebenfalls die letzten 100 Einträge.</p>
     <div class="card pad" id="logList"><p style="color:var(--text-muted);font-size:13px;">Lädt…</p></div>
   `;
+  let lastLogRows = [];
+  document.getElementById("logExportBtn").addEventListener("click", () => exportProtokollExcel(lastLogRows));
   const q = query(collection(db, COL_AKTIVITAETEN), orderBy("zeitpunkt", "desc"), limit(100));
   onSnapshot(q, snap => {
     const el = document.getElementById("logList");
     if (!el) return;
     const rows = snap.docs.map(d => d.data());
+    lastLogRows = rows;
     if (rows.length === 0){
       el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Noch keine Einträge.</p>`;
       return;

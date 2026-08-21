@@ -36,6 +36,13 @@
   .tile .emoji{font-size:30px;}
   .tile h3{margin:0;font-size:17px;color:var(--accent);}
   .tile p{margin:0;font-size:13px;color:var(--text-muted);}
+  .dash{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;margin-bottom:32px;}
+  .dash-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:16px 18px;}
+  .dash-card .num{font-size:26px;font-weight:bold;color:var(--accent);line-height:1;}
+  .dash-card .label{font-size:12px;color:var(--text-muted);margin-top:4px;}
+  .dash-card.wide{grid-column:1 / -1;}
+  .dash-entry{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border);}
+  .dash-entry:last-child{border-bottom:none;}
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
 </head>
@@ -58,6 +65,15 @@
   <div class="intro">
     <h1>Werkzeuge der Sippe</h1>
     <p>Wähle das gewünschte Tool aus.</p>
+  </div>
+  <div class="dash" id="dashRoot" style="display:none;">
+    <div class="dash-card"><div class="num" id="dashAktiv">–</div><div class="label">Aktive Mitglieder</div></div>
+    <div class="dash-card"><div class="num" id="dashProbezeit">–</div><div class="label">In Probezeit</div></div>
+    <div class="dash-card"><div class="num" id="dashAnfragen">–</div><div class="label">Offene Anfragen</div></div>
+    <div class="dash-card wide">
+      <div class="label" style="margin-bottom:6px;">Letzte Markttagebuch-Einträge</div>
+      <div id="dashMarkt"></div>
+    </div>
   </div>
   <div class="grid">
     <a class="tile" href="index.html" id="tile-schichtplanung">
@@ -89,12 +105,38 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout } from "./common.js";
-import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN } from "./common.js";
+import { doc, onSnapshot, collection, where, query } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const currentMember = await requireMemberLogin();
 const tileAdmin = document.getElementById("tile-admin");
 if (tileAdmin && currentMember.verwaltung !== true) tileAdmin.style.display = "none";
+
+if (currentMember.verwaltung === true){
+  document.getElementById("dashRoot").style.display = "grid";
+
+  onSnapshot(collection(db, "mitglieder"), snap => {
+    let aktiv = 0, probezeit = 0;
+    snap.forEach(d => { (d.data().status === "probezeit") ? probezeit++ : aktiv++; });
+    document.getElementById("dashAktiv").textContent = aktiv;
+    document.getElementById("dashProbezeit").textContent = probezeit;
+  });
+
+  onSnapshot(query(collection(db, COL_ANFRAGEN), where("status", "==", "offen")), snap => {
+    document.getElementById("dashAnfragen").textContent = snap.size;
+  });
+
+  onSnapshot(collection(db, "markttagebuch_eintraege"), snap => {
+    const eintraege = snap.docs.map(d => d.data())
+      .sort((a, b) => (b.datum || "").localeCompare(a.datum || ""))
+      .slice(0, 3);
+    const el = document.getElementById("dashMarkt");
+    el.innerHTML = eintraege.length
+      ? eintraege.map(e => `<div class="dash-entry"><span>${escapeHtml(e.marktname || "(ohne Titel)")}</span><span style="color:var(--text-muted);">${formatDate(e.datum)}</span></div>`).join("")
+      : `<div class="dash-entry"><span style="color:var(--text-muted);">Noch keine Einträge.</span></div>`;
+  });
+}
+
 
 initTheme("themeToggle");
 document.getElementById("logoutBtn").addEventListener("click", memberLogout);
