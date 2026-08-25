@@ -15,6 +15,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
+// Registriert den Service Worker für die Installierbarkeit als App (PWA).
+// Läuft automatisch auf jeder Seite, die common.js einbindet.
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {
+      // Registrierung fehlgeschlagen (z.B. lokale Vorschau ohne https) - unkritisch,
+      // die Seite funktioniert auch ohne Service Worker normal weiter.
+    });
+  });
+}
+
 export async function sha256(text){
   const enc = new TextEncoder().encode(text);
   const buf = await crypto.subtle.digest("SHA-256", enc);
