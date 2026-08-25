@@ -43,6 +43,17 @@
   .dash-card.wide{grid-column:1 / -1;}
   .dash-entry{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border);}
   .dash-entry:last-child{border-bottom:none;}
+  .tierkreis-banner{display:flex;align-items:center;gap:18px;background:linear-gradient(135deg, var(--accent), var(--accent-dark));color:#fff;border-radius:14px;padding:18px 24px;margin-bottom:28px;box-shadow:var(--shadow);}
+  .tierkreis-banner .tk-emoji{font-size:44px;line-height:1;}
+  .tierkreis-banner .tk-title{font-size:17px;font-weight:bold;margin:0 0 2px 0;}
+  .tierkreis-banner .tk-sub{font-size:13px;opacity:.9;margin:0;}
+  .tierkreis-banner .tk-countdown{margin-left:auto;text-align:right;}
+  .tierkreis-banner .tk-countdown .num{font-size:22px;font-weight:bold;line-height:1;}
+  .tierkreis-banner .tk-countdown .label{font-size:11px;opacity:.9;}
+  @media (max-width: 480px){
+    .tierkreis-banner{flex-wrap:wrap;}
+    .tierkreis-banner .tk-countdown{margin-left:0;text-align:left;}
+  }
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
 </head>
@@ -62,6 +73,8 @@
 </header>
 
 <main>
+  <div class="tierkreis-banner" id="tierkreisBanner"></div>
+
   <div class="intro">
     <h1>Werkzeuge der Sippe</h1>
     <p>Wähle das gewünschte Tool aus.</p>
@@ -105,10 +118,25 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN, berechneSippenjahr } from "./common.js";
 import { doc, onSnapshot, collection, where, query } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const currentMember = await requireMemberLogin();
+
+// Sippenjahr-Banner: aktuelles Zyklusjahr, Tier und Countdown bis zum nächsten Tier.
+const sj = berechneSippenjahr();
+document.getElementById("tierkreisBanner").innerHTML = `
+  <div class="tk-emoji">${sj.tier.emoji}</div>
+  <div>
+    <p class="tk-title">Sippenjahr ${sj.zyklusJahr} von 9 — ${sj.tier.tier}</p>
+    <p class="tk-sub">${sj.tier.bedeutung}</p>
+  </div>
+  <div class="tk-countdown">
+    <div class="num">${sj.tageBisWechsel}</div>
+    <div class="label">Tage bis „${sj.naechstesTier.tier}"</div>
+  </div>
+`;
+
 const tileAdmin = document.getElementById("tile-admin");
 if (tileAdmin && currentMember.verwaltung !== true) tileAdmin.style.display = "none";
 

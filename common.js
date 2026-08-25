@@ -386,3 +386,43 @@ export function anfrageStatusLabel(status){
   return labels[status] || status;
 }
 
+// =========================================================
+// 9-Jahres-Tierkreis
+// Gemäss Konzeptdokument "9-Jahres-Tierkreis": Zyklus beginnt am
+// 21.12.2025 (Wintersonnenwende) mit dem Eichhörnchen und schliesst sich
+// nach 9 Jahren mit der Schlange (Jörmungandr), danach beginnt er neu.
+// Jedes Zyklusjahr läuft vom 21.12. bis zum 20.12. des Folgejahres.
+// =========================================================
+
+export const TIERKREIS = [
+  { tier: "Eichhörnchen", emoji: "🐿️", bedeutung: "Unschuld, Jugend (Ratatöskr)" },
+  { tier: "Bär", emoji: "🐻", bedeutung: "Erwachen" },
+  { tier: "Wolf", emoji: "🐺", bedeutung: "Energie, Lebensbereitschaft" },
+  { tier: "Pferd", emoji: "🐴", bedeutung: "Aufbruch, Verbindung (Sleipnir)" },
+  { tier: "Eber", emoji: "🐗", bedeutung: "Mut, Fest, Schutz" },
+  { tier: "Hirsch", emoji: "🦌", bedeutung: "Reife, Ausgewogenheit" },
+  { tier: "Adler", emoji: "🦅", bedeutung: "Weitblick" },
+  { tier: "Raben", emoji: "🐦‍⬛", bedeutung: "Wissen, Erkenntnis (Hugin & Munin)" },
+  { tier: "Schlange", emoji: "🐍", bedeutung: "Abschluss, Kreis schliesst sich (Jörmungandr)" }
+];
+
+// Liefert das aktuelle Zyklusjahr (1-9), das zugehörige Tier sowie den
+// Start/Ende des Zyklusjahres und die verbleibenden Tage bis zum Wechsel.
+export function berechneSippenjahr(heute = new Date()){
+  let periodStartYear = heute.getFullYear();
+  const dec21ThisYear = new Date(periodStartYear, 11, 21);
+  if (heute < dec21ThisYear) periodStartYear -= 1;
+  const periodStart = new Date(periodStartYear, 11, 21);
+  const periodEnd = new Date(periodStartYear + 1, 11, 20);
+  const idx = (((periodStartYear - 2025) % 9) + 9) % 9;
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const tageBisWechsel = Math.ceil((periodEnd - heute) / msPerDay) + 1;
+  return {
+    zyklusJahr: idx + 1,
+    tier: TIERKREIS[idx],
+    naechstesTier: TIERKREIS[(idx + 1) % 9],
+    periodStart, periodEnd,
+    tageBisWechsel
+  };
+}
+
