@@ -80,15 +80,30 @@
   }
   .orakel-result-name{font-size:14px;font-weight:bold;margin:6px 0 2px 0;}
   .orakel-result-bedeutung{font-size:12px;color:var(--text-muted);margin:0 0 14px 0;min-height:16px;}
+  .widget-settings-toggle{cursor:pointer;font-size:13px;color:var(--text-muted);margin-bottom:12px;display:inline-flex;align-items:center;gap:6px;user-select:none;}
+  .widget-settings-toggle:hover{color:var(--accent);}
+  .widget-settings-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;}
+  .widget-settings-panel.open{display:flex;flex-wrap:wrap;gap:16px;}
+  .widget-settings-panel label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;}
+  .widget-settings-panel input{width:auto;}
   .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
   .btn:hover{opacity:.9;}
   .btn:active{transform:translateY(1px);}
+  #easterEggOverlay{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;}
+  .egg-item{position:absolute;top:-40px;font-size:28px;animation:egg-fall linear forwards;}
+  @keyframes egg-fall{
+    to{ transform:translateY(110vh) rotate(360deg); }
+  }
+  .egg-message{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:10px 22px;border-radius:999px;font-size:13px;font-weight:bold;box-shadow:var(--shadow);z-index:10000;animation:egg-message-in .3s ease;}
+  @keyframes egg-message-in{ from{opacity:0;transform:translate(-50%,-10px);} to{opacity:1;transform:translate(-50%,0);} }
+  #logoImg{cursor:pointer;}
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
 </head>
 <body>
 
 <div id="appRoot" style="display:none;">
+<div id="easterEggOverlay"></div>
 <header>
   <div class="brand">
     <img id="logoImg" src="" alt="Jörmuntösk Logo">
@@ -102,14 +117,22 @@
 </header>
 
 <main>
-  <div class="tierkreis-banner" id="tierkreisBanner"></div>
-
-  <div class="mini-cards-row">
-    <div class="rune-card" id="runeCard"></div>
-    <div class="rune-card" id="mondCard"></div>
+  <div class="widget-settings-toggle" id="widgetSettingsToggle">⚙️ Widgets anpassen</div>
+  <div class="widget-settings-panel" id="widgetSettingsPanel">
+    <label><input type="checkbox" id="wToggle-tierkreis" checked> Sippenjahr-Banner</label>
+    <label><input type="checkbox" id="wToggle-rune" checked> Runenorakel des Tages</label>
+    <label><input type="checkbox" id="wToggle-mond" checked> Mondphase</label>
+    <label><input type="checkbox" id="wToggle-orakel" checked> Sippen-Orakel-Würfel</label>
   </div>
 
-  <div class="orakel-card">
+  <div class="tierkreis-banner" id="tierkreisBanner" data-widget="tierkreis"></div>
+
+  <div class="mini-cards-row">
+    <div class="rune-card" id="runeCard" data-widget="rune"></div>
+    <div class="rune-card" id="mondCard" data-widget="mond"></div>
+  </div>
+
+  <div class="orakel-card" data-widget="orakel">
     <h3>🎲 Sippen-Orakel</h3>
     <p class="hint">Wirf die Runensteine und lass dir eine Botschaft geben.</p>
     <div class="orakel-symbol" id="orakelSymbol">?</div>
@@ -166,6 +189,41 @@ import { doc, onSnapshot, collection, where, query } from "https://www.gstatic.c
 
 const currentMember = await requireMemberLogin();
 
+// Konfigurierbares Widget-Dashboard: Ein-/Ausblenden der Spielereien-Karten,
+// Einstellung wird pro Browser in localStorage gemerkt (standardmässig alle an).
+const WIDGET_IDS = ["tierkreis", "rune", "mond", "orakel"];
+function ladeWidgetPrefs(){
+  try {
+    const raw = localStorage.getItem("jt_widget_prefs");
+    return raw ? JSON.parse(raw) : {};
+  } catch (err) { return {}; }
+}
+function speichereWidgetPrefs(prefs){
+  try { localStorage.setItem("jt_widget_prefs", JSON.stringify(prefs)); } catch (err) {}
+}
+function wendeWidgetPrefsAn(){
+  const prefs = ladeWidgetPrefs();
+  WIDGET_IDS.forEach(id => {
+    const sichtbar = prefs[id] !== false; // Default: sichtbar, falls nichts gespeichert ist.
+    document.querySelectorAll(`[data-widget="${id}"]`).forEach(el => { el.style.display = sichtbar ? "" : "none"; });
+    const cb = document.getElementById(`wToggle-${id}`);
+    if (cb) cb.checked = sichtbar;
+  });
+}
+wendeWidgetPrefsAn();
+document.getElementById("widgetSettingsToggle").addEventListener("click", () => {
+  document.getElementById("widgetSettingsPanel").classList.toggle("open");
+});
+WIDGET_IDS.forEach(id => {
+  const cb = document.getElementById(`wToggle-${id}`);
+  cb.addEventListener("change", () => {
+    const prefs = ladeWidgetPrefs();
+    prefs[id] = cb.checked;
+    speichereWidgetPrefs(prefs);
+    wendeWidgetPrefsAn();
+  });
+});
+
 // Sippenjahr-Banner: aktuelles Zyklusjahr, Tier und Countdown bis zum nächsten Tier.
 const sj = berechneSippenjahr();
 document.getElementById("tierkreisBanner").innerHTML = `
@@ -202,10 +260,50 @@ document.getElementById("mondCard").innerHTML = `
 
 // Sippen-Orakel-Würfel: bei jedem Klick eine frische, echt zufällige Rune
 // (im Unterschied zur festen Rune des Tages oben).
+// Kurzer synthetischer "Klack"-Sound beim Runenwurf (kein externes Audio nötig).
+// Mischung aus kurzem, gefiltertem Rauschen (Stein-Klack) und leisem Ton-Nachklang.
+let audioCtx = null;
+function spieleRunenwurfSound(){
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    const now = ctx.currentTime;
+
+    const bufferSize = ctx.sampleRate * 0.06;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "bandpass";
+    noiseFilter.frequency.value = 1200;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.5, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    noise.connect(noiseFilter).connect(noiseGain).connect(ctx.destination);
+    noise.start(now);
+
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(90, now + 0.15);
+    const oscGain = ctx.createGain();
+    oscGain.gain.setValueAtTime(0.25, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(oscGain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  } catch (err) {
+    // Web Audio evtl. nicht verfügbar/erlaubt - Sound ist rein dekorativ, kein Problem.
+  }
+}
+
 document.getElementById("orakelBtn").addEventListener("click", () => {
   const symbolEl = document.getElementById("orakelSymbol");
   const nameEl = document.getElementById("orakelName");
   const bedeutungEl = document.getElementById("orakelBedeutung");
+  spieleRunenwurfSound();
   symbolEl.classList.remove("werfen");
   void symbolEl.offsetWidth; // Reflow erzwingen, damit die Animation bei erneutem Klick neu startet.
   const ergebnis = RUNEN[Math.floor(Math.random() * RUNEN.length)];
@@ -216,6 +314,42 @@ document.getElementById("orakelBtn").addEventListener("click", () => {
 });
 
 const tileAdmin = document.getElementById("tile-admin");
+
+// Easter Egg: 5x auf das Logo klicken lässt Eichhörnchen regnen.
+// Zu langsame Klicks (>1.5s Pause) setzen den Zähler zurück.
+let eggClicks = 0;
+let eggTimer = null;
+document.getElementById("logoImg").addEventListener("click", () => {
+  eggClicks++;
+  clearTimeout(eggTimer);
+  eggTimer = setTimeout(() => { eggClicks = 0; }, 1500);
+  if (eggClicks >= 5){
+    eggClicks = 0;
+    loeseEasterEggAus();
+  }
+});
+
+function loeseEasterEggAus(){
+  const overlay = document.getElementById("easterEggOverlay");
+  const anzahl = 24;
+  for (let i = 0; i < anzahl; i++){
+    const item = document.createElement("div");
+    item.className = "egg-item";
+    item.textContent = "🐿️";
+    item.style.left = Math.random() * 100 + "vw";
+    item.style.animationDuration = (2.5 + Math.random() * 2) + "s";
+    item.style.animationDelay = (Math.random() * 0.8) + "s";
+    item.style.fontSize = (20 + Math.random() * 20) + "px";
+    overlay.appendChild(item);
+    setTimeout(() => item.remove(), 5000);
+  }
+  const msg = document.createElement("div");
+  msg.className = "egg-message";
+  msg.textContent = "Ratatöskr grüsst die Sippe! 🐿️";
+  overlay.appendChild(msg);
+  setTimeout(() => msg.remove(), 2500);
+}
+
 if (tileAdmin && currentMember.verwaltung !== true) tileAdmin.style.display = "none";
 
 if (currentMember.verwaltung === true){
