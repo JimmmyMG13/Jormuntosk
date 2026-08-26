@@ -282,10 +282,37 @@ export function mitgliedHatAbzeichen(member, abzeichenId){
 
 
 // Meldet das Mitglied ab und lädt die Seite neu, damit wieder der Login erscheint.
+// Kurze, selbst verfasste Abschiedssprüche - rein spielerisch, kein Zitat aus
+// historischen Quellen (keine Urheberrechtsfragen).
+const ABSCHIEDSSPRUECHE = [
+  "Möge der Weg unter deinen Füssen fest sein.",
+  "Bis zum nächsten Mal an der Feuerstelle.",
+  "Trag die Wärme der Sippe mit dir.",
+  "Geh mit wachem Blick und ruhigem Herzen.",
+  "Der Weg ist lang, die Sippe wartet auf deine Rückkehr.",
+  "Möge dir der Wind stets in den Rücken wehen.",
+  "Bis zur nächsten Zusammenkunft, Sippenfreund.",
+  "Trage das Feuer der Gemeinschaft weiter."
+];
+
 export function memberLogout(){
-  sessionStorage.removeItem("jt_member_id");
-  sessionStorage.removeItem("jt_member_name");
-  location.reload();
+  const spruch = ABSCHIEDSSPRUECHE[Math.floor(Math.random() * ABSCHIEDSSPRUECHE.length)];
+  const overlay = document.createElement("div");
+  Object.assign(overlay.style, {
+    position: "fixed", inset: "0", zIndex: "100000",
+    background: "var(--accent, #2AA329)", color: "#fff",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    textAlign: "center", padding: "40px", fontSize: "18px", fontWeight: "bold",
+    opacity: "0", transition: "opacity .3s ease"
+  });
+  overlay.textContent = spruch;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.style.opacity = "1"; });
+  setTimeout(() => {
+    sessionStorage.removeItem("jt_member_id");
+    sessionStorage.removeItem("jt_member_name");
+    location.reload();
+  }, 1300);
 }
 
 // Zeigt einen vollflächigen Login und blockiert den Seiteninhalt (Element mit

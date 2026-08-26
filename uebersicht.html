@@ -123,6 +123,7 @@
     <label><input type="checkbox" id="wToggle-mond" checked> Mondphase</label>
     <label><input type="checkbox" id="wToggle-orakel" checked> Sippen-Orakel-Würfel</label>
     <label><input type="checkbox" id="wToggle-wetter" checked> Sippen-Wetterspruch</label>
+    <label><input type="checkbox" id="wToggle-sterne" checked> Sternenhimmel</label>
   </div>
 
   <div class="tierkreis-banner" id="tierkreisBanner" data-widget="tierkreis"></div>
@@ -131,6 +132,7 @@
     <div class="rune-card" id="runeCard" data-widget="rune"></div>
     <div class="rune-card" id="mondCard" data-widget="mond"></div>
     <div class="rune-card" id="wetterCard" data-widget="wetter"><div class="rune-symbol">⏳</div><div><p class="rune-label">Sippen-Wetterspruch</p><p class="rune-name">Lädt…</p></div></div>
+    <div class="rune-card" id="sterneCard" data-widget="sterne"></div>
   </div>
 
   <div class="orakel-card" data-widget="orakel">
@@ -192,7 +194,7 @@ const currentMember = await requireMemberLogin();
 
 // Konfigurierbares Widget-Dashboard: Ein-/Ausblenden der Spielereien-Karten,
 // Einstellung wird pro Browser in localStorage gemerkt (standardmässig alle an).
-const WIDGET_IDS = ["tierkreis", "rune", "mond", "orakel", "wetter"];
+const WIDGET_IDS = ["tierkreis", "rune", "mond", "orakel", "wetter", "sterne"];
 function ladeWidgetPrefs(){
   try {
     const raw = localStorage.getItem("jt_widget_prefs");
@@ -361,6 +363,27 @@ function spieleRunenwurfSound(){
     // Web Audio evtl. nicht verfügbar/erlaubt - Sound ist rein dekorativ, kein Problem.
   }
 }
+
+// Sternenhimmel-Widget: zeigt je nach Jahreszeit ein am Abendhimmel
+// (Nordhalbkugel) prominentes Sternbild mit seinem volkstümlichen
+// skandinavischen Namen statt des griechischen Namens. Vereinfachte,
+// jahreszeitliche Näherung - keine exakte Echtzeit-Astronomie (Uhrzeit,
+// genauer Standort, Horizonthöhe werden nicht berücksichtigt).
+const STERNENHIMMEL = [
+  { monate: [11, 0, 1], name: "Orion", nordisch: "Friggs Rocken", beschreibung: "Der markante Gürtel des Orion ist im Winterhimmel gut sichtbar." },
+  { monate: [2, 3, 4], name: "Grosser Bär", nordisch: "Odins Wagen", beschreibung: "Der Grosse Wagen steht im Frühling hoch am Nordhimmel." },
+  { monate: [5, 6, 7], name: "Milchstrasse", nordisch: "Vintergatan (Winterstrasse)", beschreibung: "In dunklen Sommernächten fernab der Stadt am besten zu sehen." },
+  { monate: [8, 9, 10], name: "Plejaden", nordisch: "Freyjas Hühner", beschreibung: "Das kleine Sternhäufchen ist im Herbst am Abendhimmel zu finden." }
+];
+const sterne = STERNENHIMMEL.find(s => s.monate.includes(new Date().getMonth())) || STERNENHIMMEL[0];
+document.getElementById("sterneCard").innerHTML = `
+  <div class="rune-symbol">✨</div>
+  <div>
+    <p class="rune-label">Sternenhimmel · ${sterne.nordisch}</p>
+    <p class="rune-name" style="font-size:13px;font-weight:normal;">${sterne.beschreibung}</p>
+    <p style="font-size:10px;color:var(--text-muted);margin:4px 0 0;font-style:italic;">Volkstümlicher Name, spielerisch — keine exakte Echtzeit-Karte.</p>
+  </div>
+`;
 
 document.getElementById("orakelBtn").addEventListener("click", () => {
   const symbolEl = document.getElementById("orakelSymbol");
