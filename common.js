@@ -284,6 +284,25 @@ export function mitgliedHatAbzeichen(member, abzeichenId){
 // Meldet das Mitglied ab und lädt die Seite neu, damit wieder der Login erscheint.
 // Kurze, selbst verfasste Abschiedssprüche - rein spielerisch, kein Zitat aus
 // historischen Quellen (keine Urheberrechtsfragen).
+// Kurze, selbst verfasste Begrüssungsformeln fürs Login - rein spielerisch,
+// {name} wird durch den Mitgliedsnamen ersetzt.
+const BEGRUESSUNGEN = [
+  "Willkommen, {name}",
+  "Heil dir, {name}",
+  "Gut, dass du da bist, {name}",
+  "Die Sippe grüsst dich, {name}",
+  "Sei gegrüsst, {name}",
+  "Schön, dich zu sehen, {name}",
+  "Tritt ein an die Feuerstelle, {name}",
+  "Willkommen zurück in der Sippe, {name}"
+];
+
+// Liefert eine zufällige Begrüssungsformel mit eingesetztem Namen.
+export function zufaelligeBegruessung(name){
+  const vorlage = BEGRUESSUNGEN[Math.floor(Math.random() * BEGRUESSUNGEN.length)];
+  return vorlage.replace("{name}", name || "");
+}
+
 const ABSCHIEDSSPRUECHE = [
   "Möge der Weg unter deinen Füssen fest sein.",
   "Bis zum nächsten Mal an der Feuerstelle.",

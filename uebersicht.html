@@ -145,7 +145,7 @@
   </div>
 
   <div class="intro">
-    <h1>Werkzeuge der Sippe</h1>
+    <h1 id="greeting">Werkzeuge der Sippe</h1>
     <p>Wähle das gewünschte Tool aus.</p>
   </div>
   <div class="dash" id="dashRoot" style="display:none;">
@@ -187,10 +187,11 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN, berechneSippenjahr, runeDesTages, berechneMondphase, RUNEN } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN, berechneSippenjahr, runeDesTages, berechneMondphase, RUNEN, zufaelligeBegruessung } from "./common.js";
 import { doc, onSnapshot, collection, where, query } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const currentMember = await requireMemberLogin();
+document.getElementById("greeting").textContent = zufaelligeBegruessung(currentMember.name);
 
 // Konfigurierbares Widget-Dashboard: Ein-/Ausblenden der Spielereien-Karten,
 // Einstellung wird pro Browser in localStorage gemerkt (standardmässig alle an).

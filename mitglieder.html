@@ -193,7 +193,7 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml, formatDate } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml, formatDate, zufaelligeBegruessung } from "./common.js";
 import { doc, updateDoc, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const member = await requireMemberLogin();
@@ -203,7 +203,7 @@ applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
 document.getElementById("logoutBtn").addEventListener("click", memberLogout);
 
 function fillProfile(m){
-  document.getElementById("greeting").textContent = "Willkommen, " + (m.name || "");
+  document.getElementById("greeting").textContent = zufaelligeBegruessung(m.name);
   document.getElementById("fName").value = m.name || "";
   document.getElementById("fEmail").value = m.email || "";
   document.getElementById("fTelefon").value = m.telefon || "";
