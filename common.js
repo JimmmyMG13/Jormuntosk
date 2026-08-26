@@ -437,3 +437,50 @@ export function berechneSippenjahr(heute = new Date()){
   };
 }
 
+// =========================================================
+// Runenorakel
+// Ältere Futhark (24 Runen). Jeden Tag wird deterministisch (nicht
+// zufällig bei jedem Laden) eine Rune für den Tag ermittelt, damit alle
+// Mitglieder an einem Tag dieselbe Rune sehen und sie nicht bei jedem
+// Neuladen der Seite wechselt.
+// =========================================================
+
+export const RUNEN = [
+  { symbol: "ᚠ", name: "Fehu", bedeutung: "Wohlstand, Vieh" },
+  { symbol: "ᚢ", name: "Uruz", bedeutung: "Kraft, Wildheit" },
+  { symbol: "ᚦ", name: "Thurisaz", bedeutung: "Konflikt, Durchsetzung" },
+  { symbol: "ᚨ", name: "Ansuz", bedeutung: "Botschaft, Weisheit" },
+  { symbol: "ᚱ", name: "Raidho", bedeutung: "Reise, Bewegung" },
+  { symbol: "ᚲ", name: "Kenaz", bedeutung: "Erkenntnis, Feuer" },
+  { symbol: "ᚷ", name: "Gebo", bedeutung: "Geschenk, Partnerschaft" },
+  { symbol: "ᚹ", name: "Wunjo", bedeutung: "Freude, Harmonie" },
+  { symbol: "ᚺ", name: "Hagalaz", bedeutung: "Umbruch, Prüfung" },
+  { symbol: "ᚾ", name: "Nauthiz", bedeutung: "Not, Widerstand" },
+  { symbol: "ᛁ", name: "Isa", bedeutung: "Stillstand, Klarheit" },
+  { symbol: "ᛃ", name: "Jera", bedeutung: "Ernte, Lohn" },
+  { symbol: "ᛇ", name: "Eihwaz", bedeutung: "Beständigkeit, Wandel" },
+  { symbol: "ᛈ", name: "Perthro", bedeutung: "Schicksal, Geheimnis" },
+  { symbol: "ᛉ", name: "Algiz", bedeutung: "Schutz" },
+  { symbol: "ᛊ", name: "Sowilo", bedeutung: "Erfolg, Sonne" },
+  { symbol: "ᛏ", name: "Tiwaz", bedeutung: "Mut, Gerechtigkeit" },
+  { symbol: "ᛒ", name: "Berkano", bedeutung: "Neubeginn, Wachstum" },
+  { symbol: "ᛖ", name: "Ehwaz", bedeutung: "Vertrauen, Fortschritt" },
+  { symbol: "ᛗ", name: "Mannaz", bedeutung: "Gemeinschaft, das Selbst" },
+  { symbol: "ᛚ", name: "Laguz", bedeutung: "Intuition, Fluss" },
+  { symbol: "ᛜ", name: "Ingwaz", bedeutung: "Fruchtbarkeit, Ruhe" },
+  { symbol: "ᛞ", name: "Dagaz", bedeutung: "Durchbruch, neuer Tag" },
+  { symbol: "ᛟ", name: "Othala", bedeutung: "Erbe, Heimat" }
+];
+
+// Liefert die Rune des Tages: deterministisch aus dem Kalenderdatum
+// berechnet, damit sie über den Tag stabil bleibt und für alle
+// Mitglieder gleich ist.
+export function runeDesTages(heute = new Date()){
+  const key = `${heute.getFullYear()}-${heute.getMonth() + 1}-${heute.getDate()}`;
+  let hash = 0;
+  for (let i = 0; i < key.length; i++){
+    hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  }
+  return RUNEN[hash % RUNEN.length];
+}
+

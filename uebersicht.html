@@ -60,6 +60,11 @@
     .tierkreis-banner{flex-wrap:wrap;}
     .tierkreis-banner .tk-countdown{margin-left:0;text-align:left;}
   }
+  .rune-card{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px 20px;margin-bottom:28px;}
+  .rune-card .rune-symbol{font-size:38px;line-height:1;color:var(--accent);}
+  .rune-card .rune-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin:0 0 2px 0;}
+  .rune-card .rune-name{font-size:15px;font-weight:bold;margin:0;}
+  .rune-card .rune-bedeutung{font-size:13px;color:var(--text-muted);margin:1px 0 0 0;}
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
 </head>
@@ -80,6 +85,8 @@
 
 <main>
   <div class="tierkreis-banner" id="tierkreisBanner"></div>
+
+  <div class="rune-card" id="runeCard"></div>
 
   <div class="intro">
     <h1>Werkzeuge der Sippe</h1>
@@ -124,7 +131,7 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN, berechneSippenjahr } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN, berechneSippenjahr, runeDesTages } from "./common.js";
 import { doc, onSnapshot, collection, where, query } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const currentMember = await requireMemberLogin();
@@ -140,6 +147,17 @@ document.getElementById("tierkreisBanner").innerHTML = `
   <div class="tk-countdown">
     <div class="num">${sj.tageBisWechsel}</div>
     <div class="label">Tage bis „${sj.naechstesTier.tier}"</div>
+  </div>
+`;
+
+// Runenorakel des Tages: dieselbe Rune für alle Mitglieder, wechselt täglich um Mitternacht.
+const rune = runeDesTages();
+document.getElementById("runeCard").innerHTML = `
+  <div class="rune-symbol">${rune.symbol}</div>
+  <div>
+    <p class="rune-label">Runenorakel des Tages</p>
+    <p class="rune-name">${rune.name}</p>
+    <p class="rune-bedeutung">${rune.bedeutung}</p>
   </div>
 `;
 
