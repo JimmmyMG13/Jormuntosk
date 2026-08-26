@@ -1502,7 +1502,7 @@ function openAnfrageModal(anfrage){
       <textarea id="aAntwort" rows="4" placeholder="Sichtbar für das Mitglied">${anfrage.antwortVorstand ? escapeHtml(anfrage.antwortVorstand) : ""}</textarea>
     </div>
     <div class="modal-actions">
-      <div></div>
+      <div><button class="btn danger" id="aDeleteBtn" style="background:#c83c3c;color:#fff;border:none;">Löschen</button></div>
       <div class="right">
         <button class="btn secondary" id="aCancelBtn">Abbrechen</button>
         <button class="btn" id="aSaveBtn">Speichern</button>
@@ -1510,6 +1510,16 @@ function openAnfrageModal(anfrage){
     </div>
   `);
   document.getElementById("aCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("aDeleteBtn").addEventListener("click", async () => {
+    if (!confirm(`Anfrage „${anfrage.titel}" von ${anfrage.mitgliedName} wirklich unwiderruflich löschen?`)) return;
+    try {
+      await deleteDoc(doc(db, COL_ANFRAGEN, anfrage.id));
+      logActivity(currentAdmin.name, `hat die Anfrage „${anfrage.titel}" von ${anfrage.mitgliedName} gelöscht`);
+      closeModal();
+    } catch (err) {
+      alert("Fehler beim Löschen: " + err.message);
+    }
+  });
   document.getElementById("aSaveBtn").addEventListener("click", async () => {
     const status = document.getElementById("aStatus").value;
     const antwortVorstand = document.getElementById("aAntwort").value.trim();
