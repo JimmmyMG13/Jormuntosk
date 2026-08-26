@@ -425,10 +425,12 @@ export function berechneSippenjahr(heute = new Date()){
   if (heute < dec21ThisYear) periodStartYear -= 1;
   const periodStart = new Date(periodStartYear, 11, 21);
   const periodEnd = new Date(periodStartYear + 1, 11, 20);
-  const idx = (((periodStartYear - 2025) % 9) + 9) % 9;
+  const gesamtIdx = periodStartYear - 2025;
+  const idx = ((gesamtIdx % 9) + 9) % 9;
   const msPerDay = 24 * 60 * 60 * 1000;
   const tageBisWechsel = Math.ceil((periodEnd - heute) / msPerDay) + 1;
   return {
+    sippenjahr: gesamtIdx + 1,
     zyklusJahr: idx + 1,
     tier: TIERKREIS[idx],
     naechstesTier: TIERKREIS[(idx + 1) % 9],

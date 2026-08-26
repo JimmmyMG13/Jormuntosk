@@ -141,8 +141,7 @@ const sj = berechneSippenjahr();
 document.getElementById("tierkreisBanner").innerHTML = `
   <div class="tk-emoji">${sj.tier.emoji}</div>
   <div>
-    <p class="tk-title">Sippenjahr ${sj.zyklusJahr} von 9 — ${sj.tier.tier}</p>
-    <p class="tk-sub">${sj.tier.bedeutung}</p>
+    <p class="tk-title">Sippenjahr ${sj.sippenjahr} — ${sj.tier.tier}</p>
   </div>
   <div class="tk-countdown">
     <div class="num">${sj.tageBisWechsel}</div>
