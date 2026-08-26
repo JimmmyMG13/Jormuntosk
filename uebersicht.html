@@ -79,6 +79,9 @@
   }
   .orakel-result-name{font-size:14px;font-weight:bold;margin:6px 0 2px 0;}
   .orakel-result-bedeutung{font-size:12px;color:var(--text-muted);margin:0 0 14px 0;min-height:16px;}
+  .omen-card{background:linear-gradient(135deg, var(--surface), var(--bg));border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-bottom:28px;}
+  .omen-card .omen-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px 0;}
+  .omen-card .omen-text{font-size:14px;font-style:italic;line-height:1.5;margin:0;}
   .widget-settings-toggle{cursor:pointer;font-size:13px;color:var(--text-muted);margin-bottom:12px;display:inline-flex;align-items:center;gap:6px;user-select:none;}
   .widget-settings-toggle:hover{color:var(--accent);}
   .widget-settings-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;}
@@ -124,6 +127,7 @@
     <label><input type="checkbox" id="wToggle-orakel" checked> Sippen-Orakel-Würfel</label>
     <label><input type="checkbox" id="wToggle-wetter" checked> Sippen-Wetterspruch</label>
     <label><input type="checkbox" id="wToggle-sterne" checked> Sternenhimmel</label>
+    <label><input type="checkbox" id="wToggle-omen" checked> Runen-Kombi-Omen</label>
   </div>
 
   <div class="tierkreis-banner" id="tierkreisBanner" data-widget="tierkreis"></div>
@@ -133,6 +137,11 @@
     <div class="rune-card" id="mondCard" data-widget="mond"></div>
     <div class="rune-card" id="wetterCard" data-widget="wetter"><div class="rune-symbol">⏳</div><div><p class="rune-label">Sippen-Wetterspruch</p><p class="rune-name">Lädt…</p></div></div>
     <div class="rune-card" id="sterneCard" data-widget="sterne"></div>
+  </div>
+
+  <div class="omen-card" id="omenCard" data-widget="omen">
+    <p class="omen-label">🔮 Omen des Tages</p>
+    <p class="omen-text" id="omenText">Die Zeichen werden noch gedeutet …</p>
   </div>
 
   <div class="orakel-card" data-widget="orakel">
@@ -195,7 +204,7 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
 
 // Konfigurierbares Widget-Dashboard: Ein-/Ausblenden der Spielereien-Karten,
 // Einstellung wird pro Browser in localStorage gemerkt (standardmässig alle an).
-const WIDGET_IDS = ["tierkreis", "rune", "mond", "orakel", "wetter", "sterne"];
+const WIDGET_IDS = ["tierkreis", "rune", "mond", "orakel", "wetter", "sterne", "omen"];
 function ladeWidgetPrefs(){
   try {
     const raw = localStorage.getItem("jt_widget_prefs");
@@ -299,6 +308,7 @@ function holeStandort(){
 }
 (async () => {
   const wetterCardEl = document.getElementById("wetterCard");
+  let wetterSpruchFuerOmen;
   try {
     const { lat, lon } = await holeStandort();
     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`);
@@ -313,6 +323,7 @@ function holeStandort(){
         <p class="rune-name" style="font-size:13px;font-weight:normal;">${info.spruch}</p>
       </div>
     `;
+    wetterSpruchFuerOmen = info.spruch;
   } catch (err) {
     wetterCardEl.innerHTML = `
       <div class="rune-symbol">🌍</div>
@@ -321,7 +332,20 @@ function holeStandort(){
         <p class="rune-name" style="font-size:13px;font-weight:normal;">Wetter aktuell nicht abrufbar.</p>
       </div>
     `;
+    wetterSpruchFuerOmen = "Das Wetter bleibt ein Geheimnis der Nornen.";
   }
+
+  // Runen-Kombi-Omen: verbindet Tagesrune, Mondphase und Wetterspruch zu
+  // einem generierten Gesamtsatz. Zufällig gewählte Satzvorlage bei jedem
+  // Seitenaufruf, damit sich der Wortlaut abwechselt.
+  const omenVorlagen = [
+    `Unter dem Zeichen von ${rune.name} (${rune.bedeutung}) steht der Himmel als ${mond.name.toLowerCase()}. ${wetterSpruchFuerOmen}`,
+    `${rune.name} spricht von ${rune.bedeutung}, während der Mond sich als ${mond.name.toLowerCase()} zeigt. ${wetterSpruchFuerOmen}`,
+    `Die Sippe steht heute im Zeichen von ${rune.name} — ${rune.bedeutung}. Dazu ${mond.name.toLowerCase()} am Himmel. ${wetterSpruchFuerOmen}`,
+    `Ein Tag unter ${mond.name.toLowerCase()}, geleitet von ${rune.name}. ${wetterSpruchFuerOmen}`,
+    `${rune.name} und ${mond.name.toLowerCase()} vereinen sich zu einem Zeichen von ${rune.bedeutung}. ${wetterSpruchFuerOmen}`
+  ];
+  document.getElementById("omenText").textContent = omenVorlagen[Math.floor(Math.random() * omenVorlagen.length)];
 })();
 
 // Sippen-Orakel-Würfel: bei jedem Klick eine frische, echt zufällige Rune
