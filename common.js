@@ -515,3 +515,52 @@ export function berechneMondphase(heute = new Date()){
   return MONDPHASEN[index];
 }
 
+// =========================================================
+// Nebel-Übergang
+// Rein dekorativer Seitenübergang: beim Verlassen einer Seite (Klick auf
+// einen internen Link auf eine andere .html-Seite) legt sich kurz ein
+// Nebelschleier über den Bildschirm, bevor navigiert wird. Läuft automatisch
+// auf jeder Seite, die common.js einbindet - keine Änderung an den
+// einzelnen HTML-Dateien nötig. Blockiert nie Klicks (pointer-events:none),
+// damit z.B. das Login-Gate immer bedienbar bleibt.
+// =========================================================
+
+function initNebeluebergang(){
+  const overlay = document.createElement("div");
+  overlay.id = "jtFogOverlay";
+  Object.assign(overlay.style, {
+    position: "fixed", inset: "0", zIndex: "99999",
+    background: "radial-gradient(circle at 50% 40%, var(--surface, #fff) 0%, var(--accent, #2AA329) 140%)",
+    opacity: "1", pointerEvents: "none",
+    transition: "opacity .45s ease"
+  });
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.style.opacity = "0"; });
+  setTimeout(() => overlay.remove(), 500);
+
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href]");
+    if (!a) return;
+    const href = a.getAttribute("href");
+    if (!href || !href.endsWith(".html") || href.startsWith("http") || a.target === "_blank") return;
+    e.preventDefault();
+    const wegOverlay = document.createElement("div");
+    wegOverlay.id = "jtFogOverlayOut";
+    Object.assign(wegOverlay.style, {
+      position: "fixed", inset: "0", zIndex: "99999",
+      background: "radial-gradient(circle at 50% 40%, var(--surface, #fff) 0%, var(--accent, #2AA329) 140%)",
+      opacity: "0", pointerEvents: "none",
+      transition: "opacity .35s ease"
+    });
+    document.body.appendChild(wegOverlay);
+    requestAnimationFrame(() => { wegOverlay.style.opacity = "1"; });
+    setTimeout(() => { window.location.href = href; }, 320);
+  });
+}
+
+if (document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", initNebeluebergang);
+} else {
+  initNebeluebergang();
+}
+

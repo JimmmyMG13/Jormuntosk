@@ -65,8 +65,7 @@
   .rune-card .rune-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin:0 0 2px 0;}
   .rune-card .rune-name{font-size:15px;font-weight:bold;margin:0;}
   .rune-card .rune-bedeutung{font-size:13px;color:var(--text-muted);margin:1px 0 0 0;}
-  .mini-cards-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
-  @media (max-width: 560px){ .mini-cards-row{grid-template-columns:1fr;} }
+  .mini-cards-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:28px;}
   .orakel-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-bottom:28px;text-align:center;}
   .orakel-card h3{margin:0 0 4px 0;font-size:15px;color:var(--accent);}
   .orakel-card p.hint{margin:0 0 14px 0;font-size:12px;color:var(--text-muted);}
@@ -123,6 +122,7 @@
     <label><input type="checkbox" id="wToggle-rune" checked> Runenorakel des Tages</label>
     <label><input type="checkbox" id="wToggle-mond" checked> Mondphase</label>
     <label><input type="checkbox" id="wToggle-orakel" checked> Sippen-Orakel-Würfel</label>
+    <label><input type="checkbox" id="wToggle-wetter" checked> Sippen-Wetterspruch</label>
   </div>
 
   <div class="tierkreis-banner" id="tierkreisBanner" data-widget="tierkreis"></div>
@@ -130,6 +130,7 @@
   <div class="mini-cards-row">
     <div class="rune-card" id="runeCard" data-widget="rune"></div>
     <div class="rune-card" id="mondCard" data-widget="mond"></div>
+    <div class="rune-card" id="wetterCard" data-widget="wetter"><div class="rune-symbol">⏳</div><div><p class="rune-label">Sippen-Wetterspruch</p><p class="rune-name">Lädt…</p></div></div>
   </div>
 
   <div class="orakel-card" data-widget="orakel">
@@ -191,7 +192,7 @@ const currentMember = await requireMemberLogin();
 
 // Konfigurierbares Widget-Dashboard: Ein-/Ausblenden der Spielereien-Karten,
 // Einstellung wird pro Browser in localStorage gemerkt (standardmässig alle an).
-const WIDGET_IDS = ["tierkreis", "rune", "mond", "orakel"];
+const WIDGET_IDS = ["tierkreis", "rune", "mond", "orakel", "wetter"];
 function ladeWidgetPrefs(){
   try {
     const raw = localStorage.getItem("jt_widget_prefs");
@@ -257,6 +258,68 @@ document.getElementById("mondCard").innerHTML = `
     <p class="rune-name">${mond.name}</p>
   </div>
 `;
+
+// Sippen-Wetterspruch: aktuelles Wetter am Standort des Mitglieds (per
+// Browser-Geolocation, Fallback Küttigen AG als Vereinssitz), kombiniert
+// mit einem launigen, selbst verfassten Kommentar passend zur Wetterlage.
+const WETTER_SPRUECHE = {
+  klar:    { emoji: "☀️", spruch: "Klarer Himmel — gutes Zeichen für die Sippe." },
+  bewoelkt:{ emoji: "🌤️", spruch: "Durchzogener Himmel — passable Zeit für Handwerk vor dem Langhaus." },
+  bedeckt: { emoji: "☁️", spruch: "Bedeckt — die Wolken hängen tief wie eine graue Wolfsdecke." },
+  nebel:   { emoji: "🌫️", spruch: "Nebel liegt über dem Land — ein Schleier aus Hels Reich." },
+  niesel:  { emoji: "🌦️", spruch: "Feiner Nieselregen — die Götter weinen nur ein wenig." },
+  regen:   { emoji: "🌧️", spruch: "Regen fällt — gute Zeit fürs Langhaus und heissen Met." },
+  schnee:  { emoji: "❄️", spruch: "Schnee fällt — Skadi zieht durchs Land." },
+  gewitter:{ emoji: "⛈️", spruch: "Gewitter grollt — Thors Hammer ist unterwegs." },
+  unbekannt:{ emoji: "🌍", spruch: "Das Wetter bleibt ein Geheimnis der Nornen." }
+};
+function wetterKategorie(code){
+  if (code === 0) return "klar";
+  if ([1, 2].includes(code)) return "bewoelkt";
+  if (code === 3) return "bedeckt";
+  if ([45, 48].includes(code)) return "nebel";
+  if ([51, 53, 55, 56, 57].includes(code)) return "niesel";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "regen";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "schnee";
+  if ([95, 96, 99].includes(code)) return "gewitter";
+  return "unbekannt";
+}
+function holeStandort(){
+  return new Promise(resolve => {
+    if (!navigator.geolocation){ resolve({ lat: 47.401, lon: 8.045 }); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => resolve({ lat: 47.401, lon: 8.045 }), // Fallback: Küttigen AG (Vereinssitz)
+      { timeout: 4000 }
+    );
+  });
+}
+(async () => {
+  const wetterCardEl = document.getElementById("wetterCard");
+  try {
+    const { lat, lon } = await holeStandort();
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`);
+    const data = await res.json();
+    const temp = Math.round(data.current.temperature_2m);
+    const kat = wetterKategorie(data.current.weathercode);
+    const info = WETTER_SPRUECHE[kat];
+    wetterCardEl.innerHTML = `
+      <div class="rune-symbol">${info.emoji}</div>
+      <div>
+        <p class="rune-label">Sippen-Wetterspruch · ${temp}°C</p>
+        <p class="rune-name" style="font-size:13px;font-weight:normal;">${info.spruch}</p>
+      </div>
+    `;
+  } catch (err) {
+    wetterCardEl.innerHTML = `
+      <div class="rune-symbol">🌍</div>
+      <div>
+        <p class="rune-label">Sippen-Wetterspruch</p>
+        <p class="rune-name" style="font-size:13px;font-weight:normal;">Wetter aktuell nicht abrufbar.</p>
+      </div>
+    `;
+  }
+})();
 
 // Sippen-Orakel-Würfel: bei jedem Klick eine frische, echt zufällige Rune
 // (im Unterschied zur festen Rune des Tages oben).
