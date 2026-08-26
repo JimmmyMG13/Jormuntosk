@@ -486,3 +486,32 @@ export function runeDesTages(heute = new Date()){
   return RUNEN[hash % RUNEN.length];
 }
 
+// =========================================================
+// Mondphasen
+// Näherungsweise Berechnung anhand der synodischen Mondperiode
+// (~29.53 Tage) relativ zu einem bekannten Neumond-Referenzdatum.
+// Astronomisch nicht sekundengenau, für eine Anzeige im Vereins-Tool
+// aber ausreichend präzise (Abweichung im Bereich weniger Stunden).
+// =========================================================
+
+export const MONDPHASEN = [
+  { emoji: "🌑", name: "Neumond" },
+  { emoji: "🌒", name: "Zunehmende Sichel" },
+  { emoji: "🌓", name: "Erstes Viertel" },
+  { emoji: "🌔", name: "Zunehmender Mond" },
+  { emoji: "🌕", name: "Vollmond" },
+  { emoji: "🌖", name: "Abnehmender Mond" },
+  { emoji: "🌗", name: "Letztes Viertel" },
+  { emoji: "🌘", name: "Abnehmende Sichel" }
+];
+
+export function berechneMondphase(heute = new Date()){
+  const synodischerMonat = 29.53058867;
+  const bekannterNeumond = Date.UTC(2000, 0, 6, 18, 14, 0);
+  const tageSeit = (heute.getTime() - bekannterNeumond) / 86400000;
+  let phase = tageSeit % synodischerMonat;
+  if (phase < 0) phase += synodischerMonat;
+  const index = Math.round((phase / synodischerMonat) * 8) % 8;
+  return MONDPHASEN[index];
+}
+

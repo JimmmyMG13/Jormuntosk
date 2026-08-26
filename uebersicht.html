@@ -60,11 +60,29 @@
     .tierkreis-banner{flex-wrap:wrap;}
     .tierkreis-banner .tk-countdown{margin-left:0;text-align:left;}
   }
-  .rune-card{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px 20px;margin-bottom:28px;}
+  .rune-card{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px 20px;}
   .rune-card .rune-symbol{font-size:38px;line-height:1;color:var(--accent);}
   .rune-card .rune-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin:0 0 2px 0;}
   .rune-card .rune-name{font-size:15px;font-weight:bold;margin:0;}
   .rune-card .rune-bedeutung{font-size:13px;color:var(--text-muted);margin:1px 0 0 0;}
+  .mini-cards-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+  @media (max-width: 560px){ .mini-cards-row{grid-template-columns:1fr;} }
+  .orakel-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-bottom:28px;text-align:center;}
+  .orakel-card h3{margin:0 0 4px 0;font-size:15px;color:var(--accent);}
+  .orakel-card p.hint{margin:0 0 14px 0;font-size:12px;color:var(--text-muted);}
+  .orakel-symbol{font-size:52px;line-height:1;min-height:62px;display:flex;align-items:center;justify-content:center;}
+  .orakel-symbol.werfen{animation:orakel-wurf .5s ease;}
+  @keyframes orakel-wurf{
+    0%{transform:rotate(0deg) scale(1);opacity:.3;}
+    30%{transform:rotate(-15deg) scale(1.1);}
+    60%{transform:rotate(10deg) scale(1.1);}
+    100%{transform:rotate(0deg) scale(1);opacity:1;}
+  }
+  .orakel-result-name{font-size:14px;font-weight:bold;margin:6px 0 2px 0;}
+  .orakel-result-bedeutung{font-size:12px;color:var(--text-muted);margin:0 0 14px 0;min-height:16px;}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .btn:hover{opacity:.9;}
+  .btn:active{transform:translateY(1px);}
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
 </head>
@@ -86,7 +104,19 @@
 <main>
   <div class="tierkreis-banner" id="tierkreisBanner"></div>
 
-  <div class="rune-card" id="runeCard"></div>
+  <div class="mini-cards-row">
+    <div class="rune-card" id="runeCard"></div>
+    <div class="rune-card" id="mondCard"></div>
+  </div>
+
+  <div class="orakel-card">
+    <h3>🎲 Sippen-Orakel</h3>
+    <p class="hint">Wirf die Runensteine und lass dir eine Botschaft geben.</p>
+    <div class="orakel-symbol" id="orakelSymbol">?</div>
+    <p class="orakel-result-name" id="orakelName">&nbsp;</p>
+    <p class="orakel-result-bedeutung" id="orakelBedeutung">&nbsp;</p>
+    <button class="btn" id="orakelBtn">Runensteine werfen</button>
+  </div>
 
   <div class="intro">
     <h1>Werkzeuge der Sippe</h1>
@@ -131,7 +161,7 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN, berechneSippenjahr, runeDesTages } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN, berechneSippenjahr, runeDesTages, berechneMondphase, RUNEN } from "./common.js";
 import { doc, onSnapshot, collection, where, query } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const currentMember = await requireMemberLogin();
@@ -159,6 +189,31 @@ document.getElementById("runeCard").innerHTML = `
     <p class="rune-bedeutung">${rune.bedeutung}</p>
   </div>
 `;
+
+// Mondphase: rein informative Anzeige, aktualisiert sich bei jedem Seitenaufruf.
+const mond = berechneMondphase();
+document.getElementById("mondCard").innerHTML = `
+  <div class="rune-symbol">${mond.emoji}</div>
+  <div>
+    <p class="rune-label">Aktuelle Mondphase</p>
+    <p class="rune-name">${mond.name}</p>
+  </div>
+`;
+
+// Sippen-Orakel-Würfel: bei jedem Klick eine frische, echt zufällige Rune
+// (im Unterschied zur festen Rune des Tages oben).
+document.getElementById("orakelBtn").addEventListener("click", () => {
+  const symbolEl = document.getElementById("orakelSymbol");
+  const nameEl = document.getElementById("orakelName");
+  const bedeutungEl = document.getElementById("orakelBedeutung");
+  symbolEl.classList.remove("werfen");
+  void symbolEl.offsetWidth; // Reflow erzwingen, damit die Animation bei erneutem Klick neu startet.
+  const ergebnis = RUNEN[Math.floor(Math.random() * RUNEN.length)];
+  symbolEl.textContent = ergebnis.symbol;
+  symbolEl.classList.add("werfen");
+  nameEl.textContent = ergebnis.name;
+  bedeutungEl.textContent = ergebnis.bedeutung;
+});
 
 const tileAdmin = document.getElementById("tile-admin");
 if (tileAdmin && currentMember.verwaltung !== true) tileAdmin.style.display = "none";
