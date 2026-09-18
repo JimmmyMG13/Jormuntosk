@@ -71,6 +71,11 @@
   .row .field{flex:1;min-width:120px;}
   .swatch{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle;}
   .list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:10px;flex-wrap:wrap;}
+  .kachel-order-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:14px;background:var(--surface);}
+  .kachel-order-row .kachel-order-btns{display:flex;gap:4px;}
+  .kachel-order-row button{background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--text);}
+  .kachel-order-row button:disabled{opacity:.3;cursor:default;}
+  .kachel-order-row button:not(:disabled):hover{border-color:var(--accent);}
   .list-item:last-child{border-bottom:none;}
   .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
   .chip-check{border:1px solid var(--border);border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer;background:var(--bg);}
@@ -219,6 +224,14 @@ const SETTINGS_SP = doc(db, "einstellungen", "schichtplanung");
 const SETTINGS_ALLGEMEIN = doc(db, "einstellungen", "allgemein");
 const SETTINGS_DESIGN = doc(db, "einstellungen", "design");
 const SETTINGS_SICHTBARKEIT = doc(db, "einstellungen", "sichtbarkeit");
+const KACHEL_DEFS = {
+  schichtplanung: "📅 Schichtplanung",
+  markttagebuch: "🛖 Markttagebuch",
+  mitglieder: "👤 Mitgliederbereich",
+  spiele: "🏃 Spiele",
+  admin: "⚙ Admin"
+};
+const KACHEL_STANDARD_REIHENFOLGE = ["schichtplanung", "markttagebuch", "mitglieder", "spiele", "admin"];
 
 let currentAdmin = null; // {id, name} — angemeldetes Mitglied mit Verwaltungsrechten
 let mtEntriesCache = []; // zuletzt geladene Markttagebuch-Einträge, für Autovervollständigung
@@ -1345,6 +1358,14 @@ function renderEinstellungenModule(container){
       </div>
     </div>
     <div class="card">
+      <div class="panel-header" data-panel="reihenfolge"><h2>Kachel-Reihenfolge</h2><span>▾</span></div>
+      <div class="panel-body" id="panel-reihenfolge">
+        <p style="font-size:12px;color:var(--text-muted);margin-top:0;">Legt fest, in welcher Reihenfolge die Kacheln auf der Übersichtsseite erscheinen — gilt für alle Mitglieder.</p>
+        <div id="kachelReihenfolgeListe" style="margin-bottom:12px;"></div>
+        <button class="btn small" id="saveReihenfolgeBtn">Speichern</button>
+      </div>
+    </div>
+    <div class="card">
       <div class="panel-header" data-panel="backup"><h2>Datensicherung</h2><span>▾</span></div>
       <div class="panel-body" id="panel-backup">
         <p style="font-size:13px;color:var(--text-muted);margin-top:0;">Exportiert alle Vereinsdaten (ohne Passwörter) als JSON-Datei.</p>
@@ -1372,7 +1393,35 @@ function renderEinstellungenModule(container){
     const d = snap.exists() ? snap.data() : {};
     document.getElementById("visSchicht").checked = d.schichtplanung !== false;
     document.getElementById("visMarkt").checked = d.markttagebuch !== false;
+
+    // Gespeicherte Reihenfolge übernehmen, um unbekannte/fehlende Einträge bereinigt
+    // (z.B. falls künftig eine Kachel entfernt/hinzugefügt wird).
+    let reihenfolge = Array.isArray(d.kachelReihenfolge) ? d.kachelReihenfolge.filter(id => id in KACHEL_DEFS) : [];
+    KACHEL_STANDARD_REIHENFOLGE.forEach(id => { if (!reihenfolge.includes(id)) reihenfolge.push(id); });
+    renderKachelReihenfolge(reihenfolge);
   });
+
+  function renderKachelReihenfolge(reihenfolge){
+    const el = document.getElementById("kachelReihenfolgeListe");
+    el.dataset.reihenfolge = JSON.stringify(reihenfolge);
+    el.innerHTML = reihenfolge.map((id, i) => `
+      <div class="kachel-order-row">
+        <span>${KACHEL_DEFS[id]}</span>
+        <div class="kachel-order-btns">
+          <button type="button" data-move="up" data-index="${i}" ${i === 0 ? "disabled" : ""} title="Nach oben">▲</button>
+          <button type="button" data-move="down" data-index="${i}" ${i === reihenfolge.length - 1 ? "disabled" : ""} title="Nach unten">▼</button>
+        </div>
+      </div>`).join("");
+    el.querySelectorAll("button[data-move]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const arr = JSON.parse(el.dataset.reihenfolge);
+        const i = Number(btn.dataset.index);
+        const j = btn.dataset.move === "up" ? i - 1 : i + 1;
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        renderKachelReihenfolge(arr);
+      });
+    });
+  }
 
   document.getElementById("saveVereinsdatenBtn").addEventListener("click", async () => {
     const adresse = document.getElementById("setAdresse").value.trim();
@@ -1417,6 +1466,17 @@ function renderEinstellungenModule(container){
       await setDoc(SETTINGS_SICHTBARKEIT, { schichtplanung, markttagebuch }, { merge: true });
       logActivity(currentAdmin.name, "hat die Tool-Sichtbarkeit aktualisiert");
       alert("Sichtbarkeit gespeichert.");
+    } catch(err){
+      alert("Speichern fehlgeschlagen: " + err.message);
+    }
+  });
+
+  document.getElementById("saveReihenfolgeBtn").addEventListener("click", async () => {
+    const reihenfolge = JSON.parse(document.getElementById("kachelReihenfolgeListe").dataset.reihenfolge || "[]");
+    try{
+      await setDoc(SETTINGS_SICHTBARKEIT, { kachelReihenfolge: reihenfolge }, { merge: true });
+      logActivity(currentAdmin.name, "hat die Kachel-Reihenfolge aktualisiert");
+      alert("Reihenfolge gespeichert.");
     } catch(err){
       alert("Speichern fehlgeschlagen: " + err.message);
     }
