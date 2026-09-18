@@ -55,10 +55,6 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   .drachen-card p.hint{margin:0 0 12px 0;font-size:12px;color:var(--text-muted);}
   #drachenCanvas{width:100%;max-width:100%;aspect-ratio:600/180;height:auto;display:block;border-radius:10px;background:linear-gradient(180deg, var(--bg), var(--surface));border:1px solid var(--border);}
   .drachen-controls{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;flex-wrap:wrap;}
-  .drachen-score{font-size:13px;color:var(--text-muted);}
-  .drachen-score b{color:var(--accent);font-size:16px;}
-  .drachen-highscores{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
-  .drachen-highscores h4{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
   .game-stage{position:relative;}
   .game-stage canvas{display:block;}
   .game-stage-static{min-height:280px;display:flex;flex-direction:column;justify-content:center;}
@@ -95,18 +91,14 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
         <button class="game-start-overlay" id="drachenStartBtn">Start</button>
       </div>
     </div>
-<div class="drachen-highscores">
-  <h4>🏆 Bestenliste der Sippe</h4>
-  <div id="drachenHighscoreList"><p style="color:var(--text-muted);font-size:12px;">Lädt…</p></div>
-</div>
 </main>
 
 <footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, zufaelligeBegruessung, COL_DRACHENSCHIFF_HIGHSCORES } from "./common.js";
-import { doc, getDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, zufaelligeBegruessung, COL_DRACHENSCHIFF_HIGHSCORES } from "./common.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
 applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
@@ -360,22 +352,6 @@ const currentMember = await requireMemberLogin();
   }
 
   zeichne(SPIELDAUER * 1000);
-
-  onSnapshot(query(collection(db, COL_DRACHENSCHIFF_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
-    const el = document.getElementById("drachenHighscoreList");
-    if (!el) return;
-    if (snap.empty){
-      el.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Highscores. Sei die/der Erste!</p>`;
-      return;
-    }
-    let i = 0;
-    el.innerHTML = snap.docs.map(d => {
-      i++;
-      const data = d.data();
-      const istEigen = d.id === currentMember.id;
-      return `<div class="runner-hs-row${istEigen ? " me" : ""}"><span>${i}. ${escapeHtml(data.mitgliedName || "?")}</span><span>${data.score}</span></div>`;
-    }).join("");
-  });
 })();
 </script>
 </body>

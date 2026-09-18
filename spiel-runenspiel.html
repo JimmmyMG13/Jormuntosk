@@ -62,8 +62,6 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   .runenspiel-feedback{min-height:20px;font-size:13px;margin-top:10px;}
   .runenspiel-feedback.richtig{color:var(--accent);}
   .runenspiel-feedback.falsch{color:#c83c3c;}
-  .runenspiel-highscores{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;text-align:left;}
-  .runenspiel-highscores h4{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
   .game-stage{position:relative;}
   .game-stage canvas{display:block;}
   .game-stage-static{min-height:280px;display:flex;flex-direction:column;justify-content:center;}
@@ -109,18 +107,14 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
         <p class="runenspiel-feedback" id="runenspielFeedback"></p>
       </div>
     </div>
-<div class="runenspiel-highscores">
-  <h4>🏆 Bestenliste der Sippe</h4>
-  <div id="runenspielHighscoreList"><p style="color:var(--text-muted);font-size:12px;">Lädt…</p></div>
-</div>
 </main>
 
 <footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, zufaelligeBegruessung, COL_RUNENSPIEL_HIGHSCORES, RUNEN } from "./common.js";
-import { doc, getDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, zufaelligeBegruessung, COL_RUNENSPIEL_HIGHSCORES, RUNEN } from "./common.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
 applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
@@ -200,22 +194,6 @@ const currentMember = await requireMemberLogin();
       // Highscore-Speicherung ist nicht kritisch für das Spiel selbst.
     }
   }
-
-  onSnapshot(query(collection(db, COL_RUNENSPIEL_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
-    const el = document.getElementById("runenspielHighscoreList");
-    if (!el) return;
-    if (snap.empty){
-      el.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Highscores. Sei die/der Erste!</p>`;
-      return;
-    }
-    let i = 0;
-    el.innerHTML = snap.docs.map(d => {
-      i++;
-      const data = d.data();
-      const istEigen = d.id === currentMember.id;
-      return `<div class="runner-hs-row${istEigen ? " me" : ""}"><span>${i}. ${escapeHtml(data.mitgliedName || "?")}</span><span>${data.score}</span></div>`;
-    }).join("");
-  });
 })();
 </script>
 </body>
