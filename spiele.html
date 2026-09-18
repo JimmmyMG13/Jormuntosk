@@ -86,6 +86,23 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   .runenspiel-feedback.falsch{color:#c83c3c;}
   .runenspiel-highscores{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;text-align:left;}
   .runenspiel-highscores h4{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .symbolzuordnung-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-top:20px;text-align:center;}
+  .symbolzuordnung-card h3{margin:0 0 4px 0;font-size:15px;color:var(--accent);text-align:left;}
+  .symbolzuordnung-card p.hint{margin:0 0 12px 0;font-size:12px;color:var(--text-muted);text-align:left;}
+  .symbolzuordnung-symbol{font-size:64px;line-height:1;color:var(--accent);min-height:76px;display:flex;align-items:center;justify-content:center;}
+  .symbolzuordnung-status{font-size:13px;color:var(--text-muted);margin:6px 0 14px 0;display:flex;justify-content:center;gap:18px;}
+  .symbolzuordnung-status b{color:var(--accent);font-size:16px;}
+  .symbolzuordnung-optionen{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .symbolzuordnung-opt{padding:10px 8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:13px;cursor:pointer;}
+  .symbolzuordnung-opt:hover:not(:disabled){border-color:var(--accent);}
+  .symbolzuordnung-opt:disabled{cursor:default;}
+  .symbolzuordnung-opt.richtig{background:rgba(42,163,41,0.18);border-color:var(--accent);}
+  .symbolzuordnung-opt.falsch{background:rgba(200,60,60,0.15);border-color:#c83c3c;}
+  .symbolzuordnung-feedback{min-height:20px;font-size:13px;margin-top:10px;}
+  .symbolzuordnung-feedback.richtig{color:var(--accent);}
+  .symbolzuordnung-feedback.falsch{color:#c83c3c;}
+  .symbolzuordnung-highscores{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;text-align:left;}
+  .symbolzuordnung-highscores h4{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
   
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
@@ -160,6 +177,23 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
     </div>
   </div>
 
+  <div class="symbolzuordnung-card" data-widget="symbolzuordnung">
+    <h3>🔮 Symbol-Zuordnung</h3>
+    <p class="hint">Welche Bedeutung gehört zur Rune? Richtige Antwort anklicken. Rekord = meiste Runen hintereinander richtig.</p>
+    <div class="symbolzuordnung-symbol" id="symbolzuordnungSymbol">?</div>
+    <div class="symbolzuordnung-status">
+      <span>Serie: <b id="symbolzuordnungSerie">0</b></span>
+      <span>Rekord: <b id="symbolzuordnungRekord">0</b></span>
+    </div>
+    <div class="symbolzuordnung-optionen" id="symbolzuordnungOptionen"></div>
+    <button class="btn" id="symbolzuordnungStartBtn" style="margin-top:12px;">Spiel starten</button>
+    <p class="symbolzuordnung-feedback" id="symbolzuordnungFeedback"></p>
+    <div class="symbolzuordnung-highscores">
+      <h4>🏆 Bestenliste der Sippe</h4>
+      <div id="symbolzuordnungHighscoreList"><p style="color:var(--text-muted);font-size:12px;">Lädt…</p></div>
+    </div>
+  </div>
+
 
   <nav class="tools">
     <a href="uebersicht.html">← Zur Übersicht</a>
@@ -170,7 +204,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, RUNEN, zufaelligeBegruessung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, RUNEN, zufaelligeBegruessung } from "./common.js";
 import { doc, getDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
@@ -892,6 +926,116 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
 
   onSnapshot(query(collection(db, COL_RUNENSPIEL_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
     const el = document.getElementById("runenspielHighscoreList");
+    if (!el) return;
+    if (snap.empty){
+      el.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Highscores. Sei die/der Erste!</p>`;
+      return;
+    }
+    let i = 0;
+    el.innerHTML = snap.docs.map(d => {
+      i++;
+      const data = d.data();
+      const istEigen = d.id === currentMember.id;
+      return `<div class="runner-hs-row${istEigen ? " me" : ""}"><span>${i}. ${escapeHtml(data.mitgliedName || "?")}</span><span>${data.score}</span></div>`;
+    }).join("");
+  });
+})();
+
+// =========================================================
+// Symbol-Zuordnung: zeigt eine Rune, vier Bedeutungen zur Auswahl
+// (eine richtig, drei zufällige Ablenker aus dem Katalog). Multiple-
+// Choice-Variante des Runen-Lernspiels. Rekord = höchste Serie am
+// Stück, geteilte Highscore-Tabelle wie bei den anderen Spielen.
+// =========================================================
+(function initSymbolzuordnung(){
+  const symbolEl = document.getElementById("symbolzuordnungSymbol");
+  if (!symbolEl) return;
+  const serieEl = document.getElementById("symbolzuordnungSerie");
+  const rekordEl = document.getElementById("symbolzuordnungRekord");
+  const optionenEl = document.getElementById("symbolzuordnungOptionen");
+  const startBtn = document.getElementById("symbolzuordnungStartBtn");
+  const feedbackEl = document.getElementById("symbolzuordnungFeedback");
+
+  let serie = 0;
+  let rekord = 0;
+  let aktuelleRune = null;
+
+  // Mischt ein Array nach Fisher-Yates.
+  function mische(arr){
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function neueRunde(){
+    aktuelleRune = RUNEN[Math.floor(Math.random() * RUNEN.length)];
+    symbolEl.textContent = aktuelleRune.symbol;
+    feedbackEl.textContent = "";
+    feedbackEl.className = "symbolzuordnung-feedback";
+
+    const ablenker = mische(RUNEN.filter(r => r.name !== aktuelleRune.name)).slice(0, 3);
+    const optionen = mische([aktuelleRune, ...ablenker]);
+
+    optionenEl.innerHTML = optionen.map(r => `<button type="button" class="symbolzuordnung-opt" data-name="${escapeHtml(r.name)}">${escapeHtml(r.bedeutung)}</button>`).join("");
+    optionenEl.querySelectorAll(".symbolzuordnung-opt").forEach(btn => {
+      btn.addEventListener("click", () => beantworten(btn, optionen));
+    });
+  }
+
+  function starteSpiel(){
+    serie = 0;
+    serieEl.textContent = "0";
+    startBtn.textContent = "Neu starten";
+    neueRunde();
+  }
+
+  startBtn.addEventListener("click", starteSpiel);
+
+  function beantworten(gewaehlterBtn, optionen){
+    const richtig = gewaehlterBtn.dataset.name === aktuelleRune.name;
+    optionenEl.querySelectorAll(".symbolzuordnung-opt").forEach(btn => {
+      btn.disabled = true;
+      if (btn.dataset.name === aktuelleRune.name) btn.classList.add("richtig");
+      else if (btn === gewaehlterBtn) btn.classList.add("falsch");
+    });
+
+    if (richtig){
+      serie++;
+      serieEl.textContent = serie;
+      feedbackEl.textContent = "Richtig! " + aktuelleRune.name;
+      feedbackEl.className = "symbolzuordnung-feedback richtig";
+      if (serie > rekord){
+        rekord = serie;
+        rekordEl.textContent = rekord;
+        speichereHighscoreFallsBesser(serie);
+      }
+    } else {
+      feedbackEl.textContent = "Leider falsch — das war " + aktuelleRune.name + ". Serie zurückgesetzt.";
+      feedbackEl.className = "symbolzuordnung-feedback falsch";
+      if (serie > 0) speichereHighscoreFallsBesser(serie);
+      serie = 0;
+      serieEl.textContent = "0";
+    }
+    setTimeout(neueRunde, 1400);
+  }
+
+  async function speichereHighscoreFallsBesser(score){
+    try {
+      const ref = doc(db, COL_SYMBOLZUORDNUNG_HIGHSCORES, currentMember.id);
+      const bestehend = await getDoc(ref);
+      if (!bestehend.exists() || (bestehend.data().score || 0) < score){
+        await setDoc(ref, { mitgliedName: currentMember.name, score, datum: new Date().toISOString() });
+      }
+    } catch (err) {
+      // Highscore-Speicherung ist nicht kritisch für das Spiel selbst.
+    }
+  }
+
+  onSnapshot(query(collection(db, COL_SYMBOLZUORDNUNG_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
+    const el = document.getElementById("symbolzuordnungHighscoreList");
     if (!el) return;
     if (snap.empty){
       el.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Highscores. Sei die/der Erste!</p>`;

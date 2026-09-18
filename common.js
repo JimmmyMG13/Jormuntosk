@@ -436,6 +436,7 @@ export const COL_ANFRAGEN = "anfragen";
 export const COL_RUNNER_HIGHSCORES = "runner_highscores";
 export const COL_DRACHENSCHIFF_HIGHSCORES = "drachenschiff_highscores";
 export const COL_RUNENSPIEL_HIGHSCORES = "runenspiel_highscores";
+export const COL_SYMBOLZUORDNUNG_HIGHSCORES = "symbolzuordnung_highscores";
 
 export const ANFRAGE_KATEGORIEN = ["Ausrüstung", "Finanzen", "Organisatorisches", "Sonstiges"];
 
