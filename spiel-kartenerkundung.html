@@ -196,10 +196,10 @@ const currentMember = await requireMemberLogin();
     ]},
     { kat: "natur", icon: "⛰️", text: "Ein steiler Grat versperrt den direkten Weg.", opt: [
       { label: "Klettern", folge: { moral: [-2, 0], vorraete: [-1, 0] } },
-      { label: "Umgehen", folge: { nahrung: [-1, 0] } }
+      { label: "Umgehen", folge: { nahrung: [-2, -1] } }
     ]},
     { kat: "natur", icon: "⛈️", text: "Ein Unwetter zieht auf.", opt: [
-      { label: "Schutz suchen", folge: { nahrung: [-1, 0], moral: [1, 1] } },
+      { label: "Schutz suchen", folge: { nahrung: [-2, -1], vorraete: [-1, 0], moral: [1, 1] } },
       { label: "Weiterziehen", folge: { moral: [-2, -1], vorraete: [-1, 0] } }
     ]},
     { kat: "natur", icon: "🏜️", text: "Das Land wird karg und trostlos.", opt: [
@@ -211,7 +211,7 @@ const currentMember = await requireMemberLogin();
       { label: "Vorsichtig weiterziehen", folge: { vorraete: [-1, 0], moral: [-1, 1] } }
     ]},
     { kat: "natur", icon: "❄️", text: "Ein früher Frost überrascht euch.", opt: [
-      { label: "Feuer grösser machen", folge: { vorraete: [-1, 0], moral: [1, 1] } },
+      { label: "Feuer grösser machen", folge: { vorraete: [-2, -1], nahrung: [-1, 0], moral: [1, 1] } },
       { label: "Frieren und weiterziehen", folge: { moral: [-2, -1], nahrung: [-1, 0] } }
     ]},
     { kat: "natur", icon: "🌾", text: "Eine weite, ruhige Ebene öffnet sich vor euch.", opt: [
@@ -221,45 +221,45 @@ const currentMember = await requireMemberLogin();
 
     // --- Begegnungen (8) ---
     { kat: "begegnung", icon: "🧭", text: "Ihr trefft auf fremde Reisende am Lagerfeuer.", opt: [
-      { label: "Geschichten austauschen", folge: { moral: [2, 2] } },
-      { label: "Vorsichtig vorbeiziehen", folge: {} }
+      { label: "Geschichten austauschen", folge: { moral: [2, 3], nahrung: [-1, 0] } },
+      { label: "Vorsichtig vorbeiziehen", folge: { moral: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🐺", text: "Ein Wolfsrudel beobachtet euch aus der Ferne.", opt: [
-      { label: "Feuer entfachen", folge: { vorraete: [-1, 0] } },
-      { label: "Leise weiterziehen", folge: { moral: [-1, 0] } }
+      { label: "Feuer entfachen", folge: { vorraete: [-2, -1] } },
+      { label: "Leise weiterziehen", folge: { moral: [-2, -1] } }
     ]},
     { kat: "begegnung", icon: "🐻", text: "Ein Bär durchwühlt eure Vorräte.", opt: [
-      { label: "Verscheuchen", folge: { moral: [-2, 0] } },
-      { label: "Vorräte aufgeben", folge: { nahrung: [-2, -1] } }
+      { label: "Verscheuchen", folge: { moral: [-3, -1] } },
+      { label: "Vorräte aufgeben", folge: { nahrung: [-3, -2] } }
     ]},
     { kat: "begegnung", icon: "🏚️", text: "Ihr findet ein verlassenes Lager.", opt: [
-      { label: "Durchsuchen", folge: { vorraete: [1, 2] } },
-      { label: "Weiterziehen, es wirkt unheimlich", folge: {} }
+      { label: "Durchsuchen", folge: { vorraete: [2, 3], moral: [-1, 0] } },
+      { label: "Weiterziehen, es wirkt unheimlich", folge: { moral: [1, 1], nahrung: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🤝", text: "Eine andere Sippe bietet Handel an.", opt: [
-      { label: "Handeln", folge: { vorraete: [-1, -1], nahrung: [2, 2] } },
-      { label: "Ablehnen", folge: {} }
+      { label: "Handeln", folge: { vorraete: [-2, -1], nahrung: [3, 3] } },
+      { label: "Ablehnen", folge: { moral: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🛒", text: "Ein fahrender Händler kreuzt euren Weg.", opt: [
-      { label: "Werkzeug kaufen", folge: { vorraete: [2, 2] } },
-      { label: "Vorbeiziehen", folge: {} }
+      { label: "Werkzeug kaufen", folge: { vorraete: [2, 2], nahrung: [-1, 0] } },
+      { label: "Vorbeiziehen", folge: { moral: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🧙", text: "Ein Einsiedler im Wald teilt sein Wissen.", opt: [
-      { label: "Zuhören", folge: { moral: [1, 1], ruhm: [1, 1] } },
-      { label: "Keine Zeit verlieren", folge: {} }
+      { label: "Zuhören", folge: { moral: [1, 1], ruhm: [1, 1], nahrung: [-1, 0] } },
+      { label: "Keine Zeit verlieren", folge: { moral: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🧒", text: "Ihr findet zwei verirrte Kinder.", opt: [
-      { label: "Mitnehmen und versorgen", folge: { nahrung: [-2, -1], moral: [2, 2] } },
-      { label: "Weg zu ihrem Dorf zeigen", folge: { moral: [1, 1] } }
+      { label: "Mitnehmen und versorgen", folge: { nahrung: [-3, -2], moral: [2, 2] } },
+      { label: "Weg zu ihrem Dorf zeigen", folge: { moral: [1, 1], vorraete: [-1, 0] } }
     ]},
 
     // --- Funde (7) ---
     { kat: "fund", icon: "🌿", text: "Ein fruchtbares Tal liegt vor euch.", opt: [
-      { label: "Ausgiebig sammeln", folge: { nahrung: [2, 3] } },
+      { label: "Ausgiebig sammeln", folge: { nahrung: [3, 4], moral: [-1, 0] } },
       { label: "Nur kurz rasten", folge: { nahrung: [1, 1] } }
     ]},
     { kat: "fund", icon: "💧", text: "Eine klare Quelle sprudelt aus dem Fels.", opt: [
-      { label: "Vorräte auffüllen", folge: { nahrung: [1, 1], moral: [1, 1] } },
+      { label: "Vorräte auffüllen", folge: { nahrung: [2, 2], vorraete: [-1, 0] } },
       { label: "Nur kurz trinken", folge: { moral: [1, 1] } }
     ]},
     { kat: "fund", icon: "🪨", text: "Ihr entdeckt ein altes Runensteinfeld.", opt: [
@@ -267,11 +267,11 @@ const currentMember = await requireMemberLogin();
       { label: "Respektvoll vorbeiziehen", folge: { moral: [1, 1] } }
     ]},
     { kat: "fund", icon: "⚔️", text: "Im Gestrüpp liegt ein verrostetes Schwert.", opt: [
-      { label: "Mitnehmen", folge: { vorraete: [1, 1] } },
+      { label: "Mitnehmen", folge: { vorraete: [1, 1], moral: [-1, 0] } },
       { label: "Liegenlassen", folge: {} }
     ]},
     { kat: "fund", icon: "🔨", text: "Eine verlassene Werkstatt bietet brauchbares Werkzeug.", opt: [
-      { label: "Plündern", folge: { vorraete: [2, 2] } },
+      { label: "Plündern", folge: { vorraete: [2, 2], moral: [-1, 0] } },
       { label: "Nichts anrühren", folge: {} }
     ]},
     { kat: "fund", icon: "🍯", text: "Ein wilder Bienenstock voller Honig hängt im Baum.", opt: [
@@ -279,37 +279,37 @@ const currentMember = await requireMemberLogin();
       { label: "In Ruhe lassen", folge: {} }
     ]},
     { kat: "fund", icon: "🟠", text: "Am Strand liegt Bernstein verstreut.", opt: [
-      { label: "Sammeln", folge: { ruhm: [1, 1], vorraete: [1, 1] } },
+      { label: "Sammeln", folge: { ruhm: [1, 1], vorraete: [1, 1], nahrung: [-1, 0] } },
       { label: "Weiterziehen", folge: {} }
     ]},
 
     // --- Gefahren (7) ---
     { kat: "gefahr", icon: "🤒", text: "Jemand erkrankt im Lager.", opt: [
-      { label: "Pflegen und rasten", folge: { nahrung: [-1, 0], moral: [1, 1] } },
+      { label: "Pflegen und rasten", folge: { nahrung: [-2, -1], moral: [1, 1] } },
       { label: "Weiterziehen", folge: { moral: [-2, -1] } }
     ]},
     { kat: "gefahr", icon: "🪓", text: "Wichtige Ausrüstung zerbricht.", opt: [
-      { label: "Reparieren", folge: { vorraete: [-1, 0] } },
-      { label: "Ohne weiterziehen", folge: { moral: [-1, 0] } }
+      { label: "Reparieren", folge: { vorraete: [-2, -1] } },
+      { label: "Ohne weiterziehen", folge: { moral: [-2, -1] } }
     ]},
     { kat: "gefahr", icon: "😠", text: "Streit bricht in der Gruppe aus.", opt: [
-      { label: "Schlichten", folge: { moral: [1, 1], nahrung: [-1, 0] } },
+      { label: "Schlichten", folge: { moral: [1, 1], nahrung: [-2, -1] } },
       { label: "Ignorieren", folge: { moral: [-2, -1] } }
     ]},
     { kat: "gefahr", icon: "🧭", text: "Ihr habt den Weg verloren.", opt: [
-      { label: "Zurückverfolgen", folge: { nahrung: [-1, 0] } },
+      { label: "Zurückverfolgen", folge: { nahrung: [-2, -1] } },
       { label: "Neuen Weg suchen", folge: { vorraete: [-1, 0], moral: [-1, 0] } }
     ]},
     { kat: "gefahr", icon: "🌙", text: "Nachts nähert sich ein Raubtier dem Lager.", opt: [
-      { label: "Wache verstärken", folge: { moral: [-1, 0] } },
-      { label: "Riskieren und weiterschlafen", folge: { nahrung: [-3, -1], moral: [-1, 0] } }
+      { label: "Wache verstärken", folge: { vorraete: [-1, 0], moral: [-1, 0] } },
+      { label: "Riskieren und weiterschlafen", folge: { nahrung: [-4, 1], moral: [-3, 1] } }
     ]},
     { kat: "gefahr", icon: "🍄", text: "Jemand hat versehentlich giftige Beeren gegessen.", opt: [
       { label: "Rasten und auskurieren", folge: { nahrung: [-1, 0], moral: [-1, 0] } },
       { label: "Weiterziehen", folge: { moral: [-2, -1] } }
     ]},
     { kat: "gefahr", icon: "🐊", text: "Ein tückischer Sumpf erschwert den Weg.", opt: [
-      { label: "Vorsichtig umgehen", folge: { vorraete: [-1, 0] } },
+      { label: "Vorsichtig umgehen", folge: { vorraete: [-2, -1] } },
       { label: "Direkt hindurch", folge: { nahrung: [-1, 0], moral: [-1, 0] } }
     ]},
 
@@ -319,19 +319,19 @@ const currentMember = await requireMemberLogin();
       { label: "Früh schlafen gehen", folge: { moral: [1, 1] } }
     ]},
     { kat: "sozial", icon: "🎵", text: "Jemand stimmt ein altes Sippenlied an.", opt: [
-      { label: "Mitsingen", folge: { moral: [2, 2] } },
+      { label: "Mitsingen", folge: { moral: [2, 2], nahrung: [-1, 0] } },
       { label: "Still zuhören", folge: { moral: [1, 1] } }
     ]},
     { kat: "sozial", icon: "🕊️", text: "Ein alter Streit zwischen zwei Mitgliedern wird endlich beigelegt.", opt: [
-      { label: "Gemeinsam feiern", folge: { moral: [2, 2], ruhm: [1, 1] } },
+      { label: "Gemeinsam feiern", folge: { moral: [2, 2], ruhm: [1, 1], vorraete: [-1, 0] } },
       { label: "Ruhig weiterziehen", folge: { moral: [1, 1] } }
     ]},
     { kat: "sozial", icon: "🐴", text: "Ein Fohlen wird in der Nacht geboren – ein gutes Zeichen.", opt: [
-      { label: "Als gutes Omen feiern", folge: { moral: [2, 2], ruhm: [1, 1] } },
+      { label: "Als gutes Omen feiern", folge: { moral: [2, 2], ruhm: [1, 1], nahrung: [-1, 0] } },
       { label: "Sich freuen und weiterziehen", folge: { moral: [1, 1] } }
     ]},
     { kat: "sozial", icon: "📖", text: "Am Abend wird eine alte Geschichte der Ahnen erzählt.", opt: [
-      { label: "Gespannt zuhören", folge: { moral: [1, 1], ruhm: [1, 1] } },
+      { label: "Gespannt zuhören", folge: { moral: [1, 1], ruhm: [1, 1], nahrung: [-1, 0] } },
       { label: "Nebenbei die Ausrüstung pflegen", folge: { vorraete: [1, 1] } }
     ]},
     { kat: "sozial", icon: "🙏", text: "Ihr bringt den Göttern eine kleine Opfergabe dar.", opt: [
@@ -341,19 +341,19 @@ const currentMember = await requireMemberLogin();
 
     // --- Seltene Ereignisse (4) ---
     { kat: "selten", icon: "🐦‍⬛", text: "Ein Rabe kreist über euch und lässt sich nieder – ein Zeichen der Götter.", opt: [
-      { label: "Als gutes Zeichen deuten", folge: { moral: [2, 2], ruhm: [2, 2] } },
+      { label: "Als gutes Zeichen deuten", folge: { moral: [2, 2], ruhm: [2, 2], nahrung: [-1, 0] } },
       { label: "Vorsichtig beobachten", folge: { moral: [1, 1] } }
     ]},
     { kat: "selten", icon: "💰", text: "Ihr entdeckt einen verborgenen Schatz.", opt: [
-      { label: "Bergen", folge: { vorraete: [2, 2], ruhm: [3, 3] } },
+      { label: "Bergen", folge: { vorraete: [2, 2], ruhm: [3, 3], moral: [-1, 0] } },
       { label: "Nur einen Teil mitnehmen", folge: { vorraete: [1, 1], ruhm: [1, 1] } }
     ]},
     { kat: "selten", icon: "✨", text: "Eine Quelle schimmert in ungewöhnlichem Licht.", opt: [
-      { label: "Daraus trinken", folge: { nahrung: [1, 2], moral: [1, 2] } },
+      { label: "Daraus trinken", folge: { nahrung: [-2, 3], moral: [-2, 3] } },
       { label: "Nicht anrühren", folge: {} }
     ]},
     { kat: "selten", icon: "🔮", text: "Eine Seherin am Wegesrand liest die Runen für euch.", opt: [
-      { label: "Ihren Rat annehmen", folge: { ruhm: [2, 2], moral: [1, 1] } },
+      { label: "Ihren Rat annehmen", folge: { ruhm: [2, 2], moral: [1, 1], nahrung: [-1, 0] } },
       { label: "Höflich ablehnen", folge: {} }
     ]}
   ];
