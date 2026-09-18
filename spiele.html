@@ -532,10 +532,12 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
   let endZeit = 0;
   let animId = null;
   let ruderSchlag = 0; // für Animation, zählt bei jedem Klick kurz hoch
+  let spritzer = []; // kleine Schaum-Partikel bei jedem Ruderschlag
 
   function starteSpiel(){
     distanz = 0;
     ruderSchlag = 0;
+    spritzer = [];
     laufend = true;
     endZeit = performance.now() + SPIELDAUER * 1000;
     ruderBtn.disabled = false;
@@ -560,6 +562,16 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
     if (!laufend) return;
     distanz += 1;
     ruderSchlag = 8; // kurzer Animations-Ausschlag pro Klick
+    // Neue Schaum-Spritzer an beiden Bordseiten erzeugen
+    for (let i = 0; i < 3; i++){
+      spritzer.push({
+        x: W * 0.5 + (Math.random() - 0.5) * 60,
+        y: WASSER_Y + 6 + Math.random() * 8,
+        vy: -1.5 - Math.random() * 1.5,
+        vx: (Math.random() - 0.5) * 1.5,
+        leben: 1
+      });
+    }
   });
 
   startBtn.addEventListener("click", starteSpiel);
@@ -567,20 +579,40 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
   function zeichne(restMs){
     ctx.clearRect(0, 0, W, H);
 
-    // Himmel
+    // Himmel mit Sonne
     const sky = ctx.createLinearGradient(0, 0, 0, WASSER_Y);
     sky.addColorStop(0, "#bfe6c2");
     sky.addColorStop(1, "#e8f5e4");
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, W, WASSER_Y);
+    ctx.fillStyle = "rgba(255,230,150,0.9)";
+    ctx.beginPath();
+    ctx.arc(W - 60, 30, 16, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Wasser, scrollt mit der zurückgelegten Distanz
+    // Ferne Küstenlinie, scrollt langsam mit der Distanz (Parallax)
+    const kuesteOffset = (distanz * 4) % 140;
+    ctx.fillStyle = "rgba(42,163,41,0.22)";
+    for (let x = -kuesteOffset - 70; x < W + 70; x += 140){
+      ctx.beginPath();
+      ctx.moveTo(x - 45, WASSER_Y);
+      ctx.lineTo(x, WASSER_Y - 34);
+      ctx.lineTo(x + 45, WASSER_Y);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Wasser
     ctx.fillStyle = "#3a7ca5";
     ctx.fillRect(0, WASSER_Y, W, H - WASSER_Y);
-    const wellenOffset = (distanz * 14) % 40;
+
+    // Wellenlinien, mehrere Reihen mit leicht unterschiedlichem Tempo für Tiefe
     ctx.strokeStyle = "rgba(255,255,255,0.5)";
     ctx.lineWidth = 2;
+    let reihe = 0;
     for (let y = WASSER_Y + 10; y < H; y += 16){
+      const tempo = 14 + reihe * 4;
+      const wellenOffset = (distanz * tempo) % 40;
       ctx.beginPath();
       for (let x = -wellenOffset; x < W + 40; x += 40){
         ctx.moveTo(x, y);
@@ -588,14 +620,56 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
         ctx.quadraticCurveTo(x + 30, y + 6, x + 40, y);
       }
       ctx.stroke();
+      reihe++;
     }
 
-    // Drachenschiff, schaukelt leicht und hebt sich kurz bei jedem Ruderschlag
+    // Ruderschlag-Countdown und Schaukelbewegung
     if (ruderSchlag > 0) ruderSchlag--;
     const bob = Math.sin(performance.now() / 300) * 3 - ruderSchlag * 0.4;
     const shipX = W * 0.5, shipY = WASSER_Y - 6 + bob;
+
+    // Kielwasser-Schaumspur hinter dem Schiff
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = "#ffffff";
+    for (let i = 0; i < 5; i++){
+      const t = (distanz * 6 + i * 13) % 90;
+      ctx.beginPath();
+      ctx.ellipse(shipX - 95 - t, WASSER_Y + 8 + Math.sin(i) * 2, 10 - i, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Schaum-Spritzer-Partikel bei Ruderschlägen
+    spritzer.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.leben -= 0.045;
+    });
+    spritzer = spritzer.filter(p => p.leben > 0);
+    ctx.save();
+    spritzer.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.leben);
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
     ctx.save();
     ctx.translate(shipX, shipY);
+
+    // Ruder beidseitig, schlagen im Takt der Klicks aus
+    const ruderWinkel = ruderSchlag > 0 ? -0.5 + (8 - ruderSchlag) * 0.13 : -0.5;
+    ctx.strokeStyle = "#5c3417";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    [ -55, -25, 5, 35 ].forEach((ox, i) => {
+      const w = ruderWinkel + (i % 2 === 0 ? 0.06 : -0.06);
+      ctx.beginPath();
+      ctx.moveTo(ox, 14);
+      ctx.lineTo(ox + Math.cos(w) * 22, 14 + Math.sin(w) * 22 + 14);
+      ctx.stroke();
+    });
 
     // Rumpf
     ctx.fillStyle = "#7a4a24";
@@ -608,6 +682,19 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
     ctx.closePath();
     ctx.fill();
 
+    // Runde Schilde entlang der Bordwand (klassische Wikingerschiff-Optik)
+    const schildFarben = ["#c83c3c", "#e8e2d0"];
+    for (let i = 0; i < 7; i++){
+      const sx = -78 + i * 24;
+      ctx.fillStyle = schildFarben[i % 2];
+      ctx.beginPath();
+      ctx.arc(sx, 4, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#2b1a0f";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
     // Drachenkopf am Bug
     ctx.fillStyle = "#5c3417";
     ctx.beginPath();
@@ -616,8 +703,12 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
     ctx.quadraticCurveTo(92, -16, 82, -6);
     ctx.closePath();
     ctx.fill();
+    ctx.fillStyle = "#e6a000";
+    ctx.beginPath();
+    ctx.arc(93, -18, 2, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Segel, füllt sich sichtbar je nach Ruderaktivität (rein optisch)
+    // Segel
     ctx.fillStyle = "#e8e2d0";
     ctx.beginPath();
     ctx.moveTo(-10, -6);
