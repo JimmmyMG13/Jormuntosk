@@ -49,7 +49,13 @@
   .btn.small{padding:5px 10px;font-size:12px;}
   .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
   .datenav{display:flex;align-items:center;gap:8px;}
-  .datenav input[type=date]{padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit;}
+  .datenav input[type=date]{padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit;font-size:16px;}
+  @media (max-width:480px){
+    nav.tabs{flex-wrap:wrap;}
+    .btn{padding:11px 16px;font-size:14px;}
+    .btn.small{padding:9px 14px;font-size:13px;}
+    main{padding:16px;}
+  }
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:12px;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   table th, table td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);}
@@ -58,7 +64,7 @@
   .list-item:last-child{border-bottom:none;}
   .field{margin-bottom:10px;}
   .field label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px;}
-  .field input, .field textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);}
+  .field input, .field textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;background:var(--bg);color:var(--text);}
   .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
   .chip-check{border:1px solid var(--border);border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer;background:var(--bg);}
   .chip-check.on{background:var(--accent);color:#fff;border-color:var(--accent);}
