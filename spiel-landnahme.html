@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Landnahme — Jörmuntösk</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2AA329">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Jörmuntösk">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+    --accent:#2AA329; --accent-dark:#1f7a1f; --bg:#F7F8F6; --surface:#FFFFFF;
+    --text:#1A1A1A; --text-muted:#5A5F58; --border:#DDE3DA;
+    --shadow:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  [data-theme="dark"]{
+    --bg:#141713; --surface:#1E221D; --text:#EDEFEA; --text-muted:#A2A89C;
+    --border:#31362C; --shadow:0 1px 3px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand img{height:40px;width:40px;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
+  .brand-text .name{font-weight:bold;color:var(--accent);font-size:18px;}
+  .brand-text .sub{font-size:12px;color:var(--text-muted);}
+  .icon-btn{background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:16px;color:var(--text);}
+  .icon-btn:hover{border-color:var(--accent);}
+  main{max-width:680px;margin:0 auto;padding:32px 20px;}
+  .intro{text-align:center;margin-bottom:24px;}
+  .intro h1{font-size:22px;margin:0 0 6px 0;}
+  .intro p{color:var(--text-muted);margin:0;font-size:14px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:22px;margin-bottom:20px;}
+  .card h2{margin:0 0 4px 0;font-size:16px;color:var(--accent);cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;}
+  .card h2::after{content:"▾";font-size:13px;color:var(--text-muted);transition:transform .15s ease;margin-left:10px;}
+  .card.collapsed h2{margin-bottom:0;}
+  .card.collapsed h2::after{transform:rotate(-90deg);}
+  .card.collapsed > *:not(h2){display:none;}
+  .card p.hint{margin:0 0 16px 0;font-size:12px;color:var(--text-muted);}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .btn:hover{opacity:.92;}
+  .btn-secondary{background:none;border:1px solid var(--border);color:var(--text);}
+    .btn.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:24px;}
+  nav.tools a{font-size:13px;color:var(--accent);text-decoration:none;}
+  nav.tools a:hover{text-decoration:underline;}
+  .landnahme-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-top:20px;}
+  .landnahme-card h3{margin:0 0 4px 0;font-size:15px;color:var(--accent);text-align:center;font-size:22px;}
+  .ln-ressourcen{display:flex;justify-content:center;gap:22px;margin:18px 0 22px 0;flex-wrap:wrap;}
+  .ln-res{text-align:center;}
+  .ln-res .ln-res-icon{font-size:26px;line-height:1;}
+  .ln-res .ln-res-val{font-size:15px;font-weight:bold;margin-top:4px;}
+  .ln-res .ln-res-bar{width:70px;height:6px;background:var(--border);border-radius:3px;margin-top:6px;overflow:hidden;}
+  .ln-res .ln-res-bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s ease;}
+  .ln-res.warnung .ln-res-bar-fill{background:#c83c3c;}
+  .ln-rundenzaehler{text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:14px;}
+  .ln-karte{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;min-height:120px;display:flex;flex-direction:column;justify-content:center;gap:10px;}
+  .ln-karte .ln-kat-icon{font-size:34px;}
+  .ln-karte .ln-text{font-size:15px;line-height:1.5;}
+  .ln-optionen{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+  .ln-opt{padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;text-align:left;}
+  .ln-opt:hover:not(:disabled){border-color:var(--accent);}
+  .ln-opt:disabled{opacity:.5;cursor:default;}
+  .ln-folge{text-align:center;font-size:12px;color:var(--text-muted);margin-top:14px;min-height:16px;}
+  .ln-folge .plus{color:var(--accent);font-weight:bold;}
+  .ln-folge .minus{color:#c83c3c;font-weight:bold;}
+  .ln-ende{text-align:center;}
+  .ln-ende h4{font-size:18px;margin:0 0 10px 0;color:var(--accent);}
+  .ln-ende p{font-size:14px;color:var(--text-muted);margin:4px 0;}
+  .ln-ende .ln-score{font-size:32px;font-weight:bold;color:var(--accent);margin:12px 0;}
+
+.game-stage{position:relative;}
+  .game-stage canvas{display:block;}
+  .game-stage-static{min-height:280px;display:flex;flex-direction:column;justify-content:center;}
+  .game-start-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:18px 52px;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .game-start-overlay:hover{opacity:.92;}
+  .game-start-overlay.hidden{display:none;}
+  .back-btn{position:fixed;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:20px;cursor:pointer;z-index:1001;box-shadow:var(--shadow);font-family:inherit;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+  .back-btn:hover{border-color:var(--accent);}
+  main{max-width:900px;margin:0 auto;padding:70px 20px 40px;}
+  
+footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
+</style>
+</head>
+<body>
+
+<div id="appRoot" style="display:none;">
+<header>
+  <div class="brand">
+    <img id="logoImg" src="" alt="Jörmuntösk Logo">
+    <div class="brand-text"><span class="name">Jörmuntösk</span><span class="sub">Landnahme</span></div>
+  </div>
+  <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
+    <button class="icon-btn" id="themeToggle" title="Darstellung wechseln">🌓</button>
+    <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
+  </div>
+</header>
+
+<a class="back-btn" href="spiele.html" title="Zurück zu Spielen">✕</a>
+
+<main>
+    <div class="landnahme-card" data-widget="landnahme">
+      <h3>🏕️ Landnahme</h3>
+      <div class="game-stage game-stage-static">
+        <button class="game-start-overlay" id="lnStartBtn">Start</button>
+        <div id="lnSpielbereich" style="display:none;">
+          <div class="ln-ressourcen">
+            <div class="ln-res" id="lnResNahrung"><div class="ln-res-icon">🍖</div><div class="ln-res-val" id="lnNahrungVal">10</div><div class="ln-res-bar"><div class="ln-res-bar-fill" id="lnNahrungBar" style="width:100%;"></div></div></div>
+            <div class="ln-res" id="lnResMoral"><div class="ln-res-icon">💪</div><div class="ln-res-val" id="lnMoralVal">10</div><div class="ln-res-bar"><div class="ln-res-bar-fill" id="lnMoralBar" style="width:100%;"></div></div></div>
+            <div class="ln-res" id="lnResVorraete"><div class="ln-res-icon">🛠️</div><div class="ln-res-val" id="lnVorraeteVal">10</div><div class="ln-res-bar"><div class="ln-res-bar-fill" id="lnVorraeteBar" style="width:100%;"></div></div></div>
+          </div>
+          <div class="ln-rundenzaehler" id="lnRunde">Runde 1</div>
+          <div class="ln-karte" id="lnKarte">
+            <div class="ln-kat-icon" id="lnKatIcon">🏕️</div>
+            <div class="ln-text" id="lnKartenText">Die Sippe bricht auf.</div>
+          </div>
+          <div class="ln-optionen" id="lnOptionen"></div>
+          <p class="ln-folge" id="lnFolge"></p>
+        </div>
+      </div>
+    </div>
+
+</main>
+
+<footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
+</div>
+
+<script type="module">
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_LANDNAHME_HIGHSCORES } from "./common.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+initTheme("themeToggle");
+applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
+document.getElementById("logoutBtn").addEventListener("click", memberLogout);
+
+const currentMember = await requireMemberLogin();
+
+(function initLandnahme(){
+  const startBtn = document.getElementById("lnStartBtn");
+  const spielbereich = document.getElementById("lnSpielbereich");
+  const karteEl = document.getElementById("lnKarte");
+  const katIconEl = document.getElementById("lnKatIcon");
+  const textEl = document.getElementById("lnKartenText");
+  const optionenEl = document.getElementById("lnOptionen");
+  const folgeEl = document.getElementById("lnFolge");
+  const rundeEl = document.getElementById("lnRunde");
+
+  // =========================================================
+  // Kartenpool (40 Karten). Jede Karte hat 2 Optionen mit
+  // Auswirkungs-Spannen auf Nahrung/Moral/Vorräte (und optional Ruhm).
+  // Effekte sind [min, max] inklusive, zufällig gewählt bei Anwendung.
+  // =========================================================
+  const KARTEN = [
+    // --- Natur (8) ---
+    { kat: "natur", icon: "🌊", text: "Ein reissender Fluss versperrt den Weg.", opt: [
+      { label: "Furt suchen", folge: { nahrung: [-1, 0], vorraete: [-1, 0] } },
+      { label: "Hindurch waten", folge: { moral: [-3, -1] } }
+    ]},
+    { kat: "natur", icon: "🌲", text: "Der Wald wird so dicht, dass ihr kaum vorankommt.", opt: [
+      { label: "Umweg nehmen", folge: { vorraete: [-1, 0] } },
+      { label: "Sich durchschlagen", folge: { moral: [-1, 0], nahrung: [0, 1] } }
+    ]},
+    { kat: "natur", icon: "⛰️", text: "Ein steiler Grat versperrt den direkten Weg.", opt: [
+      { label: "Klettern", folge: { moral: [-2, 0], vorraete: [-1, 0] } },
+      { label: "Umgehen", folge: { nahrung: [-1, 0] } }
+    ]},
+    { kat: "natur", icon: "⛈️", text: "Ein Unwetter zieht auf.", opt: [
+      { label: "Schutz suchen", folge: { nahrung: [-1, 0], moral: [1, 1] } },
+      { label: "Weiterziehen", folge: { moral: [-2, -1], vorraete: [-1, 0] } }
+    ]},
+    { kat: "natur", icon: "🏜️", text: "Das Land wird karg und trostlos.", opt: [
+      { label: "Vorräte strecken", folge: { nahrung: [-2, -1] } },
+      { label: "Zügig durchqueren", folge: { moral: [-1, 0], nahrung: [-1, 0] } }
+    ]},
+    { kat: "natur", icon: "🌫️", text: "Dichter Nebel schluckt jede Sicht.", opt: [
+      { label: "Warten, bis er sich lichtet", folge: { nahrung: [-1, 0] } },
+      { label: "Vorsichtig weiterziehen", folge: { vorraete: [-1, 0], moral: [-1, 1] } }
+    ]},
+    { kat: "natur", icon: "❄️", text: "Ein früher Frost überrascht euch.", opt: [
+      { label: "Feuer grösser machen", folge: { vorraete: [-1, 0], moral: [1, 1] } },
+      { label: "Frieren und weiterziehen", folge: { moral: [-2, -1], nahrung: [-1, 0] } }
+    ]},
+    { kat: "natur", icon: "🌾", text: "Eine weite, ruhige Ebene öffnet sich vor euch.", opt: [
+      { label: "Zügig marschieren", folge: { moral: [1, 1] } },
+      { label: "Rasten und Kräfte sammeln", folge: { nahrung: [-1, 0], moral: [2, 2] } }
+    ]},
+
+    // --- Begegnungen (8) ---
+    { kat: "begegnung", icon: "🧭", text: "Ihr trefft auf fremde Reisende am Lagerfeuer.", opt: [
+      { label: "Geschichten austauschen", folge: { moral: [2, 2] } },
+      { label: "Vorsichtig vorbeiziehen", folge: {} }
+    ]},
+    { kat: "begegnung", icon: "🐺", text: "Ein Wolfsrudel beobachtet euch aus der Ferne.", opt: [
+      { label: "Feuer entfachen", folge: { vorraete: [-1, 0] } },
+      { label: "Leise weiterziehen", folge: { moral: [-1, 0] } }
+    ]},
+    { kat: "begegnung", icon: "🐻", text: "Ein Bär durchwühlt eure Vorräte.", opt: [
+      { label: "Verscheuchen", folge: { moral: [-2, 0] } },
+      { label: "Vorräte aufgeben", folge: { nahrung: [-2, -1] } }
+    ]},
+    { kat: "begegnung", icon: "🏚️", text: "Ihr findet ein verlassenes Lager.", opt: [
+      { label: "Durchsuchen", folge: { vorraete: [1, 2] } },
+      { label: "Weiterziehen, es wirkt unheimlich", folge: {} }
+    ]},
+    { kat: "begegnung", icon: "🤝", text: "Eine andere Sippe bietet Handel an.", opt: [
+      { label: "Handeln", folge: { vorraete: [-1, -1], nahrung: [2, 2] } },
+      { label: "Ablehnen", folge: {} }
+    ]},
+    { kat: "begegnung", icon: "🛒", text: "Ein fahrender Händler kreuzt euren Weg.", opt: [
+      { label: "Werkzeug kaufen", folge: { vorraete: [2, 2] } },
+      { label: "Vorbeiziehen", folge: {} }
+    ]},
+    { kat: "begegnung", icon: "🧙", text: "Ein Einsiedler im Wald teilt sein Wissen.", opt: [
+      { label: "Zuhören", folge: { moral: [1, 1], ruhm: [1, 1] } },
+      { label: "Keine Zeit verlieren", folge: {} }
+    ]},
+    { kat: "begegnung", icon: "🧒", text: "Ihr findet zwei verirrte Kinder.", opt: [
+      { label: "Mitnehmen und versorgen", folge: { nahrung: [-2, -1], moral: [2, 2] } },
+      { label: "Weg zu ihrem Dorf zeigen", folge: { moral: [1, 1] } }
+    ]},
+
+    // --- Funde (7) ---
+    { kat: "fund", icon: "🌿", text: "Ein fruchtbares Tal liegt vor euch.", opt: [
+      { label: "Ausgiebig sammeln", folge: { nahrung: [2, 3] } },
+      { label: "Nur kurz rasten", folge: { nahrung: [1, 1] } }
+    ]},
+    { kat: "fund", icon: "💧", text: "Eine klare Quelle sprudelt aus dem Fels.", opt: [
+      { label: "Vorräte auffüllen", folge: { nahrung: [1, 1], moral: [1, 1] } },
+      { label: "Nur kurz trinken", folge: { moral: [1, 1] } }
+    ]},
+    { kat: "fund", icon: "🪨", text: "Ihr entdeckt ein altes Runensteinfeld.", opt: [
+      { label: "Die Zeichen studieren", folge: { ruhm: [2, 2], nahrung: [-1, 0] } },
+      { label: "Respektvoll vorbeiziehen", folge: { moral: [1, 1] } }
+    ]},
+    { kat: "fund", icon: "⚔️", text: "Im Gestrüpp liegt ein verrostetes Schwert.", opt: [
+      { label: "Mitnehmen", folge: { vorraete: [1, 1] } },
+      { label: "Liegenlassen", folge: {} }
+    ]},
+    { kat: "fund", icon: "🔨", text: "Eine verlassene Werkstatt bietet brauchbares Werkzeug.", opt: [
+      { label: "Plündern", folge: { vorraete: [2, 2] } },
+      { label: "Nichts anrühren", folge: {} }
+    ]},
+    { kat: "fund", icon: "🍯", text: "Ein wilder Bienenstock voller Honig hängt im Baum.", opt: [
+      { label: "Honig ernten", folge: { nahrung: [2, 2], moral: [-1, 0] } },
+      { label: "In Ruhe lassen", folge: {} }
+    ]},
+    { kat: "fund", icon: "🟠", text: "Am Strand liegt Bernstein verstreut.", opt: [
+      { label: "Sammeln", folge: { ruhm: [1, 1], vorraete: [1, 1] } },
+      { label: "Weiterziehen", folge: {} }
+    ]},
+
+    // --- Gefahren (7) ---
+    { kat: "gefahr", icon: "🤒", text: "Jemand erkrankt im Lager.", opt: [
+      { label: "Pflegen und rasten", folge: { nahrung: [-1, 0], moral: [1, 1] } },
+      { label: "Weiterziehen", folge: { moral: [-2, -1] } }
+    ]},
+    { kat: "gefahr", icon: "🪓", text: "Wichtige Ausrüstung zerbricht.", opt: [
+      { label: "Reparieren", folge: { vorraete: [-1, 0] } },
+      { label: "Ohne weiterziehen", folge: { moral: [-1, 0] } }
+    ]},
+    { kat: "gefahr", icon: "😠", text: "Streit bricht in der Gruppe aus.", opt: [
+      { label: "Schlichten", folge: { moral: [1, 1], nahrung: [-1, 0] } },
+      { label: "Ignorieren", folge: { moral: [-2, -1] } }
+    ]},
+    { kat: "gefahr", icon: "🧭", text: "Ihr habt den Weg verloren.", opt: [
+      { label: "Zurückverfolgen", folge: { nahrung: [-1, 0] } },
+      { label: "Neuen Weg suchen", folge: { vorraete: [-1, 0], moral: [-1, 0] } }
+    ]},
+    { kat: "gefahr", icon: "🌙", text: "Nachts nähert sich ein Raubtier dem Lager.", opt: [
+      { label: "Wache verstärken", folge: { moral: [-1, 0] } },
+      { label: "Riskieren und weiterschlafen", folge: { nahrung: [-3, -1], moral: [-1, 0] } }
+    ]},
+    { kat: "gefahr", icon: "🍄", text: "Jemand hat versehentlich giftige Beeren gegessen.", opt: [
+      { label: "Rasten und auskurieren", folge: { nahrung: [-1, 0], moral: [-1, 0] } },
+      { label: "Weiterziehen", folge: { moral: [-2, -1] } }
+    ]},
+    { kat: "gefahr", icon: "🐊", text: "Ein tückischer Sumpf erschwert den Weg.", opt: [
+      { label: "Vorsichtig umgehen", folge: { vorraete: [-1, 0] } },
+      { label: "Direkt hindurch", folge: { nahrung: [-1, 0], moral: [-1, 0] } }
+    ]},
+
+    // --- Soziale Ereignisse (6) ---
+    { kat: "sozial", icon: "🔥", text: "Ihr feiert ein kleines Fest am Lagerfeuer.", opt: [
+      { label: "Ausgelassen feiern", folge: { nahrung: [-1, 0], moral: [3, 3] } },
+      { label: "Früh schlafen gehen", folge: { moral: [1, 1] } }
+    ]},
+    { kat: "sozial", icon: "🎵", text: "Jemand stimmt ein altes Sippenlied an.", opt: [
+      { label: "Mitsingen", folge: { moral: [2, 2] } },
+      { label: "Still zuhören", folge: { moral: [1, 1] } }
+    ]},
+    { kat: "sozial", icon: "🕊️", text: "Ein alter Streit zwischen zwei Mitgliedern wird endlich beigelegt.", opt: [
+      { label: "Gemeinsam feiern", folge: { moral: [2, 2], ruhm: [1, 1] } },
+      { label: "Ruhig weiterziehen", folge: { moral: [1, 1] } }
+    ]},
+    { kat: "sozial", icon: "🐴", text: "Ein Fohlen wird in der Nacht geboren – ein gutes Zeichen.", opt: [
+      { label: "Als gutes Omen feiern", folge: { moral: [2, 2], ruhm: [1, 1] } },
+      { label: "Sich freuen und weiterziehen", folge: { moral: [1, 1] } }
+    ]},
+    { kat: "sozial", icon: "📖", text: "Am Abend wird eine alte Geschichte der Ahnen erzählt.", opt: [
+      { label: "Gespannt zuhören", folge: { moral: [1, 1], ruhm: [1, 1] } },
+      { label: "Nebenbei die Ausrüstung pflegen", folge: { vorraete: [1, 1] } }
+    ]},
+    { kat: "sozial", icon: "🙏", text: "Ihr bringt den Göttern eine kleine Opfergabe dar.", opt: [
+      { label: "Grosszügig opfern", folge: { nahrung: [-1, 0], moral: [2, 2] } },
+      { label: "Bescheiden opfern", folge: { moral: [1, 1] } }
+    ]},
+
+    // --- Seltene Ereignisse (4) ---
+    { kat: "selten", icon: "🐦‍⬛", text: "Ein Rabe kreist über euch und lässt sich nieder – ein Zeichen der Götter.", opt: [
+      { label: "Als gutes Zeichen deuten", folge: { moral: [2, 2], ruhm: [2, 2] } },
+      { label: "Vorsichtig beobachten", folge: { moral: [1, 1] } }
+    ]},
+    { kat: "selten", icon: "💰", text: "Ihr entdeckt einen verborgenen Schatz.", opt: [
+      { label: "Bergen", folge: { vorraete: [2, 2], ruhm: [3, 3] } },
+      { label: "Nur einen Teil mitnehmen", folge: { vorraete: [1, 1], ruhm: [1, 1] } }
+    ]},
+    { kat: "selten", icon: "✨", text: "Eine Quelle schimmert in ungewöhnlichem Licht.", opt: [
+      { label: "Daraus trinken", folge: { nahrung: [1, 2], moral: [1, 2] } },
+      { label: "Nicht anrühren", folge: {} }
+    ]},
+    { kat: "selten", icon: "🔮", text: "Eine Seherin am Wegesrand liest die Runen für euch.", opt: [
+      { label: "Ihren Rat annehmen", folge: { ruhm: [2, 2], moral: [1, 1] } },
+      { label: "Höflich ablehnen", folge: {} }
+    ]}
+  ];
+
+  const KAT_LABELS = { natur: "Natur", begegnung: "Begegnung", fund: "Fund", gefahr: "Gefahr", sozial: "Sippe", selten: "Omen" };
+  const SIEDLUNGSORTE = ["an der Küste", "im Hügelland", "an der Flussmündung", "an der Waldlichtung", "im Talkessel", "auf der Hochebene"];
+
+  let laufend = false;
+  let runde = 0;
+  let nahrung, moral, vorraete, ruhm;
+  let deck = []; // ungezogene Karten dieses Durchgangs
+  let gezogeneIds = new Set();
+
+  function neuMischen(){
+    deck = [...KARTEN];
+    for (let i = deck.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+  }
+
+  function starteSpiel(){
+    laufend = true;
+    runde = 0;
+    nahrung = 10; moral = 10; vorraete = 10; ruhm = 0;
+    neuMischen();
+    startBtn.classList.add("hidden");
+    spielbereich.style.display = "block";
+    updateRes("lnNahrung", nahrung);
+    updateRes("lnMoral", moral);
+    updateRes("lnVorraete", vorraete);
+    naechsteRunde();
+  }
+  startBtn.addEventListener("click", starteSpiel);
+
+  function naechsteRunde(){
+    if (!laufend) return;
+    runde++;
+    rundeEl.textContent = "Runde " + runde;
+
+    if (runde % 5 === 0){
+      zeigeSiedlungsentscheid();
+      return;
+    }
+    zieheKarte();
+  }
+
+  function gewichteteKategorie(){
+    // Bei knapper Ressource bevorzugt eine passende Kategorie ziehen, falls im Deck vorhanden.
+    let bevorzugt = null;
+    if (nahrung <= 3) bevorzugt = "fund";
+    else if (moral <= 3) bevorzugt = "sozial";
+    if (bevorzugt){
+      const treffer = deck.filter(k => k.kat === bevorzugt);
+      if (treffer.length) return treffer[Math.floor(Math.random() * treffer.length)];
+    }
+    return null;
+  }
+
+  function zieheKarte(){
+    if (deck.length === 0) neuMischen();
+    let karte = gewichteteKategorie();
+    if (karte){
+      deck = deck.filter(k => k !== karte);
+    } else {
+      const idx = Math.floor(Math.random() * deck.length);
+      karte = deck[idx];
+      deck.splice(idx, 1);
+    }
+    zeigeKarte(karte);
+  }
+
+  function zeigeKarte(karte){
+    katIconEl.textContent = karte.icon;
+    textEl.textContent = karte.text;
+    folgeEl.textContent = "";
+    optionenEl.innerHTML = karte.opt.map((o, i) => `<button type="button" class="ln-opt" data-idx="${i}">${escapeHtml(o.label)}</button>`).join("");
+    optionenEl.querySelectorAll(".ln-opt").forEach(btn => {
+      btn.addEventListener("click", () => waehleOption(karte, Number(btn.dataset.idx)));
+    });
+  }
+
+  function zufallImBereich(bereich){
+    const [min, max] = bereich;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function waehleOption(karte, idx){
+    const opt = karte.opt[idx];
+    optionenEl.querySelectorAll(".ln-opt").forEach(b => b.disabled = true);
+
+    const aenderungen = [];
+    ["nahrung", "moral", "vorraete", "ruhm"].forEach(feld => {
+      if (opt.folge[feld]){
+        const delta = zufallImBereich(opt.folge[feld]);
+        if (delta !== 0){
+          if (feld === "nahrung") nahrung = clamp(nahrung + delta);
+          if (feld === "moral") moral = clamp(moral + delta);
+          if (feld === "vorraete") vorraete = clamp(vorraete + delta);
+          if (feld === "ruhm") ruhm = Math.max(0, ruhm + delta);
+          const icon = { nahrung: "🍖", moral: "💪", vorraete: "🛠️", ruhm: "✨" }[feld];
+          const cls = delta > 0 ? "plus" : "minus";
+          aenderungen.push(`<span class="${cls}">${icon} ${delta > 0 ? "+" : ""}${delta}</span>`);
+        }
+      }
+    });
+    folgeEl.innerHTML = aenderungen.length ? aenderungen.join("  ") : "Keine spürbare Auswirkung.";
+    aktualisiereRessourcenAnzeigeEcht();
+
+    if (nahrung <= 0 || moral <= 0){
+      setTimeout(() => beendeSpiel(false), 1100);
+      return;
+    }
+    setTimeout(() => naechsteRunde(), 1100);
+  }
+
+  function clamp(v){ return Math.max(0, Math.min(10, v)); }
+
+  function aktualisiereRessourcenAnzeigeEcht(){
+    updateRes("lnNahrung", nahrung);
+    updateRes("lnMoral", moral);
+    updateRes("lnVorraete", vorraete);
+  }
+  function updateRes(prefix, wert){
+    document.getElementById(prefix + "Val").textContent = wert;
+    document.getElementById(prefix + "Bar").style.width = (wert * 10) + "%";
+    document.getElementById(prefix.replace("ln", "lnRes")).classList.toggle("warnung", wert <= 3);
+  }
+
+  function zeigeSiedlungsentscheid(){
+    const ort = SIEDLUNGSORTE[(runde / 5 - 1) % SIEDLUNGSORTE.length];
+    katIconEl.textContent = "🏕️";
+    textEl.textContent = `Nach ${runde} Runden erreicht ihr einen Ort ${ort}. Zieht ihr weiter, oder lasst ihr euch hier nieder?`;
+    folgeEl.textContent = "";
+    optionenEl.innerHTML = `
+      <button type="button" class="ln-opt" id="lnWeiterBtn">Weiterziehen</button>
+      <button type="button" class="ln-opt" id="lnSiedelBtn">Hier siedeln</button>
+    `;
+    document.getElementById("lnWeiterBtn").addEventListener("click", () => zieheKarte());
+    document.getElementById("lnSiedelBtn").addEventListener("click", () => beendeSpiel(true));
+  }
+
+  async function beendeSpiel(erfolgreich){
+    laufend = false;
+    const ressourcenSumme = nahrung + moral + vorraete;
+    let score = runde * 2 + ruhm * 3 + ressourcenSumme + (erfolgreich ? 15 : 0);
+    score = Math.max(0, Math.round(score));
+
+    katIconEl.textContent = erfolgreich ? "🏕️" : "💀";
+    optionenEl.innerHTML = "";
+    folgeEl.textContent = "";
+    textEl.innerHTML = "";
+    karteEl.classList.add("ln-ende");
+    karteEl.innerHTML = `
+      <h4>${erfolgreich ? "Die Sippe lässt sich nieder" : "Die Expedition ist gescheitert"}</h4>
+      <p>${runde} Runden unterwegs · ${ruhm} Ruhm gesammelt</p>
+      <div class="ln-score">${score} Punkte</div>
+      <button class="btn secondary" id="lnNeustartBtn">Neue Expedition starten</button>
+    `;
+    document.getElementById("lnNeustartBtn").addEventListener("click", () => {
+      karteEl.classList.remove("ln-ende");
+      karteEl.innerHTML = `<div class="ln-kat-icon" id="lnKatIcon">🏕️</div><div class="ln-text" id="lnKartenText"></div>`;
+      spielbereich.style.display = "none";
+      startBtn.classList.remove("hidden");
+      startBtn.textContent = "Neue Expedition starten";
+    });
+
+    try {
+      const ref = doc(db, COL_LANDNAHME_HIGHSCORES, currentMember.id);
+      const bestehend = await getDoc(ref);
+      if (!bestehend.exists() || (bestehend.data().score || 0) < score){
+        await setDoc(ref, { mitgliedName: currentMember.name, score, datum: new Date().toISOString() });
+      }
+    } catch (err) {
+      // Highscore-Speicherung ist nicht kritisch für das Spiel selbst.
+    }
+  }
+})();
+
+</script>
+</body>
+</html>

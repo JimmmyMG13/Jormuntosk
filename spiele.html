@@ -120,6 +120,10 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
       <span class="spiel-tile-icon">🔮</span>
       <span class="spiel-tile-name">Symbol-Zuordnung</span>
     </a>
+    <a class="spiel-tile" href="spiel-landnahme.html">
+      <span class="spiel-tile-icon">🏕️</span>
+      <span class="spiel-tile-name">Landnahme</span>
+    </a>
   </div>
 
 
@@ -132,7 +136,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, zufaelligeBegruessung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, zufaelligeBegruessung } from "./common.js";
 import { collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
@@ -152,7 +156,8 @@ const SPIELE = [
   { id: "runner", name: "🏃 Sippen-Runner" },
   { id: "drachenschiff", name: "🐉 Drachenschiff-Wettfahrt" },
   { id: "runenspiel", name: "ᚠ Runen-Lernspiel" },
-  { id: "symbolzuordnung", name: "🔮 Symbol-Zuordnung" }
+  { id: "symbolzuordnung", name: "🔮 Symbol-Zuordnung" },
+  { id: "landnahme", name: "🏕️ Landnahme" }
 ];
 const highscoreCache = {};
 let highscoreIndex = 0;
@@ -207,6 +212,12 @@ onSnapshot(query(collection(db, COL_RUNENSPIEL_HIGHSCORES), orderBy("score", "de
 // Symbol-Zuordnung: Highscore-Daten für das Panel (Spiel liegt in spiel-symbolzuordnung.html).
 onSnapshot(query(collection(db, COL_SYMBOLZUORDNUNG_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.symbolzuordnung = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  renderHighscorePanel();
+});
+
+// Landnahme: Highscore-Daten für das Panel (Spiel liegt in spiel-landnahme.html).
+onSnapshot(query(collection(db, COL_LANDNAHME_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
+  highscoreCache.landnahme = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
   renderHighscorePanel();
 });
 
