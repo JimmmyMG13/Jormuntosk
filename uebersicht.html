@@ -141,13 +141,7 @@
     <p>Wähle das gewünschte Tool aus.</p>
   </div>
   <div class="dash" id="dashRoot" style="display:none;">
-    <div class="dash-card"><div class="num" id="dashAktiv">–</div><div class="label">Aktive Mitglieder</div></div>
-    <div class="dash-card"><div class="num" id="dashProbezeit">–</div><div class="label">In Probezeit</div></div>
-    <div class="dash-card"><div class="num" id="dashAnfragen">–</div><div class="label">Offene Anfragen</div></div>
-    <div class="dash-card wide">
-      <div class="label" style="margin-bottom:6px;">Letzte Markttagebuch-Einträge</div>
-      <div id="dashMarkt"></div>
-    </div>
+    <div class="dash-card" id="dashAnfragenCard" style="display:none;"><div class="num" id="dashAnfragen">–</div><div class="label">Offene Anfragen</div></div>
   </div>
 
   <div class="unified-flex" id="unifiedFlex">
@@ -208,7 +202,7 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_ANFRAGEN, COL_RUNNER_HIGHSCORES, berechneSippenjahr, runeDesTages, berechneMondphase, RUNEN, zufaelligeBegruessung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_ANFRAGEN, berechneSippenjahr, runeDesTages, berechneMondphase, RUNEN, zufaelligeBegruessung } from "./common.js";
 import { doc, onSnapshot, collection, where, query, orderBy, limit, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const currentMember = await requireMemberLogin();
@@ -478,25 +472,14 @@ if (tileAdmin && currentMember.verwaltung !== true) tileAdmin.style.display = "n
 if (currentMember.verwaltung === true){
   document.getElementById("dashRoot").style.display = "grid";
 
-  onSnapshot(collection(db, "mitglieder"), snap => {
-    let aktiv = 0, probezeit = 0;
-    snap.forEach(d => { (d.data().status === "probezeit") ? probezeit++ : aktiv++; });
-    document.getElementById("dashAktiv").textContent = aktiv;
-    document.getElementById("dashProbezeit").textContent = probezeit;
-  });
-
   onSnapshot(query(collection(db, COL_ANFRAGEN), where("status", "==", "offen")), snap => {
-    document.getElementById("dashAnfragen").textContent = snap.size;
-  });
-
-  onSnapshot(collection(db, "markttagebuch_eintraege"), snap => {
-    const eintraege = snap.docs.map(d => d.data())
-      .sort((a, b) => (b.datum || "").localeCompare(a.datum || ""))
-      .slice(0, 3);
-    const el = document.getElementById("dashMarkt");
-    el.innerHTML = eintraege.length
-      ? eintraege.map(e => `<div class="dash-entry"><span>${escapeHtml(e.marktname || "(ohne Titel)")}</span><span style="color:var(--text-muted);">${formatDate(e.datum)}</span></div>`).join("")
-      : `<div class="dash-entry"><span style="color:var(--text-muted);">Noch keine Einträge.</span></div>`;
+    const card = document.getElementById("dashAnfragenCard");
+    if (snap.size > 0){
+      document.getElementById("dashAnfragen").textContent = snap.size;
+      card.style.display = "";
+    } else {
+      card.style.display = "none";
+    }
   });
 }
 
