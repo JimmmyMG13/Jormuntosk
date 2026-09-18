@@ -181,6 +181,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
     <h3>🔮 Symbol-Zuordnung</h3>
     <p class="hint">Welche Bedeutung gehört zur Rune? Richtige Antwort anklicken. Rekord = meiste Runen hintereinander richtig.</p>
     <div class="symbolzuordnung-symbol" id="symbolzuordnungSymbol">?</div>
+    <p style="text-align:center;font-size:13px;font-weight:bold;color:var(--text-muted);margin:0 0 6px 0;" id="symbolzuordnungName"></p>
     <div class="symbolzuordnung-status">
       <span>Serie: <b id="symbolzuordnungSerie">0</b></span>
       <span>Rekord: <b id="symbolzuordnungRekord">0</b></span>
@@ -973,6 +974,7 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
   function neueRunde(){
     aktuelleRune = RUNEN[Math.floor(Math.random() * RUNEN.length)];
     symbolEl.textContent = aktuelleRune.symbol;
+    document.getElementById("symbolzuordnungName").textContent = aktuelleRune.name;
     feedbackEl.textContent = "";
     feedbackEl.className = "symbolzuordnung-feedback";
 
