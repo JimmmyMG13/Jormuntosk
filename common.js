@@ -438,6 +438,7 @@ export const COL_DRACHENSCHIFF_HIGHSCORES = "drachenschiff_highscores";
 export const COL_RUNENSPIEL_HIGHSCORES = "runenspiel_highscores";
 export const COL_SYMBOLZUORDNUNG_HIGHSCORES = "symbolzuordnung_highscores";
 export const COL_LANDNAHME_HIGHSCORES = "landnahme_highscores";
+export const COL_KARTENERKUNDUNG_HIGHSCORES = "kartenerkundung_highscores";
 
 export const ANFRAGE_KATEGORIEN = ["Ausrüstung", "Finanzen", "Organisatorisches", "Sonstiges"];
 
