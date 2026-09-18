@@ -61,6 +61,17 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   .runner-highscores h4{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
   .runner-hs-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
   .runner-hs-row.me{font-weight:bold;color:var(--accent);}
+  .drachen-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-top:20px;}
+  .drachen-card h3{margin:0 0 4px 0;font-size:15px;color:var(--accent);}
+  .drachen-card p.hint{margin:0 0 12px 0;font-size:12px;color:var(--text-muted);}
+  #drachenCanvas{width:100%;max-width:100%;height:180px;display:block;border-radius:10px;background:linear-gradient(180deg, var(--bg), var(--surface));border:1px solid var(--border);}
+  .drachen-controls{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;flex-wrap:wrap;}
+  .drachen-score{font-size:13px;color:var(--text-muted);}
+  .drachen-score b{color:var(--accent);font-size:16px;}
+  #drachenRuderBtn{width:100%;margin-top:10px;padding:16px;font-size:16px;}
+  #drachenRuderBtn:disabled{opacity:.4;cursor:default;}
+  .drachen-highscores{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
+  .drachen-highscores h4{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
   
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
@@ -100,6 +111,21 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
     </div>
   </div>
 
+  <div class="drachen-card" data-widget="drachenschiff">
+    <h3>🐉 Drachenschiff-Wettfahrt</h3>
+    <p class="hint">Klicke so schnell wie möglich auf „Rudern!", bevor die Zeit abläuft.</p>
+    <canvas id="drachenCanvas" width="600" height="180"></canvas>
+    <div class="drachen-controls">
+      <div class="drachen-score">Punkte: <b id="drachenScore">0</b> · Zeit: <b id="drachenTime">8.0</b>s</div>
+      <button class="btn secondary" id="drachenStartBtn">Start</button>
+    </div>
+    <button id="drachenRuderBtn" class="btn" disabled>🚣 Rudern!</button>
+    <div class="drachen-highscores">
+      <h4>🏆 Bestenliste der Sippe</h4>
+      <div id="drachenHighscoreList"><p style="color:var(--text-muted);font-size:12px;">Lädt…</p></div>
+    </div>
+  </div>
+
 
   <nav class="tools">
     <a href="uebersicht.html">← Zur Übersicht</a>
@@ -110,7 +136,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, zufaelligeBegruessung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, zufaelligeBegruessung } from "./common.js";
 import { doc, getDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
@@ -467,6 +493,184 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
 
   onSnapshot(query(collection(db, COL_RUNNER_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
     const el = document.getElementById("runnerHighscoreList");
+    if (!el) return;
+    if (snap.empty){
+      el.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Highscores. Sei die/der Erste!</p>`;
+      return;
+    }
+    let i = 0;
+    el.innerHTML = snap.docs.map(d => {
+      i++;
+      const data = d.data();
+      const istEigen = d.id === currentMember.id;
+      return `<div class="runner-hs-row${istEigen ? " me" : ""}"><span>${i}. ${escapeHtml(data.mitgliedName || "?")}</span><span>${data.score}</span></div>`;
+    }).join("");
+  });
+})();
+
+// =========================================================
+// Drachenschiff-Wettfahrt: Klick-Tempo-Minispiel. 8 Sekunden lang so
+// schnell wie möglich auf "Rudern!" klicken, das Drachenschiff legt
+// pro Klick eine Strecke zurück. Geteilte Highscore-Tabelle wie beim
+// Sippen-Runner (bester Score pro Mitglied, Dokument-ID = Mitglieds-ID).
+// =========================================================
+(function initDrachenschiff(){
+  const canvas = document.getElementById("drachenCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const WASSER_Y = H * 0.6;
+  const SPIELDAUER = 8; // Sekunden
+
+  const startBtn = document.getElementById("drachenStartBtn");
+  const ruderBtn = document.getElementById("drachenRuderBtn");
+  const scoreEl = document.getElementById("drachenScore");
+  const timeEl = document.getElementById("drachenTime");
+
+  let laufend = false;
+  let distanz = 0;
+  let endZeit = 0;
+  let animId = null;
+  let ruderSchlag = 0; // für Animation, zählt bei jedem Klick kurz hoch
+
+  function starteSpiel(){
+    distanz = 0;
+    ruderSchlag = 0;
+    laufend = true;
+    endZeit = performance.now() + SPIELDAUER * 1000;
+    ruderBtn.disabled = false;
+    startBtn.disabled = true;
+    cancelAnimationFrame(animId);
+    loop();
+  }
+
+  function loop(){
+    const restMs = endZeit - performance.now();
+    if (restMs <= 0 || !laufend){
+      beende();
+      return;
+    }
+    timeEl.textContent = (restMs / 1000).toFixed(1);
+    scoreEl.textContent = distanz;
+    zeichne(restMs);
+    animId = requestAnimationFrame(loop);
+  }
+
+  ruderBtn.addEventListener("click", () => {
+    if (!laufend) return;
+    distanz += 1;
+    ruderSchlag = 8; // kurzer Animations-Ausschlag pro Klick
+  });
+
+  startBtn.addEventListener("click", starteSpiel);
+
+  function zeichne(restMs){
+    ctx.clearRect(0, 0, W, H);
+
+    // Himmel
+    const sky = ctx.createLinearGradient(0, 0, 0, WASSER_Y);
+    sky.addColorStop(0, "#bfe6c2");
+    sky.addColorStop(1, "#e8f5e4");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, WASSER_Y);
+
+    // Wasser, scrollt mit der zurückgelegten Distanz
+    ctx.fillStyle = "#3a7ca5";
+    ctx.fillRect(0, WASSER_Y, W, H - WASSER_Y);
+    const wellenOffset = (distanz * 14) % 40;
+    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    ctx.lineWidth = 2;
+    for (let y = WASSER_Y + 10; y < H; y += 16){
+      ctx.beginPath();
+      for (let x = -wellenOffset; x < W + 40; x += 40){
+        ctx.moveTo(x, y);
+        ctx.quadraticCurveTo(x + 10, y - 6, x + 20, y);
+        ctx.quadraticCurveTo(x + 30, y + 6, x + 40, y);
+      }
+      ctx.stroke();
+    }
+
+    // Drachenschiff, schaukelt leicht und hebt sich kurz bei jedem Ruderschlag
+    if (ruderSchlag > 0) ruderSchlag--;
+    const bob = Math.sin(performance.now() / 300) * 3 - ruderSchlag * 0.4;
+    const shipX = W * 0.5, shipY = WASSER_Y - 6 + bob;
+    ctx.save();
+    ctx.translate(shipX, shipY);
+
+    // Rumpf
+    ctx.fillStyle = "#7a4a24";
+    ctx.beginPath();
+    ctx.moveTo(-90, 0);
+    ctx.quadraticCurveTo(-70, 22, 0, 24);
+    ctx.quadraticCurveTo(70, 22, 90, 0);
+    ctx.quadraticCurveTo(70, 10, 0, 12);
+    ctx.quadraticCurveTo(-70, 10, -90, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Drachenkopf am Bug
+    ctx.fillStyle = "#5c3417";
+    ctx.beginPath();
+    ctx.moveTo(85, -2);
+    ctx.quadraticCurveTo(105, -14, 100, -26);
+    ctx.quadraticCurveTo(92, -16, 82, -6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Segel, füllt sich sichtbar je nach Ruderaktivität (rein optisch)
+    ctx.fillStyle = "#e8e2d0";
+    ctx.beginPath();
+    ctx.moveTo(-10, -6);
+    ctx.lineTo(-10, -55);
+    ctx.quadraticCurveTo(20, -30, -10, -6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#7a4a24";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-10, -2);
+    ctx.lineTo(-10, -58);
+    ctx.stroke();
+
+    // Runenmuster auf dem Segel
+    ctx.strokeStyle = "#2AA329";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-5, -40); ctx.lineTo(-5, -20);
+    ctx.moveTo(-5, -30); ctx.lineTo(5, -36);
+    ctx.moveTo(-5, -30); ctx.lineTo(5, -24);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function beende(){
+    laufend = false;
+    cancelAnimationFrame(animId);
+    ruderBtn.disabled = true;
+    startBtn.disabled = false;
+    startBtn.textContent = "Nochmal versuchen";
+    timeEl.textContent = "0.0";
+    scoreEl.textContent = distanz;
+    speichereHighscore(distanz);
+  }
+
+  async function speichereHighscore(score){
+    try {
+      const ref = doc(db, COL_DRACHENSCHIFF_HIGHSCORES, currentMember.id);
+      const bestehend = await getDoc(ref);
+      if (!bestehend.exists() || (bestehend.data().score || 0) < score){
+        await setDoc(ref, { mitgliedName: currentMember.name, score, datum: new Date().toISOString() });
+      }
+    } catch (err) {
+      // Highscore-Speicherung ist nicht kritisch für das Spiel selbst.
+    }
+  }
+
+  zeichne(SPIELDAUER * 1000);
+
+  onSnapshot(query(collection(db, COL_DRACHENSCHIFF_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
+    const el = document.getElementById("drachenHighscoreList");
     if (!el) return;
     if (snap.empty){
       el.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Highscores. Sei die/der Erste!</p>`;

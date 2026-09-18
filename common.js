@@ -434,6 +434,7 @@ export function requireMemberLogin({ appRootId = "appRoot" } = {}){
 
 export const COL_ANFRAGEN = "anfragen";
 export const COL_RUNNER_HIGHSCORES = "runner_highscores";
+export const COL_DRACHENSCHIFF_HIGHSCORES = "drachenschiff_highscores";
 
 export const ANFRAGE_KATEGORIEN = ["Ausrüstung", "Finanzen", "Organisatorisches", "Sonstiges"];
 
