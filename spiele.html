@@ -120,14 +120,36 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   .spiel-tile-icon{font-size:30px;line-height:1;}
   .spiel-tile-name{font-size:12px;font-weight:bold;}
 
-  .spiel-fullscreen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:none;overflow-y:auto;padding:20px;}
-  .spiel-fullscreen.open{display:block;}
-  .fullscreen-close{position:fixed;top:16px;right:16px;width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;z-index:1001;box-shadow:var(--shadow);font-family:inherit;}
+  .spiel-fullscreen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:none;overflow-y:auto;padding:70px 20px 30px;}
+  .spiel-fullscreen.open{display:flex;align-items:center;justify-content:center;}
+  .fullscreen-close{position:fixed;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:20px;cursor:pointer;z-index:1001;box-shadow:var(--shadow);font-family:inherit;}
   .fullscreen-close:hover{border-color:var(--accent);}
   .spiel-fullscreen > .runner-card,
   .spiel-fullscreen > .drachen-card,
   .spiel-fullscreen > .runenspiel-card,
-  .spiel-fullscreen > .symbolzuordnung-card{max-width:640px;margin:44px auto 0;}
+  .spiel-fullscreen > .symbolzuordnung-card{width:100%;max-width:900px;margin:0;box-shadow:none;border:none;background:none;padding:0;}
+  .spiel-fullscreen > .runner-card h3,
+  .spiel-fullscreen > .drachen-card h3,
+  .spiel-fullscreen > .runenspiel-card h3,
+  .spiel-fullscreen > .symbolzuordnung-card h3{font-size:22px;text-align:center;}
+  .spiel-fullscreen > .runner-card p.hint,
+  .spiel-fullscreen > .drachen-card p.hint,
+  .spiel-fullscreen > .runenspiel-card p.hint,
+  .spiel-fullscreen > .symbolzuordnung-card p.hint{text-align:center;font-size:14px;margin-bottom:20px;}
+  .spiel-fullscreen .runenspiel-symbol,
+  .spiel-fullscreen .symbolzuordnung-symbol{font-size:130px;min-height:150px;}
+  .spiel-fullscreen .runenspiel-status,
+  .spiel-fullscreen .symbolzuordnung-status{font-size:16px;}
+  .spiel-fullscreen .runenspiel-status b,
+  .spiel-fullscreen .symbolzuordnung-status b{font-size:20px;}
+  .spiel-fullscreen #runenspielInput{width:160px;font-size:22px;padding:14px;}
+  .spiel-fullscreen .symbolzuordnung-optionen{max-width:520px;margin:0 auto;}
+  .spiel-fullscreen .symbolzuordnung-opt{font-size:15px;padding:14px 10px;}
+  @media (max-width:600px){
+    .spiel-fullscreen{padding:64px 14px 20px;}
+    .spiel-fullscreen .runenspiel-symbol,
+    .spiel-fullscreen .symbolzuordnung-symbol{font-size:90px;min-height:110px;}
+  }
   
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
