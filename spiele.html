@@ -72,6 +72,20 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   #drachenRuderBtn:disabled{opacity:.4;cursor:default;}
   .drachen-highscores{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
   .drachen-highscores h4{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .runenspiel-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-top:20px;text-align:center;}
+  .runenspiel-card h3{margin:0 0 4px 0;font-size:15px;color:var(--accent);text-align:left;}
+  .runenspiel-card p.hint{margin:0 0 12px 0;font-size:12px;color:var(--text-muted);text-align:left;}
+  .runenspiel-symbol{font-size:64px;line-height:1;color:var(--accent);min-height:76px;display:flex;align-items:center;justify-content:center;}
+  .runenspiel-status{font-size:13px;color:var(--text-muted);margin:6px 0 14px 0;display:flex;justify-content:center;gap:18px;}
+  .runenspiel-status b{color:var(--accent);font-size:16px;}
+  .runenspiel-form{display:flex;gap:8px;justify-content:center;}
+  #runenspielInput{width:110px;text-align:center;text-transform:uppercase;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:16px;font-family:inherit;}
+  #runenspielInput:disabled{opacity:.5;}
+  .runenspiel-feedback{min-height:20px;font-size:13px;margin-top:10px;}
+  .runenspiel-feedback.richtig{color:var(--accent);}
+  .runenspiel-feedback.falsch{color:#c83c3c;}
+  .runenspiel-highscores{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;text-align:left;}
+  .runenspiel-highscores h4{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
   
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
@@ -126,6 +140,26 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
     </div>
   </div>
 
+  <div class="runenspiel-card" data-widget="runenspiel">
+    <h3>ᚠ Runen-Lernspiel</h3>
+    <p class="hint">Welche Rune ist das? Buchstabe eintippen und mit Enter bestätigen. Rekord = meiste Runen hintereinander richtig.</p>
+    <div class="runenspiel-symbol" id="runenspielSymbol">?</div>
+    <div class="runenspiel-status">
+      <span>Serie: <b id="runenspielSerie">0</b></span>
+      <span>Rekord: <b id="runenspielRekord">0</b></span>
+    </div>
+    <form class="runenspiel-form" id="runenspielForm">
+      <input type="text" id="runenspielInput" maxlength="3" autocomplete="off" placeholder="?" disabled>
+      <button type="submit" class="btn secondary" id="runenspielSubmitBtn" disabled>Prüfen</button>
+    </form>
+    <button class="btn" id="runenspielStartBtn" style="margin-top:12px;">Spiel starten</button>
+    <p class="runenspiel-feedback" id="runenspielFeedback"></p>
+    <div class="runenspiel-highscores">
+      <h4>🏆 Bestenliste der Sippe</h4>
+      <div id="runenspielHighscoreList"><p style="color:var(--text-muted);font-size:12px;">Lädt…</p></div>
+    </div>
+  </div>
+
 
   <nav class="tools">
     <a href="uebersicht.html">← Zur Übersicht</a>
@@ -136,7 +170,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, zufaelligeBegruessung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, RUNEN, zufaelligeBegruessung } from "./common.js";
 import { doc, getDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
@@ -762,6 +796,102 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
 
   onSnapshot(query(collection(db, COL_DRACHENSCHIFF_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
     const el = document.getElementById("drachenHighscoreList");
+    if (!el) return;
+    if (snap.empty){
+      el.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Highscores. Sei die/der Erste!</p>`;
+      return;
+    }
+    let i = 0;
+    el.innerHTML = snap.docs.map(d => {
+      i++;
+      const data = d.data();
+      const istEigen = d.id === currentMember.id;
+      return `<div class="runner-hs-row${istEigen ? " me" : ""}"><span>${i}. ${escapeHtml(data.mitgliedName || "?")}</span><span>${data.score}</span></div>`;
+    }).join("");
+  });
+})();
+
+// =========================================================
+// Runen-Lernspiel: zeigt eine zufällige Rune, Buchstabe eintippen.
+// Richtig = Serie +1, falsch = Serie zurück auf 0 (neue Rune folgt
+// trotzdem sofort). Rekord = höchste je erreichte Serie am Stück,
+// geteilte Highscore-Tabelle wie bei den anderen Spielen.
+// =========================================================
+(function initRunenspiel(){
+  const symbolEl = document.getElementById("runenspielSymbol");
+  if (!symbolEl) return;
+  const serieEl = document.getElementById("runenspielSerie");
+  const rekordEl = document.getElementById("runenspielRekord");
+  const form = document.getElementById("runenspielForm");
+  const input = document.getElementById("runenspielInput");
+  const submitBtn = document.getElementById("runenspielSubmitBtn");
+  const startBtn = document.getElementById("runenspielStartBtn");
+  const feedbackEl = document.getElementById("runenspielFeedback");
+
+  let laufend = false;
+  let serie = 0;
+  let rekord = 0;
+  let aktuelleRune = null;
+
+  function neueRune(){
+    aktuelleRune = RUNEN[Math.floor(Math.random() * RUNEN.length)];
+    symbolEl.textContent = aktuelleRune.symbol;
+    input.value = "";
+    input.focus();
+  }
+
+  function starteSpiel(){
+    laufend = true;
+    serie = 0;
+    serieEl.textContent = "0";
+    feedbackEl.textContent = "";
+    feedbackEl.className = "runenspiel-feedback";
+    input.disabled = false;
+    submitBtn.disabled = false;
+    startBtn.textContent = "Neu starten";
+    neueRune();
+  }
+
+  startBtn.addEventListener("click", starteSpiel);
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!laufend || !aktuelleRune) return;
+    const antwort = input.value.trim().toUpperCase();
+    if (antwort === aktuelleRune.buchstabe){
+      serie++;
+      serieEl.textContent = serie;
+      feedbackEl.textContent = "Richtig! " + aktuelleRune.name + " = " + aktuelleRune.buchstabe;
+      feedbackEl.className = "runenspiel-feedback richtig";
+      if (serie > rekord){
+        rekord = serie;
+        rekordEl.textContent = rekord;
+        speichereHighscoreFallsBesser(serie);
+      }
+    } else {
+      feedbackEl.textContent = "Leider falsch — " + aktuelleRune.name + " = " + aktuelleRune.buchstabe + ". Serie zurückgesetzt.";
+      feedbackEl.className = "runenspiel-feedback falsch";
+      if (serie > 0) speichereHighscoreFallsBesser(serie);
+      serie = 0;
+      serieEl.textContent = "0";
+    }
+    neueRune();
+  });
+
+  async function speichereHighscoreFallsBesser(score){
+    try {
+      const ref = doc(db, COL_RUNENSPIEL_HIGHSCORES, currentMember.id);
+      const bestehend = await getDoc(ref);
+      if (!bestehend.exists() || (bestehend.data().score || 0) < score){
+        await setDoc(ref, { mitgliedName: currentMember.name, score, datum: new Date().toISOString() });
+      }
+    } catch (err) {
+      // Highscore-Speicherung ist nicht kritisch für das Spiel selbst.
+    }
+  }
+
+  onSnapshot(query(collection(db, COL_RUNENSPIEL_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
+    const el = document.getElementById("runenspielHighscoreList");
     if (!el) return;
     if (snap.empty){
       el.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Highscores. Sei die/der Erste!</p>`;

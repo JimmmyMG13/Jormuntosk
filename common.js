@@ -435,6 +435,7 @@ export function requireMemberLogin({ appRootId = "appRoot" } = {}){
 export const COL_ANFRAGEN = "anfragen";
 export const COL_RUNNER_HIGHSCORES = "runner_highscores";
 export const COL_DRACHENSCHIFF_HIGHSCORES = "drachenschiff_highscores";
+export const COL_RUNENSPIEL_HIGHSCORES = "runenspiel_highscores";
 
 export const ANFRAGE_KATEGORIEN = ["Ausrüstung", "Finanzen", "Organisatorisches", "Sonstiges"];
 
@@ -496,30 +497,30 @@ export function berechneSippenjahr(heute = new Date()){
 // =========================================================
 
 export const RUNEN = [
-  { symbol: "ᚠ", name: "Fehu", bedeutung: "Wohlstand, Vieh" },
-  { symbol: "ᚢ", name: "Uruz", bedeutung: "Kraft, Wildheit" },
-  { symbol: "ᚦ", name: "Thurisaz", bedeutung: "Konflikt, Durchsetzung" },
-  { symbol: "ᚨ", name: "Ansuz", bedeutung: "Botschaft, Weisheit" },
-  { symbol: "ᚱ", name: "Raidho", bedeutung: "Reise, Bewegung" },
-  { symbol: "ᚲ", name: "Kenaz", bedeutung: "Erkenntnis, Feuer" },
-  { symbol: "ᚷ", name: "Gebo", bedeutung: "Geschenk, Partnerschaft" },
-  { symbol: "ᚹ", name: "Wunjo", bedeutung: "Freude, Harmonie" },
-  { symbol: "ᚺ", name: "Hagalaz", bedeutung: "Umbruch, Prüfung" },
-  { symbol: "ᚾ", name: "Nauthiz", bedeutung: "Not, Widerstand" },
-  { symbol: "ᛁ", name: "Isa", bedeutung: "Stillstand, Klarheit" },
-  { symbol: "ᛃ", name: "Jera", bedeutung: "Ernte, Lohn" },
-  { symbol: "ᛇ", name: "Eihwaz", bedeutung: "Beständigkeit, Wandel" },
-  { symbol: "ᛈ", name: "Perthro", bedeutung: "Schicksal, Geheimnis" },
-  { symbol: "ᛉ", name: "Algiz", bedeutung: "Schutz" },
-  { symbol: "ᛊ", name: "Sowilo", bedeutung: "Erfolg, Sonne" },
-  { symbol: "ᛏ", name: "Tiwaz", bedeutung: "Mut, Gerechtigkeit" },
-  { symbol: "ᛒ", name: "Berkano", bedeutung: "Neubeginn, Wachstum" },
-  { symbol: "ᛖ", name: "Ehwaz", bedeutung: "Vertrauen, Fortschritt" },
-  { symbol: "ᛗ", name: "Mannaz", bedeutung: "Gemeinschaft, das Selbst" },
-  { symbol: "ᛚ", name: "Laguz", bedeutung: "Intuition, Fluss" },
-  { symbol: "ᛜ", name: "Ingwaz", bedeutung: "Fruchtbarkeit, Ruhe" },
-  { symbol: "ᛞ", name: "Dagaz", bedeutung: "Durchbruch, neuer Tag" },
-  { symbol: "ᛟ", name: "Othala", bedeutung: "Erbe, Heimat" }
+  { symbol: "ᚠ", name: "Fehu", bedeutung: "Wohlstand, Vieh", buchstabe: "F" },
+  { symbol: "ᚢ", name: "Uruz", bedeutung: "Kraft, Wildheit", buchstabe: "U" },
+  { symbol: "ᚦ", name: "Thurisaz", bedeutung: "Konflikt, Durchsetzung", buchstabe: "TH" },
+  { symbol: "ᚨ", name: "Ansuz", bedeutung: "Botschaft, Weisheit", buchstabe: "A" },
+  { symbol: "ᚱ", name: "Raidho", bedeutung: "Reise, Bewegung", buchstabe: "R" },
+  { symbol: "ᚲ", name: "Kenaz", bedeutung: "Erkenntnis, Feuer", buchstabe: "K" },
+  { symbol: "ᚷ", name: "Gebo", bedeutung: "Geschenk, Partnerschaft", buchstabe: "G" },
+  { symbol: "ᚹ", name: "Wunjo", bedeutung: "Freude, Harmonie", buchstabe: "W" },
+  { symbol: "ᚺ", name: "Hagalaz", bedeutung: "Umbruch, Prüfung", buchstabe: "H" },
+  { symbol: "ᚾ", name: "Nauthiz", bedeutung: "Not, Widerstand", buchstabe: "N" },
+  { symbol: "ᛁ", name: "Isa", bedeutung: "Stillstand, Klarheit", buchstabe: "I" },
+  { symbol: "ᛃ", name: "Jera", bedeutung: "Ernte, Lohn", buchstabe: "J" },
+  { symbol: "ᛇ", name: "Eihwaz", bedeutung: "Beständigkeit, Wandel", buchstabe: "EI" },
+  { symbol: "ᛈ", name: "Perthro", bedeutung: "Schicksal, Geheimnis", buchstabe: "P" },
+  { symbol: "ᛉ", name: "Algiz", bedeutung: "Schutz", buchstabe: "Z" },
+  { symbol: "ᛊ", name: "Sowilo", bedeutung: "Erfolg, Sonne", buchstabe: "S" },
+  { symbol: "ᛏ", name: "Tiwaz", bedeutung: "Mut, Gerechtigkeit", buchstabe: "T" },
+  { symbol: "ᛒ", name: "Berkano", bedeutung: "Neubeginn, Wachstum", buchstabe: "B" },
+  { symbol: "ᛖ", name: "Ehwaz", bedeutung: "Vertrauen, Fortschritt", buchstabe: "E" },
+  { symbol: "ᛗ", name: "Mannaz", bedeutung: "Gemeinschaft, das Selbst", buchstabe: "M" },
+  { symbol: "ᛚ", name: "Laguz", bedeutung: "Intuition, Fluss", buchstabe: "L" },
+  { symbol: "ᛜ", name: "Ingwaz", bedeutung: "Fruchtbarkeit, Ruhe", buchstabe: "NG" },
+  { symbol: "ᛞ", name: "Dagaz", bedeutung: "Durchbruch, neuer Tag", buchstabe: "D" },
+  { symbol: "ᛟ", name: "Othala", bedeutung: "Erbe, Heimat", buchstabe: "O" }
 ];
 
 // Liefert die Rune des Tages: deterministisch aus dem Kalenderdatum
