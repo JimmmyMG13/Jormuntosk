@@ -168,7 +168,7 @@
 
   <div class="runner-card" data-widget="runner">
     <h3>🏃 Sippen-Runner</h3>
-    <p class="hint">Leertaste, Klick oder Tippen zum Springen. Weiche den Hindernissen aus, so lange es geht.</p>
+    <p class="hint">Leertaste, Klick oder Tippen zum Springen. Bei Raben lieber am Boden bleiben statt springen!</p>
     <canvas id="runnerCanvas" width="600" height="180"></canvas>
     <div class="runner-controls">
       <div class="runner-score">Punkte: <b id="runnerScore">0</b></div>
@@ -608,10 +608,16 @@ onSnapshot(doc(db, "einstellungen", "sichtbarkeit"), snap => {
         { type: "rock", w: 20, h: 24 },
         { type: "rock", w: 28, h: 18 },
         { type: "log", w: 30, h: 16 },
-        { type: "fire", w: 20, h: 28 }
+        { type: "fire", w: 20, h: 28 },
+        { type: "bird", w: 22, h: 14 }
       ];
       const t = typen[Math.floor(Math.random() * typen.length)];
-      obstacles.push({ x: W + 10, y: GROUND_Y - t.h, w: t.w, h: t.h, type: t.type });
+      if (t.type === "bird"){
+        // Fliegt auf Kopfhöhe eines springenden Eichhörnchens - wer stehen bleibt, kommt sicher darunter durch.
+        obstacles.push({ x: W + 10, y: GROUND_Y - player.h - 40, w: t.w, h: t.h, type: t.type });
+      } else {
+        obstacles.push({ x: W + 10, y: GROUND_Y - t.h, w: t.w, h: t.h, type: t.type });
+      }
     }
     obstacles.forEach(o => o.x -= speed);
     obstacles = obstacles.filter(o => o.x + o.w > 0);
@@ -789,6 +795,38 @@ onSnapshot(doc(db, "einstellungen", "sichtbarkeit"), snap => {
       ctx.moveTo(o.w * 0.5, o.h * 0.25);
       ctx.quadraticCurveTo(o.w * 0.72, o.h * 0.5, o.w * 0.5, o.h - 6);
       ctx.quadraticCurveTo(o.w * 0.3, o.h * 0.5, o.w * 0.5, o.h * 0.25);
+      ctx.fill();
+    } else if (o.type === "bird"){
+      // Fliegender Rabe mit schlagenden Flügeln (Hugin/Munin-Anspielung)
+      const flap = Math.sin(runFrame * 3 + o.x) * (o.h * 0.5);
+      ctx.fillStyle = "#1a1a1a";
+      ctx.beginPath();
+      ctx.ellipse(o.w * 0.5, o.h * 0.5, o.w * 0.22, o.h * 0.28, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Kopf + Schnabel
+      ctx.beginPath();
+      ctx.arc(o.w * 0.78, o.h * 0.4, o.h * 0.16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#e6a000";
+      ctx.beginPath();
+      ctx.moveTo(o.w * 0.9, o.h * 0.4);
+      ctx.lineTo(o.w * 1.02, o.h * 0.44);
+      ctx.lineTo(o.w * 0.9, o.h * 0.48);
+      ctx.closePath();
+      ctx.fill();
+      // Flügel (linke und rechte Seite, gegenläufig schlagend)
+      ctx.fillStyle = "#1a1a1a";
+      ctx.beginPath();
+      ctx.moveTo(o.w * 0.45, o.h * 0.45);
+      ctx.quadraticCurveTo(o.w * 0.2, o.h * 0.5 - flap, o.w * 0.02, o.h * 0.35 - flap);
+      ctx.quadraticCurveTo(o.w * 0.3, o.h * 0.65, o.w * 0.45, o.h * 0.55);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(o.w * 0.55, o.h * 0.45);
+      ctx.quadraticCurveTo(o.w * 0.75, o.h * 0.5 + flap, o.w * 0.9, o.h * 0.65 + flap);
+      ctx.quadraticCurveTo(o.w * 0.65, o.h * 0.68, o.w * 0.55, o.h * 0.55);
+      ctx.closePath();
       ctx.fill();
     }
     ctx.restore();
