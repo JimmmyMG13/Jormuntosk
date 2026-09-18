@@ -541,14 +541,16 @@ onSnapshot(doc(db, "einstellungen", "sichtbarkeit"), snap => {
   const GROUND_Y = H - 30;
 
   let running = false;
-  let player, obstacles, speed, score, lastObstacleAt, animId;
+  let player, obstacles, speed, score, lastObstacleAt, animId, bgOffset, runFrame;
 
   function resetState(){
-    player = { x: 60, y: GROUND_Y - 30, w: 26, h: 30, vy: 0, jumping: false };
+    player = { x: 60, y: GROUND_Y - 28, w: 30, h: 28, vy: 0, jumping: false };
     obstacles = [];
     speed = 4.2;
     score = 0;
     lastObstacleAt = 0;
+    bgOffset = 0;
+    runFrame = 0;
   }
 
   function jump(){
@@ -595,46 +597,211 @@ onSnapshot(doc(db, "einstellungen", "sichtbarkeit"), snap => {
 
     speed += 0.0025;
     score += 1;
+    bgOffset += speed;
+    if (!player.jumping) runFrame += speed * 0.35;
 
     lastObstacleAt++;
     const naechstesHindernis = 55 + Math.random() * 45;
     if (lastObstacleAt > naechstesHindernis){
       lastObstacleAt = 0;
-      const h = 22 + Math.random() * 20;
-      obstacles.push({ x: W + 10, y: GROUND_Y - h, w: 16, h });
+      const typen = [
+        { type: "rock", w: 20, h: 24 },
+        { type: "rock", w: 28, h: 18 },
+        { type: "log", w: 30, h: 16 },
+        { type: "fire", w: 20, h: 28 }
+      ];
+      const t = typen[Math.floor(Math.random() * typen.length)];
+      obstacles.push({ x: W + 10, y: GROUND_Y - t.h, w: t.w, h: t.h, type: t.type });
     }
     obstacles.forEach(o => o.x -= speed);
     obstacles = obstacles.filter(o => o.x + o.w > 0);
 
     for (const o of obstacles){
-      if (player.x < o.x + o.w && player.x + player.w > o.x && player.y < o.y + o.h && player.y + player.h > o.y){
+      const pad = 4; // etwas grosszügigere Hitbox-Toleranz für faireres Gameplay
+      if (player.x + pad < o.x + o.w && player.x + player.w - pad > o.x && player.y + pad < o.y + o.h && player.y + player.h > o.y){
         gameOver();
         return;
       }
     }
   }
 
-  function draw(){
-    ctx.clearRect(0, 0, W, H);
-    const style = getComputedStyle(document.documentElement);
-    const accent = style.getPropertyValue("--accent").trim() || "#2AA329";
-    const text = style.getPropertyValue("--text").trim() || "#111";
-    const border = style.getPropertyValue("--border").trim() || "#ccc";
+  function drawBackground(){
+    // Himmel als sanfter Farbverlauf
+    const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+    sky.addColorStop(0, "#bfe6c2");
+    sky.addColorStop(1, "#e8f5e4");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, GROUND_Y);
 
-    ctx.strokeStyle = border;
+    // Sonne
+    ctx.fillStyle = "rgba(255,230,150,0.9)";
     ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y);
-    ctx.lineTo(W, GROUND_Y);
+    ctx.arc(W - 60, 35, 18, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ferne Hügel-Silhouette (langsamer Parallax-Layer)
+    const hillOffset1 = (bgOffset * 0.15) % 120;
+    ctx.fillStyle = "rgba(42,163,41,0.18)";
+    for (let x = -hillOffset1 - 60; x < W + 60; x += 120){
+      ctx.beginPath();
+      ctx.ellipse(x, GROUND_Y, 70, 34, 0, Math.PI, 0);
+      ctx.fill();
+    }
+
+    // Näherer Hügel-Layer, etwas schneller
+    const hillOffset2 = (bgOffset * 0.35) % 90;
+    ctx.fillStyle = "rgba(42,163,41,0.30)";
+    for (let x = -hillOffset2 - 45; x < W + 45; x += 90){
+      ctx.beginPath();
+      ctx.ellipse(x, GROUND_Y, 50, 22, 0, Math.PI, 0);
+      ctx.fill();
+    }
+  }
+
+  function drawGround(){
+    // Boden unterhalb der Laufllinie
+    ctx.fillStyle = "#8a5a34";
+    ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+    ctx.fillStyle = "#3f7a2e";
+    ctx.fillRect(0, GROUND_Y, W, 6);
+
+    // Grasbüschel, die mit dem Boden scrollen
+    const tuftOffset = bgOffset % 24;
+    ctx.strokeStyle = "#2f6023";
+    ctx.lineWidth = 2;
+    for (let x = -tuftOffset; x < W; x += 24){
+      ctx.beginPath();
+      ctx.moveTo(x, GROUND_Y + 2);
+      ctx.lineTo(x - 3, GROUND_Y - 4);
+      ctx.moveTo(x + 4, GROUND_Y + 2);
+      ctx.lineTo(x + 4, GROUND_Y - 5);
+      ctx.stroke();
+    }
+  }
+
+  // Zeichnet ein kleines, laufendes Eichhörnchen (Vereinsmaskottchen) statt eines Klotzes.
+  function drawPlayer(){
+    const px = player.x, py = player.y, pw = player.w, ph = player.h;
+    const legSwing = player.jumping ? 0 : Math.sin(runFrame) * 5;
+
+    ctx.save();
+    ctx.translate(px, py);
+
+    // Schatten
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    ctx.beginPath();
+    ctx.ellipse(pw / 2, ph + (GROUND_Y - (py + ph)) + 3, pw * 0.5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Buschiger Schwanz (Bogen hinter dem Körper), beim Sprung nach hinten gestreckt
+    ctx.fillStyle = "#a5622c";
+    ctx.beginPath();
+    const tailLift = player.jumping ? -6 : 0;
+    ctx.moveTo(2, ph * 0.55);
+    ctx.quadraticCurveTo(-14, ph * 0.2 + tailLift, -10, -8 + tailLift);
+    ctx.quadraticCurveTo(-2, -2, 4, ph * 0.4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Beine (zwei einfache Linien, alternierend beim Laufen)
+    ctx.strokeStyle = "#7a4a24";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(pw * 0.32, ph - 4);
+    ctx.lineTo(pw * 0.32 + legSwing, ph + 4);
+    ctx.moveTo(pw * 0.68, ph - 4);
+    ctx.lineTo(pw * 0.68 - legSwing, ph + 4);
     ctx.stroke();
 
-    ctx.fillStyle = accent;
-    ctx.fillRect(player.x, player.y, player.w, player.h);
+    // Körper
+    ctx.fillStyle = "#c17a3d";
+    ctx.beginPath();
+    ctx.ellipse(pw * 0.5, ph * 0.55, pw * 0.42, ph * 0.42, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-    ctx.fillStyle = text;
-    obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
+    // Kopf
+    ctx.beginPath();
+    ctx.arc(pw * 0.78, ph * 0.32, pw * 0.26, 0, Math.PI * 2);
+    ctx.fill();
 
-    ctx.fillStyle = text;
-    ctx.font = "12px sans-serif";
+    // Ohr
+    ctx.fillStyle = "#a5622c";
+    ctx.beginPath();
+    ctx.moveTo(pw * 0.78, ph * 0.12);
+    ctx.lineTo(pw * 0.7, ph * 0.02);
+    ctx.lineTo(pw * 0.86, ph * 0.1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Auge
+    ctx.fillStyle = "#2b1a0f";
+    ctx.beginPath();
+    ctx.arc(pw * 0.85, ph * 0.3, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawObstacle(o){
+    ctx.save();
+    ctx.translate(o.x, o.y);
+    if (o.type === "rock"){
+      ctx.fillStyle = "#8a8a8a";
+      ctx.beginPath();
+      ctx.moveTo(0, o.h);
+      ctx.lineTo(o.w * 0.1, o.h * 0.35);
+      ctx.lineTo(o.w * 0.45, 0);
+      ctx.lineTo(o.w * 0.85, o.h * 0.25);
+      ctx.lineTo(o.w, o.h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#5f5f5f";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    } else if (o.type === "log"){
+      ctx.fillStyle = "#7a4a24";
+      ctx.fillRect(0, o.h * 0.25, o.w, o.h * 0.75);
+      ctx.fillStyle = "#a5622c";
+      ctx.beginPath();
+      ctx.ellipse(o.w * 0.15, o.h * 0.25, o.w * 0.12, o.h * 0.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#5c3417";
+      ctx.lineWidth = 1;
+      for (let i = 1; i < 4; i++){
+        ctx.beginPath();
+        ctx.moveTo(o.w * (i / 4), o.h * 0.25);
+        ctx.lineTo(o.w * (i / 4), o.h);
+        ctx.stroke();
+      }
+    } else if (o.type === "fire"){
+      ctx.fillStyle = "#5c3417";
+      ctx.fillRect(o.w * 0.2, o.h - 6, o.w * 0.6, 6);
+      const flick = Math.sin(runFrame * 2 + o.x) * 2;
+      ctx.fillStyle = "#e6a000";
+      ctx.beginPath();
+      ctx.moveTo(o.w * 0.5, 0);
+      ctx.quadraticCurveTo(o.w * 0.9 + flick, o.h * 0.45, o.w * 0.55, o.h - 6);
+      ctx.quadraticCurveTo(o.w * 0.1 - flick, o.h * 0.5, o.w * 0.5, 0);
+      ctx.fill();
+      ctx.fillStyle = "#ffcf4d";
+      ctx.beginPath();
+      ctx.moveTo(o.w * 0.5, o.h * 0.25);
+      ctx.quadraticCurveTo(o.w * 0.72, o.h * 0.5, o.w * 0.5, o.h - 6);
+      ctx.quadraticCurveTo(o.w * 0.3, o.h * 0.5, o.w * 0.5, o.h * 0.25);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function draw(){
+    drawBackground();
+    drawGround();
+    drawPlayer();
+    obstacles.forEach(drawObstacle);
+
+    ctx.fillStyle = "#1a1a1a";
+    ctx.font = "bold 12px sans-serif";
     ctx.fillText("Punkte: " + Math.floor(score / 5), 10, 18);
 
     document.getElementById("runnerScore").textContent = Math.floor(score / 5);
