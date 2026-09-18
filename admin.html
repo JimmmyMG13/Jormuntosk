@@ -225,13 +225,17 @@ const SETTINGS_ALLGEMEIN = doc(db, "einstellungen", "allgemein");
 const SETTINGS_DESIGN = doc(db, "einstellungen", "design");
 const SETTINGS_SICHTBARKEIT = doc(db, "einstellungen", "sichtbarkeit");
 const KACHEL_DEFS = {
+  tierkreis: "🔮 Sippenjahr-Banner",
+  tageswidgets: "🎲 Tages-Widgets (Rune, Mond, Wetter, Sterne)",
+  omen: "🔮 Runen-Kombi-Omen",
+  orakel: "🎲 Sippen-Orakel-Würfel",
   schichtplanung: "📅 Schichtplanung",
   markttagebuch: "🛖 Markttagebuch",
   mitglieder: "👤 Mitgliederbereich",
   spiele: "🏃 Spiele",
   admin: "⚙ Admin"
 };
-const KACHEL_STANDARD_REIHENFOLGE = ["schichtplanung", "markttagebuch", "mitglieder", "spiele", "admin"];
+const KACHEL_STANDARD_REIHENFOLGE = ["tierkreis", "tageswidgets", "omen", "orakel", "schichtplanung", "markttagebuch", "mitglieder", "spiele", "admin"];
 
 let currentAdmin = null; // {id, name} — angemeldetes Mitglied mit Verwaltungsrechten
 let mtEntriesCache = []; // zuletzt geladene Markttagebuch-Einträge, für Autovervollständigung
@@ -1360,7 +1364,7 @@ function renderEinstellungenModule(container){
     <div class="card">
       <div class="panel-header" data-panel="reihenfolge"><h2>Kachel-Reihenfolge</h2><span>▾</span></div>
       <div class="panel-body" id="panel-reihenfolge">
-        <p style="font-size:12px;color:var(--text-muted);margin-top:0;">Legt fest, in welcher Reihenfolge die Kacheln auf der Übersichtsseite erscheinen — gilt für alle Mitglieder.</p>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:0;">Legt fest, in welcher Reihenfolge Werkzeug-Kacheln und Widgets (Sippenjahr, Rune & Co., Omen, Orakel) auf der Übersichtsseite erscheinen — gilt für alle Mitglieder.</p>
         <div id="kachelReihenfolgeListe" style="margin-bottom:12px;"></div>
         <button class="btn small" id="saveReihenfolgeBtn">Speichern</button>
       </div>

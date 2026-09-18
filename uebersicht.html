@@ -36,7 +36,12 @@
   .intro{text-align:center;margin-bottom:32px;}
   .intro h1{font-size:24px;margin:0 0 6px 0;}
   .intro p{color:var(--text-muted);margin:0;font-size:14px;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;}
+  .unified-flex{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px;}
+  .unified-flex > .tile{flex:1 1 220px;}
+  .unified-flex > .tierkreis-banner,
+  .unified-flex > .mini-cards-row,
+  .unified-flex > .omen-card,
+  .unified-flex > .orakel-card{flex:1 1 100%;margin:0;}
   .tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:22px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:8px;transition:transform .12s ease, border-color .12s ease;}
   .tile:hover{transform:translateY(-2px);border-color:var(--accent);}
   .tile .emoji{font-size:30px;}
@@ -65,7 +70,7 @@
   .rune-card .rune-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin:0 0 2px 0;}
   .rune-card .rune-name{font-size:15px;font-weight:bold;margin:0;}
   .rune-card .rune-bedeutung{font-size:13px;color:var(--text-muted);margin:1px 0 0 0;}
-  .mini-cards-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:28px;}
+  .mini-cards-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;}
   .orakel-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-bottom:28px;text-align:center;}
   .orakel-card h3{margin:0 0 4px 0;font-size:15px;color:var(--accent);}
   .orakel-card p.hint{margin:0 0 14px 0;font-size:12px;color:var(--text-muted);}
@@ -131,29 +136,6 @@
     <label><input type="checkbox" id="wToggle-omen" checked> Runen-Kombi-Omen</label>
   </div>
 
-  <div class="tierkreis-banner" id="tierkreisBanner" data-widget="tierkreis"></div>
-
-  <div class="mini-cards-row">
-    <div class="rune-card" id="runeCard" data-widget="rune"></div>
-    <div class="rune-card" id="mondCard" data-widget="mond"></div>
-    <div class="rune-card" id="wetterCard" data-widget="wetter"><div class="rune-symbol">⏳</div><div><p class="rune-label">Sippen-Wetterspruch</p><p class="rune-name">Lädt…</p></div></div>
-    <div class="rune-card" id="sterneCard" data-widget="sterne"></div>
-  </div>
-
-  <div class="omen-card" id="omenCard" data-widget="omen">
-    <p class="omen-label">🔮 Omen des Tages</p>
-    <p class="omen-text" id="omenText">Die Zeichen werden noch gedeutet …</p>
-  </div>
-
-  <div class="orakel-card" data-widget="orakel">
-    <h3>🎲 Sippen-Orakel</h3>
-    <p class="hint">Wirf die Runensteine und lass dir eine Botschaft geben.</p>
-    <div class="orakel-symbol" id="orakelSymbol">?</div>
-    <p class="orakel-result-name" id="orakelName">&nbsp;</p>
-    <p class="orakel-result-bedeutung" id="orakelBedeutung">&nbsp;</p>
-    <button class="btn" id="orakelBtn">Runensteine werfen</button>
-  </div>
-
   <div class="intro">
     <h1 id="greeting">Werkzeuge der Sippe</h1>
     <p>Wähle das gewünschte Tool aus.</p>
@@ -167,7 +149,31 @@
       <div id="dashMarkt"></div>
     </div>
   </div>
-  <div class="grid">
+
+  <div class="unified-flex" id="unifiedFlex">
+    <div class="tierkreis-banner" id="tierkreisBanner" data-widget="tierkreis"></div>
+
+    <div class="mini-cards-row" id="miniCardsRow">
+      <div class="rune-card" id="runeCard" data-widget="rune"></div>
+      <div class="rune-card" id="mondCard" data-widget="mond"></div>
+      <div class="rune-card" id="wetterCard" data-widget="wetter"><div class="rune-symbol">⏳</div><div><p class="rune-label">Sippen-Wetterspruch</p><p class="rune-name">Lädt…</p></div></div>
+      <div class="rune-card" id="sterneCard" data-widget="sterne"></div>
+    </div>
+
+    <div class="omen-card" id="omenCard" data-widget="omen">
+      <p class="omen-label">🔮 Omen des Tages</p>
+      <p class="omen-text" id="omenText">Die Zeichen werden noch gedeutet …</p>
+    </div>
+
+    <div class="orakel-card" id="orakelCard" data-widget="orakel">
+      <h3>🎲 Sippen-Orakel</h3>
+      <p class="hint">Wirf die Runensteine und lass dir eine Botschaft geben.</p>
+      <div class="orakel-symbol" id="orakelSymbol">?</div>
+      <p class="orakel-result-name" id="orakelName">&nbsp;</p>
+      <p class="orakel-result-bedeutung" id="orakelBedeutung">&nbsp;</p>
+      <button class="btn" id="orakelBtn">Runensteine werfen</button>
+    </div>
+
     <a class="tile" href="index.html" id="tile-schichtplanung">
       <div class="emoji">📅</div>
       <h3>Schichtplanung</h3>
@@ -506,14 +512,26 @@ onSnapshot(doc(db, "einstellungen", "sichtbarkeit"), snap => {
   if (tS) tS.style.display = data.schichtplanung === false ? "none" : "flex";
   if (tM) tM.style.display = data.markttagebuch === false ? "none" : "flex";
 
-  // Kachel-Reihenfolge anwenden: Kacheln im Grid gemäss gespeicherter
-  // Reihenfolge neu anordnen (nur diejenigen, die im Grid tatsächlich vorhanden sind).
+  // Reihenfolge von Werkzeug-Kacheln UND Widgets anwenden: alle liegen im
+  // gemeinsamen unified-flex-Container, die Zuordnung logischer Namen (aus
+  // dem Admin-Bereich) zu den tatsächlichen Element-IDs erfolgt über diese Map.
+  const KACHEL_ELEMENT_IDS = {
+    schichtplanung: "tile-schichtplanung",
+    markttagebuch: "tile-markttagebuch",
+    mitglieder: "tile-mitglieder",
+    spiele: "tile-spiele",
+    admin: "tile-admin",
+    tierkreis: "tierkreisBanner",
+    tageswidgets: "miniCardsRow",
+    omen: "omenCard",
+    orakel: "orakelCard"
+  };
   if (Array.isArray(data.kachelReihenfolge)){
-    const grid = document.querySelector(".grid");
-    if (grid){
+    const flex = document.getElementById("unifiedFlex");
+    if (flex){
       data.kachelReihenfolge.forEach(id => {
-        const el = document.getElementById("tile-" + id);
-        if (el) grid.appendChild(el);
+        const el = document.getElementById(KACHEL_ELEMENT_IDS[id] || ("tile-" + id));
+        if (el) flex.appendChild(el);
       });
     }
   }
