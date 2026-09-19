@@ -243,7 +243,7 @@
           <ul class="ke-info-list">
             <li>🍖 <strong>Nahrung</strong> – überlebenswichtig. Bei 0 endet die Expedition.</li>
             <li>💪 <strong>Moral</strong> – überlebenswichtig. Bei 0 endet die Expedition.</li>
-            <li>🛠️ <strong>Vorräte</strong> – Werkzeug & Ausrüstung. Bei 0 sind manche Optionen gesperrt, und jedes weitere Feld kostet zusätzlich Moral.</li>
+            <li>🛠️ <strong>Vorräte</strong> – Werkzeug & Ausrüstung. Bei 0 sind manche Optionen gesperrt (erkennbar an "Werkzeug nötig").</li>
             <li>✨ <strong>Ruhm</strong> – der Ruf der Sippe. Verbessert leicht die Erfolgschance riskanter Optionen und zählt am Ende dreifach zur Punktzahl.</li>
           </ul>
         </div>
@@ -636,7 +636,7 @@ const currentMember = await requireMemberLogin();
     const hinweisEl = document.getElementById("keHinweis");
     if (!hinweisEl) return;
     hinweisEl.textContent = vorraete <= 0
-      ? "⚠️ Kein Werkzeug mehr – einige Optionen sind gesperrt, jedes Feld kostet zusätzlich Moral."
+      ? "⚠️ Kein Werkzeug mehr – einige Optionen sind gesperrt."
       : "Tippt auf ein aufgedecktes, angrenzendes Feld, um dorthin zu ziehen.";
   }
 
@@ -670,31 +670,6 @@ const currentMember = await requireMemberLogin();
     const key = hexKey(c, r);
     visited.add(key);
     feldZaehler++;
-
-    // Ohne Werkzeug/Vorräte leidet die Sippe bei jedem weiteren Schritt -
-    // sichtbar mit kurzer Meldung, statt unbemerkt im Hintergrund.
-    if (vorraete <= 0){
-      const vorMoral = moral;
-      moral = clamp(moral - 1);
-      aktualisiereRessourcenAnzeige();
-      if (moral !== vorMoral){
-        oeffneOverlay();
-        katIconEl.textContent = "🛠️";
-        textEl.textContent = "Ohne Werkzeug leidet die Stimmung der Sippe.";
-        optionenEl.innerHTML = "";
-        folgeEl.innerHTML = `<span class="minus">💪 -1 (kein Werkzeug)</span>`;
-        setTimeout(() => {
-          schliesseOverlay();
-          if (moral <= 0){
-            beendeSpiel(false, "Ohne jedes Werkzeug verliert die Sippe den letzten Halt.");
-            return;
-          }
-          weiterNachFeld(c, r);
-        }, 1100);
-        return;
-      }
-    }
-
     weiterNachFeld(c, r);
   }
 
