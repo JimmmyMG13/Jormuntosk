@@ -200,7 +200,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel } from "./common.js";
+import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES } from "./common.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -236,6 +236,15 @@ const KACHEL_DEFS = {
   admin: "⚙ Admin"
 };
 const KACHEL_STANDARD_REIHENFOLGE = ["tierkreis", "tageswidgets", "omen", "orakel", "schichtplanung", "markttagebuch", "mitglieder", "spiele", "admin"];
+
+const SPIELE_HIGHSCORES = [
+  { name: "🏃 Sippen-Runner", col: COL_RUNNER_HIGHSCORES },
+  { name: "🐉 Drachenschiff-Wettfahrt", col: COL_DRACHENSCHIFF_HIGHSCORES },
+  { name: "ᚠ Runen-Lernspiel", col: COL_RUNENSPIEL_HIGHSCORES },
+  { name: "🔮 Symbol-Zuordnung", col: COL_SYMBOLZUORDNUNG_HIGHSCORES },
+  { name: "🏕️ Landnahme", col: COL_LANDNAHME_HIGHSCORES },
+  { name: "🗺️ Kartenerkundung", col: COL_KARTENERKUNDUNG_HIGHSCORES }
+];
 
 let currentAdmin = null; // {id, name} — angemeldetes Mitglied mit Verwaltungsrechten
 let mtEntriesCache = []; // zuletzt geladene Markttagebuch-Einträge, für Autovervollständigung
@@ -1384,6 +1393,13 @@ function renderEinstellungenModule(container){
       </div>
     </div>
     <div class="card">
+      <div class="panel-header" data-panel="spielebestenlisten"><h2>Spiele-Bestenlisten</h2><span>▾</span></div>
+      <div class="panel-body" id="panel-spielebestenlisten">
+        <p style="font-size:12px;color:var(--text-muted);margin-top:0;">Setzt die komplette Bestenliste eines Spiels zurück — betrifft alle Mitglieder und ist nicht rückgängig zu machen.</p>
+        <div id="spieleBestenlistenListe"></div>
+      </div>
+    </div>
+    <div class="card">
       <div class="panel-header" data-panel="backup"><h2>Datensicherung</h2><span>▾</span></div>
       <div class="panel-body" id="panel-backup">
         <p style="font-size:13px;color:var(--text-muted);margin-top:0;">Exportiert alle Vereinsdaten (ohne Passwörter) als JSON-Datei.</p>
@@ -1418,6 +1434,35 @@ function renderEinstellungenModule(container){
     KACHEL_STANDARD_REIHENFOLGE.forEach(id => { if (!reihenfolge.includes(id)) reihenfolge.push(id); });
     renderKachelReihenfolge(reihenfolge);
   });
+
+  renderSpieleBestenlistenListe();
+
+  function renderSpieleBestenlistenListe(){
+    const el = document.getElementById("spieleBestenlistenListe");
+    el.innerHTML = SPIELE_HIGHSCORES.map((s, i) => `
+      <div class="kachel-order-row">
+        <span>${s.name}</span>
+        <button type="button" class="btn small" data-reset-idx="${i}">Bestenliste zurücksetzen</button>
+      </div>`).join("");
+    el.querySelectorAll("button[data-reset-idx]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const spiel = SPIELE_HIGHSCORES[Number(btn.dataset.resetIdx)];
+        if (!confirm(`Bestenliste "${spiel.name}" komplett zurücksetzen? Alle Einträge aller Mitglieder werden unwiderruflich gelöscht.`)) return;
+        btn.disabled = true;
+        btn.textContent = "Wird gelöscht …";
+        try{
+          const snap = await getDocs(collection(db, spiel.col));
+          await Promise.all(snap.docs.map(d => deleteDoc(doc(db, spiel.col, d.id))));
+          logActivity(currentAdmin.name, `hat die Bestenliste "${spiel.name}" zurückgesetzt`);
+          btn.textContent = "Zurückgesetzt";
+        } catch(err){
+          alert("Zurücksetzen fehlgeschlagen: " + err.message);
+          btn.disabled = false;
+          btn.textContent = "Bestenliste zurücksetzen";
+        }
+      });
+    });
+  }
 
   function renderKachelReihenfolge(reihenfolge){
     const el = document.getElementById("kachelReihenfolgeListe");

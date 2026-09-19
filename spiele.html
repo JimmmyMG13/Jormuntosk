@@ -70,19 +70,6 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   .spiel-tile-name{font-size:12px;font-weight:bold;}
 
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
-
-  .settings-popup{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;}
-  .settings-popup.hidden{display:none;}
-  .settings-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto;}
-  .settings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
-  .settings-header h4{margin:0;color:var(--accent);font-size:16px;}
-  .settings-section h5{margin:16px 0 4px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
-  .settings-hint{margin:0 0 12px 0;font-size:12px;color:var(--text-muted);}
-  .settings-reset-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:13px;}
-  .settings-reset-row:first-child{border-top:none;}
-  .settings-reset-btn{background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0;}
-  .settings-reset-btn:hover{border-color:#c83c3c;color:#c83c3c;}
-  .settings-reset-btn:disabled{opacity:.5;cursor:default;}
 </style>
 </head>
 <body>
@@ -95,7 +82,6 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   </div>
   <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
     <a class="icon-btn" href="uebersicht.html" title="Zur Übersicht" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">⌂</a>
-    <button class="icon-btn" id="settingsBtn" title="Einstellungen">⚙️</button>
     <button class="icon-btn" id="themeToggle" title="Hell/Dunkel">☾</button>
     <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
   </div>
@@ -150,26 +136,12 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   </nav>
 </main>
 
-<div class="settings-popup hidden" id="settingsPopup">
-  <div class="settings-card">
-    <div class="settings-header">
-      <h4>Einstellungen</h4>
-      <button type="button" class="icon-btn" id="settingsCloseBtn" title="Schliessen">✕</button>
-    </div>
-    <div class="settings-section">
-      <h5>Bestenliste zurücksetzen</h5>
-      <p class="settings-hint">Setzt deinen eigenen Highscore für das jeweilige Spiel zurück. Andere Mitglieder sind davon nicht betroffen.</p>
-      <div id="settingsResetList"></div>
-    </div>
-  </div>
-</div>
-
 <footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
 </div>
 
 <script type="module">
 import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, zufaelligeBegruessung } from "./common.js";
-import { collection, query, orderBy, limit, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
 applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
@@ -185,12 +157,12 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
 // welche Daten gerade aktualisiert werden.
 // =========================================================
 const SPIELE = [
-  { id: "runner", name: "🏃 Sippen-Runner", col: COL_RUNNER_HIGHSCORES },
-  { id: "drachenschiff", name: "🐉 Drachenschiff-Wettfahrt", col: COL_DRACHENSCHIFF_HIGHSCORES },
-  { id: "runenspiel", name: "ᚠ Runen-Lernspiel", col: COL_RUNENSPIEL_HIGHSCORES },
-  { id: "symbolzuordnung", name: "🔮 Symbol-Zuordnung", col: COL_SYMBOLZUORDNUNG_HIGHSCORES },
-  { id: "landnahme", name: "🏕️ Landnahme", col: COL_LANDNAHME_HIGHSCORES },
-  { id: "kartenerkundung", name: "🗺️ Kartenerkundung", col: COL_KARTENERKUNDUNG_HIGHSCORES }
+  { id: "runner", name: "🏃 Sippen-Runner" },
+  { id: "drachenschiff", name: "🐉 Drachenschiff-Wettfahrt" },
+  { id: "runenspiel", name: "ᚠ Runen-Lernspiel" },
+  { id: "symbolzuordnung", name: "🔮 Symbol-Zuordnung" },
+  { id: "landnahme", name: "🏕️ Landnahme" },
+  { id: "kartenerkundung", name: "🗺️ Kartenerkundung" }
 ];
 const highscoreCache = {};
 let highscoreIndex = 0;
@@ -258,44 +230,6 @@ onSnapshot(query(collection(db, COL_LANDNAHME_HIGHSCORES), orderBy("score", "des
 onSnapshot(query(collection(db, COL_KARTENERKUNDUNG_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.kartenerkundung = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
   renderHighscorePanel();
-});
-
-// =========================================================
-// Einstellungen-Popup: eigenen Highscore pro Spiel zurücksetzen.
-// =========================================================
-const settingsBtn = document.getElementById("settingsBtn");
-const settingsPopup = document.getElementById("settingsPopup");
-const settingsCloseBtn = document.getElementById("settingsCloseBtn");
-const settingsResetList = document.getElementById("settingsResetList");
-
-function renderSettingsResetList(){
-  settingsResetList.innerHTML = SPIELE.map(s =>
-    `<div class="settings-reset-row"><span>${s.name}</span><button type="button" class="settings-reset-btn" data-id="${s.id}">Zurücksetzen</button></div>`
-  ).join("");
-  settingsResetList.querySelectorAll(".settings-reset-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const spiel = SPIELE.find(s => s.id === btn.dataset.id);
-      if (!spiel) return;
-      const bestaetigt = confirm(`Deinen Highscore bei "${spiel.name}" wirklich zurücksetzen? Das lässt sich nicht rückgängig machen.`);
-      if (!bestaetigt) return;
-      btn.disabled = true;
-      btn.textContent = "…";
-      try {
-        await deleteDoc(doc(db, spiel.col, currentMember.id));
-        btn.textContent = "Erledigt";
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = "Zurücksetzen";
-      }
-    });
-  });
-}
-renderSettingsResetList();
-
-settingsBtn.addEventListener("click", () => settingsPopup.classList.remove("hidden"));
-settingsCloseBtn.addEventListener("click", () => settingsPopup.classList.add("hidden"));
-settingsPopup.addEventListener("click", (e) => {
-  if (e.target === settingsPopup) settingsPopup.classList.add("hidden");
 });
 
 </script>
