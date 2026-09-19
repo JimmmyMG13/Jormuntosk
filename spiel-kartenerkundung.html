@@ -129,6 +129,46 @@
     .ln-ende .ln-score{font-size:20px;margin:5px 0;}
     footer{display:none;}
   }
+
+  /* Querformat-Smartphones: wenig Höhe, viel Breite verfügbar - Canvas wird
+     über die Höhe skaliert (statt über die Breite), damit es den Bildschirm
+     optimal ausfüllt, ohne dass die Seite scrollen muss. */
+  @media (orientation: landscape) and (max-height: 500px){
+    header{padding:3px 10px;}
+    .brand img{height:20px;width:20px;}
+    .brand-text .sub{display:none;}
+    .brand-text .name{font-size:11px;}
+    .icon-btn{width:22px;height:22px;font-size:11px;}
+    .back-btn{width:26px;height:26px;font-size:12px;top:5px;right:5px;}
+    main{padding:4px 6px 2px;max-width:100%;}
+    .landnahme-card{padding:4px 10px 6px;margin-top:2px;}
+    .ke-titelzeile{margin-bottom:0;}
+    .ke-titelzeile h3, .landnahme-card h3{font-size:12px;}
+    .icon-btn#keInfoBtn{width:20px;height:20px;font-size:11px;}
+    .game-stage{min-height:0;}
+    .game-stage-static{min-height:0;display:block;}
+    .game-start-overlay{padding:8px 22px;font-size:13px;}
+
+    #keSpielbereich{display:flex;flex-direction:column;align-items:center;}
+    .ln-ressourcen{order:1;flex-direction:row;gap:10px;margin:2px 0 3px 0;}
+    .ln-res .ln-res-icon{font-size:13px;}
+    .ln-res .ln-res-val{font-size:9px;margin-top:0;}
+    .ln-res .ln-res-bar{width:32px;height:3px;margin-top:2px;}
+    .ke-feldzaehler{display:none;}
+    .ke-hinweis{display:none;}
+
+    .ke-kartenwrap{order:2;max-width:none;width:auto;margin:0;}
+    .ke-kartenwrap canvas{width:auto;height:min(60vh, 340px);max-width:100%;margin:0 auto;}
+
+    .ln-karte{padding:8px 12px;min-height:0;gap:4px;max-width:320px;}
+    .ln-karte .ln-kat-icon{font-size:17px;}
+    .ln-karte .ln-text{font-size:10px;line-height:1.25;}
+    .ln-optionen{gap:4px;margin-top:5px;}
+    .ln-opt{padding:6px 8px;font-size:10px;}
+    .ln-folge{margin-top:4px;font-size:9px;}
+    .ln-ende .ln-score{font-size:18px;margin:4px 0;}
+    footer{display:none;}
+  }
 </style>
 </head>
 <body>
