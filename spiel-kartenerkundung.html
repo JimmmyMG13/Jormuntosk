@@ -39,6 +39,10 @@
 
   .landnahme-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-top:20px;}
   .landnahme-card h3{margin:0 0 4px 0;font-size:22px;color:var(--accent);text-align:center;}
+  .ke-titelzeile{display:flex;align-items:center;justify-content:center;gap:8px;position:relative;}
+  .ke-titelzeile h3{margin:0 0 4px 0;}
+  .ke-titelzeile #keInfoBtn{position:absolute;right:0;top:50%;transform:translateY(-50%);}
+  .ln-res.ruhm .ln-res-bar-fill{background:#c9a227;}
   .ln-ressourcen{display:flex;justify-content:center;gap:22px;margin:18px 0 14px 0;flex-wrap:wrap;}
   .ln-res{text-align:center;}
   .ln-res .ln-res-icon{font-size:26px;line-height:1;}
@@ -74,6 +78,18 @@
   .ke-legende span{white-space:nowrap;}
   .ke-hinweis{text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;}
 
+  .ke-info-popup{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;}
+  .ke-info-popup.hidden{display:none;}
+  .ke-info-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto;}
+  .ke-info-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .ke-info-header h4{margin:0;color:var(--accent);font-size:16px;}
+  .ke-info-section{margin-bottom:16px;}
+  .ke-info-section:last-child{margin-bottom:0;}
+  .ke-info-section h5{margin:0 0 8px 0;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .ke-info-section .ke-legende{justify-content:flex-start;margin-top:0;}
+  .ke-info-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.4;}
+  .ke-info-list li{display:flex;gap:8px;align-items:flex-start;}
+
   .game-stage{position:relative;}
   .game-stage-static{min-height:280px;display:flex;flex-direction:column;justify-content:center;}
   .game-start-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:18px 52px;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(0,0,0,.25);}
@@ -104,7 +120,10 @@
 
 <main>
   <div class="landnahme-card" data-widget="kartenerkundung">
-    <h3>🗺️ Kartenerkundung</h3>
+    <div class="ke-titelzeile">
+      <h3>🗺️ Kartenerkundung</h3>
+      <button class="icon-btn" id="keInfoBtn" title="Legende & Ressourcen">ℹ️</button>
+    </div>
     <div class="game-stage game-stage-static">
       <button class="game-start-overlay" id="keStartBtn">Start</button>
       <div id="keSpielbereich" style="display:none;">
@@ -112,6 +131,7 @@
           <div class="ln-res" id="keResNahrung"><div class="ln-res-icon">🍖</div><div class="ln-res-val" id="keNahrungVal">10</div><div class="ln-res-bar"><div class="ln-res-bar-fill" id="keNahrungBar" style="width:100%;"></div></div></div>
           <div class="ln-res" id="keResMoral"><div class="ln-res-icon">💪</div><div class="ln-res-val" id="keMoralVal">10</div><div class="ln-res-bar"><div class="ln-res-bar-fill" id="keMoralBar" style="width:100%;"></div></div></div>
           <div class="ln-res" id="keResVorraete"><div class="ln-res-icon">🛠️</div><div class="ln-res-val" id="keVorraeteVal">10</div><div class="ln-res-bar"><div class="ln-res-bar-fill" id="keVorraeteBar" style="width:100%;"></div></div></div>
+          <div class="ln-res ruhm" id="keResRuhm"><div class="ln-res-icon">✨</div><div class="ln-res-val" id="keRuhmVal">0</div><div class="ln-res-bar"><div class="ln-res-bar-fill" id="keRuhmBar" style="width:0%;"></div></div></div>
         </div>
         <div class="ke-feldzaehler" id="keFeldzaehler">Felder erkundet: 0</div>
         <div class="ke-kartenwrap">
@@ -133,9 +153,30 @@
           </div>
         </div>
         <p class="ke-hinweis" id="keHinweis">Tippt auf ein aufgedecktes, angrenzendes Feld, um dorthin zu ziehen.</p>
-        <div class="ke-legende">
-          <span>🏠 Start</span><span>🌲 Wald</span><span>🌾 Ebene</span><span>🌊 Küste</span>
-          <span>⛰️ Gebirge</span><span>🐊 Sumpf</span><span>✨ Omen</span><span>🏕️ Siedlungsort</span>
+      </div>
+    </div>
+
+    <div class="ke-info-popup hidden" id="keInfoPopup">
+      <div class="ke-info-card">
+        <div class="ke-info-header">
+          <h4>Legende</h4>
+          <button type="button" class="icon-btn" id="keInfoCloseBtn" title="Schliessen">✕</button>
+        </div>
+        <div class="ke-info-section">
+          <h5>Gelände</h5>
+          <div class="ke-legende">
+            <span>🏠 Start</span><span>🌲 Wald</span><span>🌾 Ebene</span><span>🌊 Küste</span>
+            <span>⛰️ Gebirge</span><span>🐊 Sumpf</span><span>✨ Omen</span><span>🏕️ Siedlungsort</span>
+          </div>
+        </div>
+        <div class="ke-info-section">
+          <h5>Ressourcen</h5>
+          <ul class="ke-info-list">
+            <li>🍖 <strong>Nahrung</strong> – überlebenswichtig. Bei 0 endet die Expedition.</li>
+            <li>💪 <strong>Moral</strong> – überlebenswichtig. Bei 0 endet die Expedition.</li>
+            <li>🛠️ <strong>Vorräte</strong> – Werkzeug & Ausrüstung. Bei 0 sind manche Optionen gesperrt, und jedes weitere Feld kostet zusätzlich Moral.</li>
+            <li>✨ <strong>Ruhm</strong> – der Ruf der Sippe. Verbessert leicht die Erfolgschance riskanter Optionen und zählt am Ende dreifach zur Punktzahl.</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -506,12 +547,19 @@ const currentMember = await requireMemberLogin();
     updateRes("keNahrung", nahrung);
     updateRes("keMoral", moral);
     updateRes("keVorraete", vorraete);
+    updateRuhmAnzeige();
     aktualisiereHinweis();
   }
   function updateRes(prefix, wert){
     document.getElementById(prefix + "Val").textContent = wert;
     document.getElementById(prefix + "Bar").style.width = (wert * 10) + "%";
     document.getElementById(prefix.replace("ke", "keRes")).classList.toggle("warnung", wert <= 3);
+  }
+  // Ruhm hat keinen Deckel bei 10 wie die übrigen Ressourcen, daher eigene
+  // Balken-Skalierung (voller Balken ab 20 Ruhm).
+  function updateRuhmAnzeige(){
+    document.getElementById("keRuhmVal").textContent = ruhm;
+    document.getElementById("keRuhmBar").style.width = Math.min(100, ruhm * 5) + "%";
   }
 
   function aktualisiereHinweis(){
@@ -739,6 +787,15 @@ const currentMember = await requireMemberLogin();
     zeichneKarte();
   }
   startBtn.addEventListener("click", starteSpiel);
+
+  const infoBtn = document.getElementById("keInfoBtn");
+  const infoPopup = document.getElementById("keInfoPopup");
+  const infoCloseBtn = document.getElementById("keInfoCloseBtn");
+  infoBtn.addEventListener("click", () => infoPopup.classList.remove("hidden"));
+  infoCloseBtn.addEventListener("click", () => infoPopup.classList.add("hidden"));
+  infoPopup.addEventListener("click", (e) => {
+    if (e.target === infoPopup) infoPopup.classList.add("hidden");
+  });
 
   async function beendeSpiel(erfolgreich, meldung, zusatzBonus = 0){
     laufend = false;
