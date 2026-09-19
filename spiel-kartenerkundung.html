@@ -663,7 +663,11 @@ const currentMember = await requireMemberLogin();
     return karte;
   }
 
-  function oeffneOverlay(){ overlayEl.classList.remove("hidden"); }
+  function oeffneOverlay(){
+    overlayEl.classList.remove("hidden");
+    endeKarteEl.classList.add("hidden");
+    karteEl.classList.remove("hidden");
+  }
   function schliesseOverlay(){ overlayEl.classList.add("hidden"); }
 
   function abschliessenFeld(c, r){
