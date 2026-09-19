@@ -57,6 +57,9 @@
   .ln-folge{text-align:center;font-size:12px;color:var(--text-muted);margin-top:14px;min-height:16px;}
   .ln-folge .plus{color:var(--accent);font-weight:bold;}
   .ln-folge .minus{color:#c83c3c;font-weight:bold;}
+  .ke-chance{font-size:11px;color:var(--text-muted);font-weight:normal;}
+  .ke-erfolg{color:var(--accent);font-weight:bold;margin-bottom:4px;}
+  .ke-fehlschlag{color:#c83c3c;font-weight:bold;margin-bottom:4px;}
   .ln-ende{text-align:center;}
   .ln-ende h4{font-size:18px;margin:0 0 10px 0;color:var(--accent);}
   .ln-ende p{font-size:14px;color:var(--text-muted);margin:4px 0;}
@@ -221,7 +224,7 @@ const currentMember = await requireMemberLogin();
 
     // --- Begegnungen (8) ---
     { kat: "begegnung", icon: "🧭", text: "Ihr trefft auf fremde Reisende am Lagerfeuer.", opt: [
-      { label: "Geschichten austauschen", folge: { moral: [2, 3], nahrung: [-1, 0] } },
+      { label: "Geschichten austauschen", chance: 0.75, folge: { moral: [2, 3], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Vorsichtig vorbeiziehen", folge: { moral: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🐺", text: "Ein Wolfsrudel beobachtet euch aus der Ferne.", opt: [
@@ -233,19 +236,19 @@ const currentMember = await requireMemberLogin();
       { label: "Vorräte aufgeben", folge: { nahrung: [-3, -2] } }
     ]},
     { kat: "begegnung", icon: "🏚️", text: "Ihr findet ein verlassenes Lager.", opt: [
-      { label: "Durchsuchen", folge: { vorraete: [2, 3], moral: [-1, 0] } },
+      { label: "Durchsuchen", chance: 0.7, folge: { vorraete: [2, 3], moral: [-1, 0] }, fehlschlag: { moral: [-2, -1] } },
       { label: "Weiterziehen, es wirkt unheimlich", folge: { moral: [1, 1], nahrung: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🤝", text: "Eine andere Sippe bietet Handel an.", opt: [
-      { label: "Handeln", folge: { vorraete: [-2, -1], nahrung: [3, 3] } },
+      { label: "Handeln", chance: 0.75, folge: { vorraete: [-2, -1], nahrung: [3, 3] }, fehlschlag: { vorraete: [-2, -1] } },
       { label: "Ablehnen", folge: { moral: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🛒", text: "Ein fahrender Händler kreuzt euren Weg.", opt: [
-      { label: "Werkzeug kaufen", folge: { vorraete: [2, 2], nahrung: [-1, 0] } },
+      { label: "Werkzeug kaufen", chance: 0.75, folge: { vorraete: [2, 2], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Vorbeiziehen", folge: { moral: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🧙", text: "Ein Einsiedler im Wald teilt sein Wissen.", opt: [
-      { label: "Zuhören", folge: { moral: [1, 1], ruhm: [1, 1], nahrung: [-1, 0] } },
+      { label: "Zuhören", chance: 0.7, folge: { moral: [1, 1], ruhm: [1, 1], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Keine Zeit verlieren", folge: { moral: [-1, 0] } }
     ]},
     { kat: "begegnung", icon: "🧒", text: "Ihr findet zwei verirrte Kinder.", opt: [
@@ -255,7 +258,7 @@ const currentMember = await requireMemberLogin();
 
     // --- Funde (7) ---
     { kat: "fund", icon: "🌿", text: "Ein fruchtbares Tal liegt vor euch.", opt: [
-      { label: "Ausgiebig sammeln", folge: { nahrung: [3, 4], moral: [-1, 0] } },
+      { label: "Ausgiebig sammeln", chance: 0.7, folge: { nahrung: [3, 4], moral: [-1, 0] }, fehlschlag: { moral: [-1, 0] } },
       { label: "Nur kurz rasten", folge: { nahrung: [1, 1] } }
     ]},
     { kat: "fund", icon: "💧", text: "Eine klare Quelle sprudelt aus dem Fels.", opt: [
@@ -263,29 +266,29 @@ const currentMember = await requireMemberLogin();
       { label: "Nur kurz trinken", folge: { moral: [1, 1] } }
     ]},
     { kat: "fund", icon: "🪨", text: "Ihr entdeckt ein altes Runensteinfeld.", opt: [
-      { label: "Die Zeichen studieren", folge: { ruhm: [2, 2], nahrung: [-1, 0] } },
+      { label: "Die Zeichen studieren", chance: 0.65, folge: { ruhm: [2, 2], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Respektvoll vorbeiziehen", folge: { moral: [1, 1] } }
     ]},
     { kat: "fund", icon: "⚔️", text: "Im Gestrüpp liegt ein verrostetes Schwert.", opt: [
-      { label: "Mitnehmen", folge: { vorraete: [1, 1], moral: [-1, 0] } },
+      { label: "Mitnehmen", chance: 0.8, folge: { vorraete: [1, 1], moral: [-1, 0] }, fehlschlag: { moral: [-1, 0] } },
       { label: "Liegenlassen", folge: {} }
     ]},
     { kat: "fund", icon: "🔨", text: "Eine verlassene Werkstatt bietet brauchbares Werkzeug.", opt: [
-      { label: "Plündern", folge: { vorraete: [2, 2], moral: [-1, 0] } },
+      { label: "Plündern", chance: 0.65, folge: { vorraete: [2, 2], moral: [-1, 0] }, fehlschlag: { moral: [-2, -1] } },
       { label: "Nichts anrühren", folge: {} }
     ]},
     { kat: "fund", icon: "🍯", text: "Ein wilder Bienenstock voller Honig hängt im Baum.", opt: [
-      { label: "Honig ernten", folge: { nahrung: [2, 2], moral: [-1, 0] } },
+      { label: "Honig ernten", chance: 0.7, folge: { nahrung: [2, 2], moral: [-1, 0] }, fehlschlag: { moral: [-2, -1] } },
       { label: "In Ruhe lassen", folge: {} }
     ]},
     { kat: "fund", icon: "🟠", text: "Am Strand liegt Bernstein verstreut.", opt: [
-      { label: "Sammeln", folge: { ruhm: [1, 1], vorraete: [1, 1], nahrung: [-1, 0] } },
+      { label: "Sammeln", chance: 0.75, folge: { ruhm: [1, 1], vorraete: [1, 1], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Weiterziehen", folge: {} }
     ]},
 
     // --- Gefahren (7) ---
     { kat: "gefahr", icon: "🤒", text: "Jemand erkrankt im Lager.", opt: [
-      { label: "Pflegen und rasten", folge: { nahrung: [-2, -1], moral: [1, 1] } },
+      { label: "Pflegen und rasten", chance: 0.7, folge: { nahrung: [-2, -1], moral: [1, 1] }, fehlschlag: { nahrung: [-2, -1], moral: [-1, 0] } },
       { label: "Weiterziehen", folge: { moral: [-2, -1] } }
     ]},
     { kat: "gefahr", icon: "🪓", text: "Wichtige Ausrüstung zerbricht.", opt: [
@@ -293,7 +296,7 @@ const currentMember = await requireMemberLogin();
       { label: "Ohne weiterziehen", folge: { moral: [-2, -1] } }
     ]},
     { kat: "gefahr", icon: "😠", text: "Streit bricht in der Gruppe aus.", opt: [
-      { label: "Schlichten", folge: { moral: [1, 1], nahrung: [-2, -1] } },
+      { label: "Schlichten", chance: 0.7, folge: { moral: [1, 1], nahrung: [-2, -1] }, fehlschlag: { nahrung: [-2, -1] } },
       { label: "Ignorieren", folge: { moral: [-2, -1] } }
     ]},
     { kat: "gefahr", icon: "🧭", text: "Ihr habt den Weg verloren.", opt: [
@@ -315,37 +318,37 @@ const currentMember = await requireMemberLogin();
 
     // --- Soziale Ereignisse (6) ---
     { kat: "sozial", icon: "🔥", text: "Ihr feiert ein kleines Fest am Lagerfeuer.", opt: [
-      { label: "Ausgelassen feiern", folge: { nahrung: [-1, 0], moral: [3, 3] } },
+      { label: "Ausgelassen feiern", chance: 0.75, folge: { nahrung: [-1, 0], moral: [3, 3] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Früh schlafen gehen", folge: { moral: [1, 1] } }
     ]},
     { kat: "sozial", icon: "🎵", text: "Jemand stimmt ein altes Sippenlied an.", opt: [
-      { label: "Mitsingen", folge: { moral: [2, 2], nahrung: [-1, 0] } },
+      { label: "Mitsingen", chance: 0.8, folge: { moral: [2, 2], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Still zuhören", folge: { moral: [1, 1] } }
     ]},
     { kat: "sozial", icon: "🕊️", text: "Ein alter Streit zwischen zwei Mitgliedern wird endlich beigelegt.", opt: [
-      { label: "Gemeinsam feiern", folge: { moral: [2, 2], ruhm: [1, 1], vorraete: [-1, 0] } },
+      { label: "Gemeinsam feiern", chance: 0.8, folge: { moral: [2, 2], ruhm: [1, 1], vorraete: [-1, 0] }, fehlschlag: { vorraete: [-1, 0] } },
       { label: "Ruhig weiterziehen", folge: { moral: [1, 1] } }
     ]},
     { kat: "sozial", icon: "🐴", text: "Ein Fohlen wird in der Nacht geboren – ein gutes Zeichen.", opt: [
-      { label: "Als gutes Omen feiern", folge: { moral: [2, 2], ruhm: [1, 1], nahrung: [-1, 0] } },
+      { label: "Als gutes Omen feiern", chance: 0.8, folge: { moral: [2, 2], ruhm: [1, 1], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Sich freuen und weiterziehen", folge: { moral: [1, 1] } }
     ]},
     { kat: "sozial", icon: "📖", text: "Am Abend wird eine alte Geschichte der Ahnen erzählt.", opt: [
-      { label: "Gespannt zuhören", folge: { moral: [1, 1], ruhm: [1, 1], nahrung: [-1, 0] } },
+      { label: "Gespannt zuhören", chance: 0.75, folge: { moral: [1, 1], ruhm: [1, 1], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Nebenbei die Ausrüstung pflegen", folge: { vorraete: [1, 1] } }
     ]},
     { kat: "sozial", icon: "🙏", text: "Ihr bringt den Göttern eine kleine Opfergabe dar.", opt: [
-      { label: "Grosszügig opfern", folge: { nahrung: [-1, 0], moral: [2, 2] } },
+      { label: "Grosszügig opfern", chance: 0.75, folge: { nahrung: [-1, 0], moral: [2, 2] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Bescheiden opfern", folge: { moral: [1, 1] } }
     ]},
 
     // --- Seltene Ereignisse (4) ---
     { kat: "selten", icon: "🐦‍⬛", text: "Ein Rabe kreist über euch und lässt sich nieder – ein Zeichen der Götter.", opt: [
-      { label: "Als gutes Zeichen deuten", folge: { moral: [2, 2], ruhm: [2, 2], nahrung: [-1, 0] } },
+      { label: "Als gutes Zeichen deuten", chance: 0.65, folge: { moral: [2, 2], ruhm: [2, 2], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Vorsichtig beobachten", folge: { moral: [1, 1] } }
     ]},
     { kat: "selten", icon: "💰", text: "Ihr entdeckt einen verborgenen Schatz.", opt: [
-      { label: "Bergen", folge: { vorraete: [2, 2], ruhm: [3, 3], moral: [-1, 0] } },
+      { label: "Bergen", chance: 0.6, folge: { vorraete: [2, 2], ruhm: [3, 3], moral: [-1, 0] }, fehlschlag: { moral: [-2, -1] } },
       { label: "Nur einen Teil mitnehmen", folge: { vorraete: [1, 1], ruhm: [1, 1] } }
     ]},
     { kat: "selten", icon: "✨", text: "Eine Quelle schimmert in ungewöhnlichem Licht.", opt: [
@@ -353,7 +356,7 @@ const currentMember = await requireMemberLogin();
       { label: "Nicht anrühren", folge: {} }
     ]},
     { kat: "selten", icon: "🔮", text: "Eine Seherin am Wegesrand liest die Runen für euch.", opt: [
-      { label: "Ihren Rat annehmen", folge: { ruhm: [2, 2], moral: [1, 1], nahrung: [-1, 0] } },
+      { label: "Ihren Rat annehmen", chance: 0.65, folge: { ruhm: [2, 2], moral: [1, 1], nahrung: [-1, 0] }, fehlschlag: { nahrung: [-1, 0] } },
       { label: "Höflich ablehnen", folge: {} }
     ]}
   ];
@@ -402,7 +405,7 @@ const currentMember = await requireMemberLogin();
 
   let laufend = false;
   let hexData, visited, revealed, gezogeneKarten;
-  let nahrung, moral, vorraete, ruhm, feldZaehler;
+  let nahrung, moral, vorraete, ruhm, feldZaehler, landstriche;
   let startFeld;
 
   function generiereKarte(){
@@ -543,8 +546,38 @@ const currentMember = await requireMemberLogin();
     if (!laufend) return;
     const offen = Object.keys(hexData).some(key => revealed.has(key) && !visited.has(key));
     if (!offen){
-      beendeSpiel(false, "Keine erreichbaren Wege mehr – die Erkundung endet hier.");
+      zeigeKartenEndeEntscheid();
     }
+  }
+
+  function zeigeKartenEndeEntscheid(){
+    oeffneOverlay();
+    katIconEl.textContent = "🗺️";
+    textEl.textContent = "Ihr habt dieses Land vollständig erkundet. Zieht ihr weiter zu neuen Ufern, oder lasst ihr euch hier nieder?";
+    folgeEl.textContent = "";
+    optionenEl.innerHTML = `
+      <button type="button" class="ln-opt" id="keNeueKarteBtn">Auf zu neuen Ufern</button>
+      <button type="button" class="ln-opt" id="keSiedelnVollBtn">Hier siedeln</button>
+    `;
+    document.getElementById("keNeueKarteBtn").addEventListener("click", () => {
+      schliesseOverlay();
+      ruhm = Math.max(0, ruhm + 2);
+      landstriche++;
+      generiereKarte();
+      visited = new Set();
+      revealed = new Set();
+      visited.add(hexKey(...startFeld));
+      nachbarnAufdecken(...startFeld);
+      revealed.add(hexKey(...startFeld));
+      aktualisiereRessourcenAnzeige();
+      feldzaehlerEl.textContent = `Felder erkundet: ${feldZaehler} · Landstrich ${landstriche + 1}`;
+      zeichneKarte();
+    });
+    document.getElementById("keSiedelnVollBtn").addEventListener("click", () => {
+      schliesseOverlay();
+      const ortText = landstriche > 0 ? `nach ${landstriche + 1} erkundeten Landstrichen` : "nach vollständiger Erkundung des Landes";
+      beendeSpiel(true, `Die Sippe lässt sich ${ortText} endgültig nieder.`, 10);
+    });
   }
 
   function zeigeKarteFuerFeld(c, r, h){
@@ -553,7 +586,10 @@ const currentMember = await requireMemberLogin();
     katIconEl.textContent = karte.icon;
     textEl.textContent = karte.text;
     folgeEl.textContent = "";
-    optionenEl.innerHTML = karte.opt.map((o, i) => `<button type="button" class="ln-opt" data-idx="${i}">${escapeHtml(o.label)}</button>`).join("");
+    optionenEl.innerHTML = karte.opt.map((o, i) => {
+      const chanceLabel = o.chance !== undefined ? ` <span class="ke-chance">(${Math.round(o.chance * 100)}% Erfolg)</span>` : "";
+      return `<button type="button" class="ln-opt" data-idx="${i}">${escapeHtml(o.label)}${chanceLabel}</button>`;
+    }).join("");
     optionenEl.querySelectorAll(".ln-opt").forEach(btn => {
       btn.addEventListener("click", () => waehleOptionFeld(karte, Number(btn.dataset.idx), c, r));
     });
@@ -562,10 +598,18 @@ const currentMember = await requireMemberLogin();
   function waehleOptionFeld(karte, idx, c, r){
     const opt = karte.opt[idx];
     optionenEl.querySelectorAll(".ln-opt").forEach(b => b.disabled = true);
+
+    let erfolgreich = true;
+    let folgeQuelle = opt.folge;
+    if (opt.chance !== undefined){
+      erfolgreich = Math.random() < opt.chance;
+      folgeQuelle = erfolgreich ? opt.folge : (opt.fehlschlag || {});
+    }
+
     const aenderungen = [];
     ["nahrung", "moral", "vorraete", "ruhm"].forEach(feld => {
-      if (opt.folge[feld]){
-        const delta = zufallImBereich(opt.folge[feld]);
+      if (folgeQuelle[feld]){
+        const delta = zufallImBereich(folgeQuelle[feld]);
         if (delta !== 0){
           if (feld === "nahrung") nahrung = clamp(nahrung + delta);
           if (feld === "moral") moral = clamp(moral + delta);
@@ -577,7 +621,10 @@ const currentMember = await requireMemberLogin();
         }
       }
     });
-    folgeEl.innerHTML = aenderungen.length ? aenderungen.join("  ") : "Keine spürbare Auswirkung.";
+    const kopf = opt.chance !== undefined
+      ? (erfolgreich ? `<div class="ke-erfolg">✓ Gelungen</div>` : `<div class="ke-fehlschlag">✗ Fehlgeschlagen</div>`)
+      : "";
+    folgeEl.innerHTML = kopf + (aenderungen.length ? aenderungen.join("  ") : "Keine spürbare Auswirkung.");
     aktualisiereRessourcenAnzeige();
 
     setTimeout(() => {
@@ -646,7 +693,7 @@ const currentMember = await requireMemberLogin();
 
   function starteSpiel(){
     laufend = true;
-    nahrung = 10; moral = 10; vorraete = 10; ruhm = 0; feldZaehler = 0;
+    nahrung = 10; moral = 10; vorraete = 10; ruhm = 0; feldZaehler = 0; landstriche = 0;
     visited = new Set();
     revealed = new Set();
     gezogeneKarten = new Set();
@@ -664,18 +711,19 @@ const currentMember = await requireMemberLogin();
   }
   startBtn.addEventListener("click", starteSpiel);
 
-  async function beendeSpiel(erfolgreich, meldung){
+  async function beendeSpiel(erfolgreich, meldung, zusatzBonus = 0){
     laufend = false;
     const revealedNichtBesucht = [...revealed].filter(k => !visited.has(k)).length;
     const ressourcenSumme = nahrung + moral + vorraete;
-    let score = feldZaehler * 2 + ruhm * 3 + ressourcenSumme + Math.round(revealedNichtBesucht * 0.5) + (erfolgreich ? 15 : 0);
+    let score = feldZaehler * 2 + ruhm * 3 + ressourcenSumme + Math.round(revealedNichtBesucht * 0.5) + (erfolgreich ? 15 : 0) + zusatzBonus;
     score = Math.max(0, Math.round(score));
 
     oeffneOverlay();
     karteEl.classList.add("hidden");
     endeTitelEl.textContent = erfolgreich ? "Die Sippe lässt sich nieder" : "Die Expedition ist gescheitert";
     endeMeldungEl.textContent = meldung;
-    endeStatistikEl.textContent = `${feldZaehler} Felder erkundet · ${ruhm} Ruhm gesammelt`;
+    const landstricheText = landstriche > 0 ? ` über ${landstriche + 1} Landstriche` : "";
+    endeStatistikEl.textContent = `${feldZaehler} Felder erkundet${landstricheText} · ${ruhm} Ruhm gesammelt`;
     endeScoreEl.textContent = score + " Punkte";
     endeKarteEl.classList.remove("hidden");
 
