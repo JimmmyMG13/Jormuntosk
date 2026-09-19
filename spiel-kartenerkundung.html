@@ -671,16 +671,34 @@ const currentMember = await requireMemberLogin();
     visited.add(key);
     feldZaehler++;
 
-    // Ohne Werkzeug/Vorräte leidet die Sippe bei jedem weiteren Schritt.
+    // Ohne Werkzeug/Vorräte leidet die Sippe bei jedem weiteren Schritt -
+    // sichtbar mit kurzer Meldung, statt unbemerkt im Hintergrund.
     if (vorraete <= 0){
+      const vorMoral = moral;
       moral = clamp(moral - 1);
       aktualisiereRessourcenAnzeige();
-      if (moral <= 0){
-        beendeSpiel(false, "Ohne jedes Werkzeug verliert die Sippe den letzten Halt.");
+      if (moral !== vorMoral){
+        oeffneOverlay();
+        katIconEl.textContent = "🛠️";
+        textEl.textContent = "Ohne Werkzeug leidet die Stimmung der Sippe.";
+        optionenEl.innerHTML = "";
+        folgeEl.innerHTML = `<span class="minus">💪 -1 (kein Werkzeug)</span>`;
+        setTimeout(() => {
+          schliesseOverlay();
+          if (moral <= 0){
+            beendeSpiel(false, "Ohne jedes Werkzeug verliert die Sippe den letzten Halt.");
+            return;
+          }
+          weiterNachFeld(c, r);
+        }, 1100);
         return;
       }
     }
 
+    weiterNachFeld(c, r);
+  }
+
+  function weiterNachFeld(c, r){
     nachbarnAufdecken(c, r);
     feldzaehlerEl.textContent = "Felder erkundet: " + feldZaehler;
     zeichneKarte();
