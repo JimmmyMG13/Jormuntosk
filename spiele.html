@@ -129,6 +129,10 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
       <span class="spiel-tile-icon">🗺️</span>
       <span class="spiel-tile-name">Kartenerkundung</span>
     </a>
+    <a class="spiel-tile" href="spiel-yggdrasil.html">
+      <span class="spiel-tile-icon">🐿️</span>
+      <span class="spiel-tile-name">Ratatöskr</span>
+    </a>
   </div>
 
 
@@ -141,7 +145,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, zufaelligeBegruessung, requestNotificationPermission, notificationStatus, zeigeBenachrichtigung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_YGGDRASIL_HIGHSCORES, zufaelligeBegruessung, requestNotificationPermission, notificationStatus, zeigeBenachrichtigung } from "./common.js";
 import { collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
@@ -163,7 +167,8 @@ const SPIELE = [
   { id: "runenspiel", name: "ᚠ Runen-Lernspiel" },
   { id: "symbolzuordnung", name: "🔮 Symbol-Zuordnung" },
   { id: "landnahme", name: "🏕️ Landnahme" },
-  { id: "kartenerkundung", name: "🗺️ Kartenerkundung" }
+  { id: "kartenerkundung", name: "🗺️ Kartenerkundung" },
+  { id: "yggdrasil", name: "🐿️ Ratatöskr" }
 ];
 const highscoreCache = {};
 let highscoreIndex = 0;
@@ -261,6 +266,13 @@ onSnapshot(query(collection(db, COL_LANDNAHME_HIGHSCORES), orderBy("score", "des
 onSnapshot(query(collection(db, COL_KARTENERKUNDUNG_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.kartenerkundung = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
   pruefeRekordUeberholt("kartenerkundung", "Kartenerkundung", snap.docs);
+  renderHighscorePanel();
+});
+
+// Ratatöskr: Highscore-Daten für das Panel (Spiel liegt in spiel-yggdrasil.html).
+onSnapshot(query(collection(db, COL_YGGDRASIL_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
+  highscoreCache.yggdrasil = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  pruefeRekordUeberholt("yggdrasil", "Ratatöskr", snap.docs);
   renderHighscorePanel();
 });
 
