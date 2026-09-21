@@ -202,7 +202,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { db, sha256, generateSalt, hashPassword, verifyPassword, loginGesperrtInfo, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_YGGDRASIL_HIGHSCORES, COL_IDEEN, IDEEN_STATUS, ideeStatusLabel } from "./common.js";
+import { db, sha256, generateSalt, hashPassword, verifyPassword, loginGesperrtInfo, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_YGGDRASIL_HIGHSCORES, COL_RUNENMAUER_HIGHSCORES, COL_IDEEN, IDEEN_STATUS, ideeStatusLabel } from "./common.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -249,7 +249,8 @@ const SPIELE_HIGHSCORES = [
   { id: "symbolzuordnung", name: "🔮 Symbol-Zuordnung", col: COL_SYMBOLZUORDNUNG_HIGHSCORES },
   { id: "landnahme", name: "🏕️ Landnahme", col: COL_LANDNAHME_HIGHSCORES },
   { id: "kartenerkundung", name: "🗺️ Kartenerkundung", col: COL_KARTENERKUNDUNG_HIGHSCORES },
-  { id: "yggdrasil", name: "🐿️ Ratatöskr", col: COL_YGGDRASIL_HIGHSCORES }
+  { id: "yggdrasil", name: "🐿️ Ratatöskr", col: COL_YGGDRASIL_HIGHSCORES },
+  { id: "runenmauer", name: "🧱 Runenstein-Mauerbau", col: COL_RUNENMAUER_HIGHSCORES }
 ];
 const SPIELE_STANDARD_REIHENFOLGE = SPIELE_HIGHSCORES.map(s => s.id);
 
