@@ -394,16 +394,23 @@ function initCheckin(){
   function spielePiepton(){
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.45, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.2);
+      const jetzt = ctx.currentTime;
+      // Zwei kurze, aufsteigende Square-Wave-Töne statt einem leisen,
+      // weichen Sinuston - klingt bestimmter, eher wie ein Kassen-/Scanner-Piep.
+      [0, 0.13].forEach((versatz, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.value = i === 0 ? 880 : 1320;
+        const start = jetzt + versatz;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.linearRampToValueAtTime(0.65, start + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.13);
+      });
     } catch (e) {}
   }
   function vibriere(){
