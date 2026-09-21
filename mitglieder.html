@@ -92,6 +92,7 @@
   </div>
   <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
     <a class="icon-btn" href="uebersicht.html" title="Zur Übersicht" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">⌂</a>
+    <button class="icon-btn" id="notifBtn" title="Benachrichtigungen aktivieren">🔔</button>
     <button class="icon-btn" id="themeToggle" title="Hell/Dunkel">☾</button>
     <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
   </div>
@@ -200,7 +201,7 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, generateSalt, hashPassword, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml, formatDate, zufaelligeBegruessung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, generateSalt, hashPassword, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml, formatDate, zufaelligeBegruessung, requestNotificationPermission, notificationStatus, zeigeBenachrichtigung } from "./common.js";
 import { doc, updateDoc, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const member = await requireMemberLogin();
@@ -294,10 +295,39 @@ document.getElementById("anfrageSendenBtn").addEventListener("click", async () =
   }
 });
 
+// --- Benachrichtigungen (nur solange dieser Tab geöffnet ist) ---
+const notifBtn = document.getElementById("notifBtn");
+function aktualisiereNotifBtn(){
+  notifBtn.textContent = notificationStatus() === "granted" ? "🔔" : "🔕";
+}
+aktualisiereNotifBtn();
+notifBtn.addEventListener("click", async () => {
+  await requestNotificationPermission();
+  aktualisiereNotifBtn();
+});
+
 const anfrageQ = query(collection(db, COL_ANFRAGEN), where("mitgliedId", "==", member.id));
+let anfrageErsterLoad = true;
+let anfrageVorherigerStand = {};
 onSnapshot(anfrageQ, snap => {
   const el = document.getElementById("anfrageListe");
   if (!el) return;
+
+  // Benachrichtigen, wenn der Vorstand seit dem letzten Snapshot eine
+  // Antwort auf eine eigene Anfrage hinterlegt hat.
+  if (!anfrageErsterLoad){
+    snap.docs.forEach(d => {
+      const r = d.data();
+      const vorher = anfrageVorherigerStand[d.id];
+      if (vorher && !vorher.antwortVorstand && r.antwortVorstand){
+        zeigeBenachrichtigung("Antwort vom Vorstand", { body: r.titel });
+      }
+    });
+  }
+  anfrageVorherigerStand = {};
+  snap.docs.forEach(d => { anfrageVorherigerStand[d.id] = d.data(); });
+  anfrageErsterLoad = false;
+
   const rows = snap.docs.map(d => d.data()).sort((a, b) => (b.erstelltAm || "").localeCompare(a.erstelltAm || ""));
   if (rows.length === 0){
     el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Noch keine eigenen Anfragen.</p>`;

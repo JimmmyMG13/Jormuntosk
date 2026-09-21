@@ -82,6 +82,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
   </div>
   <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
     <a class="icon-btn" href="uebersicht.html" title="Zur Übersicht" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">⌂</a>
+    <button class="icon-btn" id="notifBtn" title="Benachrichtigungen aktivieren">🔔</button>
     <button class="icon-btn" id="themeToggle" title="Hell/Dunkel">☾</button>
     <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
   </div>
@@ -140,7 +141,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, zufaelligeBegruessung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, zufaelligeBegruessung, requestNotificationPermission, notificationStatus, zeigeBenachrichtigung } from "./common.js";
 import { collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
@@ -196,39 +197,70 @@ document.getElementById("hsNext").addEventListener("click", () => {
 });
 renderHighscorePanel();
 
+// --- Benachrichtigungen (nur solange dieser Tab geöffnet ist) ---
+const notifBtn = document.getElementById("notifBtn");
+function aktualisiereNotifBtn(){
+  notifBtn.textContent = notificationStatus() === "granted" ? "🔔" : "🔕";
+}
+aktualisiereNotifBtn();
+notifBtn.addEventListener("click", async () => {
+  await requestNotificationPermission();
+  aktualisiereNotifBtn();
+});
+
+// Benachrichtigt, wenn der bisherige Rang-1-Inhaber (Rekordhalter) das
+// eigene Mitglied war und jemand anderes jetzt an der Spitze steht.
+const bisherigerErster = {};
+function pruefeRekordUeberholt(spielId, spielName, docs){
+  if (docs.length === 0) return;
+  const neuerErsterId = docs[0].id;
+  const bekannt = bisherigerErster[spielId];
+  if (bekannt !== undefined && bekannt === currentMember.id && neuerErsterId !== currentMember.id){
+    const neuerName = docs[0].data().mitgliedName || "Jemand";
+    zeigeBenachrichtigung(`Rekord überholt: ${spielName}`, { body: `${neuerName} hat deinen Highscore geknackt!` });
+  }
+  bisherigerErster[spielId] = neuerErsterId;
+}
+
 // Sippen-Runner: Highscore-Daten für das Panel oben (Spiel selbst liegt in spiel-runner.html).
 onSnapshot(query(collection(db, COL_RUNNER_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.runner = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  pruefeRekordUeberholt("runner", "Sippen-Runner", snap.docs);
   renderHighscorePanel();
 });
 
 // Drachenschiff-Wettfahrt: Highscore-Daten für das Panel (Spiel liegt in spiel-drachenschiff.html).
 onSnapshot(query(collection(db, COL_DRACHENSCHIFF_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.drachenschiff = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  pruefeRekordUeberholt("drachenschiff", "Drachenschiff-Wettfahrt", snap.docs);
   renderHighscorePanel();
 });
 
 // Runen-Lernspiel: Highscore-Daten für das Panel (Spiel liegt in spiel-runenspiel.html).
 onSnapshot(query(collection(db, COL_RUNENSPIEL_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.runenspiel = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  pruefeRekordUeberholt("runenspiel", "Runen-Lernspiel", snap.docs);
   renderHighscorePanel();
 });
 
 // Symbol-Zuordnung: Highscore-Daten für das Panel (Spiel liegt in spiel-symbolzuordnung.html).
 onSnapshot(query(collection(db, COL_SYMBOLZUORDNUNG_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.symbolzuordnung = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  pruefeRekordUeberholt("symbolzuordnung", "Symbol-Zuordnung", snap.docs);
   renderHighscorePanel();
 });
 
 // Landnahme: Highscore-Daten für das Panel (Spiel liegt in spiel-landnahme.html).
 onSnapshot(query(collection(db, COL_LANDNAHME_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.landnahme = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  pruefeRekordUeberholt("landnahme", "Landnahme", snap.docs);
   renderHighscorePanel();
 });
 
 // Kartenerkundung: Highscore-Daten für das Panel (Spiel liegt in spiel-kartenerkundung.html).
 onSnapshot(query(collection(db, COL_KARTENERKUNDUNG_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.kartenerkundung = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  pruefeRekordUeberholt("kartenerkundung", "Kartenerkundung", snap.docs);
   renderHighscorePanel();
 });
 

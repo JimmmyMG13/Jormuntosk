@@ -96,6 +96,7 @@
   </div>
   <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
     <a class="icon-btn" href="uebersicht.html" title="Zur Übersicht" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">⌂</a>
+    <button class="icon-btn" id="notifBtn" title="Benachrichtigungen aktivieren">🔔</button>
     <button class="icon-btn" id="themeToggle" title="Hell/Dunkel">☾</button>
     <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
   </div>
@@ -142,7 +143,7 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_IDEEN, ideeStatusLabel } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_IDEEN, ideeStatusLabel, requestNotificationPermission, notificationStatus, zeigeBenachrichtigung } from "./common.js";
 import { collection, addDoc, doc, updateDoc, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
@@ -150,6 +151,17 @@ document.getElementById("logoutBtn").addEventListener("click", memberLogout);
 applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
 
 const member = await requireMemberLogin();
+
+// --- Benachrichtigungen (nur solange dieser Tab geöffnet ist) ---
+const notifBtn = document.getElementById("notifBtn");
+function aktualisiereNotifBtn(){
+  notifBtn.textContent = notificationStatus() === "granted" ? "🔔" : "🔕";
+}
+aktualisiereNotifBtn();
+notifBtn.addEventListener("click", async () => {
+  await requestNotificationPermission();
+  aktualisiereNotifBtn();
+});
 
 // --- Neue Idee einreichen ---
 document.getElementById("ideeSendenBtn").addEventListener("click", async () => {
@@ -283,6 +295,7 @@ function toggleKommentare(ideeId){
 // Cache in renderIdeenListe() explizit wieder ins DOM zurückgeschrieben.
 const kommentareCache = {};
 const kommentarListenerAktiv = new Set();
+const kommentarAnzahlBekannt = {}; // ideeId -> zuletzt bekannte Kommentar-Anzahl (für Benachrichtigungen)
 
 function ladeKommentare(ideeId){
   if (kommentarListenerAktiv.has(ideeId)) return;
@@ -291,6 +304,20 @@ function ladeKommentare(ideeId){
   onSnapshot(kommentareQ, snap => {
     kommentareCache[ideeId] = snap.docs.map(d => d.data());
     const anzahlNeu = kommentareCache[ideeId].length;
+
+    // Bei einer eigenen Idee benachrichtigen, wenn ein neuer Kommentar dazu-
+    // gekommen ist (nicht beim allerersten Laden, sonst würde jede eigene
+    // Idee mit Kommentaren sofort beim Öffnen der Seite eine Meldung auslösen).
+    const bekannt = kommentarAnzahlBekannt[ideeId];
+    const idee = alleIdeen.find(i => i.id === ideeId);
+    if (bekannt !== undefined && anzahlNeu > bekannt && idee && idee.mitgliedId === member.id){
+      const neusterKommentar = kommentareCache[ideeId][kommentareCache[ideeId].length - 1];
+      if (neusterKommentar && neusterKommentar.mitgliedId !== member.id){
+        zeigeBenachrichtigung(`Neuer Kommentar zu "${idee.titel}"`, { body: `${neusterKommentar.mitgliedName}: ${neusterKommentar.text}` });
+      }
+    }
+    kommentarAnzahlBekannt[ideeId] = anzahlNeu;
+
     const toggleBtn = document.querySelector(`[data-toggle="${ideeId}"]`);
     if (toggleBtn) toggleBtn.textContent = `💬 Kommentare (${anzahlNeu})`;
     if (offeneKommentarThreads.has(ideeId)) renderKommentarListe(ideeId);

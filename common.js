@@ -71,6 +71,36 @@ export function loginGesperrtInfo(memberData){
   return { bis, minuten };
 }
 
+// =========================================================
+// Browser-Benachrichtigungen (nur solange die App/der Tab geöffnet ist -
+// kein Server-Push, funktioniert also nicht bei geschlossener App).
+// =========================================================
+
+// Fragt die Berechtigung an (muss durch eine Nutzer-Interaktion ausgelöst
+// werden, z.B. Klick auf einen Glocken-Button). Gibt true zurück, wenn
+// Benachrichtigungen danach erlaubt sind.
+export async function requestNotificationPermission(){
+  if (!("Notification" in window)) return false;
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") return false;
+  const ergebnis = await Notification.requestPermission();
+  return ergebnis === "granted";
+}
+
+export function notificationStatus(){
+  if (!("Notification" in window)) return "nicht unterstützt";
+  return Notification.permission; // "granted" | "denied" | "default"
+}
+
+// Zeigt eine Benachrichtigung, falls die Berechtigung erteilt wurde.
+// Tut nichts (kein Fehler), falls nicht erlaubt oder nicht unterstützt.
+export function zeigeBenachrichtigung(titel, optionen = {}){
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  try {
+    new Notification(titel, { icon: "icon-192.png", ...optionen });
+  } catch (e) {}
+}
+
 export function initTheme(toggleBtnId){
   const btn = document.getElementById(toggleBtnId);
   const theme = localStorage.getItem("jt_theme") || "light";
