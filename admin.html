@@ -201,7 +201,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_IDEEN, IDEEN_STATUS, ideeStatusLabel } from "./common.js";
+import { db, sha256, generateSalt, hashPassword, verifyPassword, loginGesperrtInfo, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_IDEEN, IDEEN_STATUS, ideeStatusLabel } from "./common.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -234,10 +234,11 @@ const KACHEL_DEFS = {
   markttagebuch: "🛖 Markttagebuch",
   mitglieder: "👤 Mitgliederbereich",
   ideenboard: "💡 Ideen-Board",
+  mitgliederverzeichnis: "📇 Mitgliederverzeichnis",
   spiele: "🏃 Spiele",
   admin: "⚙ Admin"
 };
-const KACHEL_STANDARD_REIHENFOLGE = ["tierkreis", "tageswidgets", "omen", "orakel", "schichtplanung", "markttagebuch", "mitglieder", "ideenboard", "spiele", "admin"];
+const KACHEL_STANDARD_REIHENFOLGE = ["tierkreis", "tageswidgets", "omen", "orakel", "schichtplanung", "markttagebuch", "mitglieder", "ideenboard", "mitgliederverzeichnis", "spiele", "admin"];
 
 const SPIELE_HIGHSCORES = [
   { name: "🏃 Sippen-Runner", col: COL_RUNNER_HIGHSCORES },
@@ -278,8 +279,9 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   if (bootstrapMode){
     const pw2 = document.getElementById("loginPwConfirm").value;
     if (pw !== pw2){ err.textContent = "Passwörter stimmen nicht überein."; return; }
-    const hash = await sha256(pw);
-    const ref = await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status: "aktiv", verwaltung: true });
+    const salt = generateSalt();
+    const hash = await hashPassword(pw, salt);
+    const ref = await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, salt, status: "aktiv", verwaltung: true });
     currentAdmin = { id: ref.id, name };
     sessionStorage.setItem("jt_member_id", currentAdmin.id);
     sessionStorage.setItem("jt_member_name", currentAdmin.name);
@@ -290,12 +292,33 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const snap = await getDocs(query(collection(db, COL_MITGLIEDER), where("name", "==", name)));
   if (snap.empty){ err.textContent = "Unbekannter Name oder falsches Passwort."; return; }
   const memberDoc = snap.docs[0];
-  const hash = await sha256(pw);
-  if (hash !== memberDoc.data().password){ err.textContent = "Unbekannter Name oder falsches Passwort."; return; }
-  const member = { id: memberDoc.id, name: memberDoc.data().name };
+  const memberData = memberDoc.data();
+
+  const sperre = loginGesperrtInfo(memberData);
+  if (sperre){ err.textContent = `Zu viele Fehlversuche. Bitte in ${sperre.minuten} Minute(n) erneut versuchen.`; return; }
+
+  const gueltig = await verifyPassword(pw, memberData);
+  if (!gueltig){
+    const versuche = (memberData.loginFehlversuche || 0) + 1;
+    const update = { loginFehlversuche: versuche };
+    if (versuche >= 5){
+      update.loginFehlversuche = 0;
+      update.loginGesperrtBis = new Date(Date.now() + 15 * 60000).toISOString();
+      err.textContent = "Zu viele Fehlversuche. Konto für 15 Minuten gesperrt.";
+    } else {
+      err.textContent = "Unbekannter Name oder falsches Passwort.";
+    }
+    try { await updateDoc(doc(db, COL_MITGLIEDER, memberDoc.id), update); } catch(e) {}
+    return;
+  }
+  if (memberData.loginFehlversuche || memberData.loginGesperrtBis){
+    try { await updateDoc(doc(db, COL_MITGLIEDER, memberDoc.id), { loginFehlversuche: 0, loginGesperrtBis: null }); } catch(e) {}
+  }
+
+  const member = { id: memberDoc.id, name: memberData.name };
   sessionStorage.setItem("jt_member_id", member.id);
   sessionStorage.setItem("jt_member_name", member.name);
-  if (memberDoc.data().verwaltung !== true){
+  if (memberData.verwaltung !== true){
     err.textContent = "Anmeldung erfolgreich, aber dieses Konto hat keine Verwaltungsrechte für den Admin-Bereich.";
     return;
   }
@@ -1317,8 +1340,9 @@ function openMitgliedModal(mitglied, alleMitglieder){
       } else {
         const pw = document.getElementById("mPw").value;
         if (!pw){ alert("Bitte ein Initialpasswort angeben."); return; }
-        const hash = await sha256(pw);
-        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, status, email, telefon, adresse, eintrittsdatum, funktion, spitzname, abzeichen, verwaltung });
+        const salt = generateSalt();
+        const hash = await hashPassword(pw, salt);
+        await addDoc(collection(db, COL_MITGLIEDER), { name, password: hash, salt, status, email, telefon, adresse, eintrittsdatum, funktion, spitzname, abzeichen, verwaltung });
         logActivity(currentAdmin.name, `hat das Mitglied „${name}" angelegt` + (verwaltung ? " (mit Verwaltungsrechten)" : ""));
       }
       closeModal();
@@ -1345,8 +1369,9 @@ function openMitgliedPwModal(mitglied){
     const pw = document.getElementById("mPwNeu").value;
     if (!pw){ alert("Bitte ein Passwort angeben."); return; }
     try {
-      const hash = await sha256(pw);
-      await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { password: hash });
+      const salt = generateSalt();
+      const hash = await hashPassword(pw, salt);
+      await updateDoc(doc(db, COL_MITGLIEDER, mitglied.id), { password: hash, salt, loginFehlversuche: 0, loginGesperrtBis: null });
       logActivity(currentAdmin.name, `hat das Passwort von „${mitglied.name}" zurückgesetzt`);
       closeModal();
     } catch (err) {
@@ -1555,7 +1580,7 @@ function renderEinstellungenModule(container){
       const snap = await getDocs(collection(db, colName));
       exportData[colName] = snap.docs.map(d => {
         const data = { id: d.id, ...d.data() };
-        if (colName === COL_MITGLIEDER) delete data.password;
+        if (colName === COL_MITGLIEDER) { delete data.password; delete data.salt; }
         return data;
       });
     }

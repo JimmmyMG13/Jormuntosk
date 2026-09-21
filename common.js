@@ -1,6 +1,6 @@
 // Jörmuntösk – gemeinsame Basis für alle Web-Tools
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getFirestore, doc, getDoc, onSnapshot, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, onSnapshot, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyLmY1kfzjbs6iXBnjQd-bkc5iQXFZcDo",
@@ -30,6 +30,45 @@ export async function sha256(text){
   const enc = new TextEncoder().encode(text);
   const buf = await crypto.subtle.digest("SHA-256", enc);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Erzeugt einen zufälligen Salt (16 Byte, hex) für neue oder geänderte Passwörter.
+export function generateSalt(){
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Hasht ein Passwort zusammen mit einem Salt. Beim Anlegen/Ändern eines
+// Passworts IMMER mit generateSalt() einen neuen Salt erzeugen und zusammen
+// mit dem Hash als eigenes Feld "salt" im Mitgliedsdokument speichern.
+export async function hashPassword(pw, salt){
+  return sha256(pw + salt);
+}
+
+// Prüft ein eingegebenes Passwort gegen ein Mitgliedsdokument. Unterstützt
+// sowohl neue, gesalzene Hashes (Feld "salt" vorhanden) als auch ältere,
+// ungesalzene Hashes aus der Zeit vor dieser Umstellung - so bleiben
+// bestehende Zugänge gültig, bis das Passwort das nächste Mal geändert wird.
+export async function verifyPassword(pw, memberData){
+  if (memberData.salt){
+    return (await hashPassword(pw, memberData.salt)) === memberData.password;
+  }
+  return (await sha256(pw)) === memberData.password;
+}
+
+// Login-Bremse gegen Brute-Force über die App-Oberfläche: nach
+// MAX_LOGIN_VERSUCHE Fehlversuchen wird das Konto für LOGIN_SPERRDAUER_MIN
+// Minuten gesperrt. Schützt nur den Weg über die App-UI, nicht einen direkten
+// Zugriff auf die Firestore-API - siehe Hinweis zu Firestore-Regeln.
+const MAX_LOGIN_VERSUCHE = 5;
+const LOGIN_SPERRDAUER_MIN = 15;
+
+export function loginGesperrtInfo(memberData){
+  if (!memberData.loginGesperrtBis) return null;
+  const bis = new Date(memberData.loginGesperrtBis);
+  if (bis <= new Date()) return null;
+  const minuten = Math.ceil((bis - new Date()) / 60000);
+  return { bis, minuten };
 }
 
 export function initTheme(toggleBtnId){
@@ -408,9 +447,34 @@ export function requireMemberLogin({ appRootId = "appRoot" } = {}){
           const snap = await getDocs(query(collection(db, COL_MITGLIEDER), where("name", "==", name)));
           if (snap.empty){ errEl.textContent = "Unbekannter Name oder falsches Passwort."; return; }
           const memberDoc = snap.docs[0];
-          const hash = await sha256(pw);
-          if (hash !== memberDoc.data().password){ errEl.textContent = "Unbekannter Name oder falsches Passwort."; return; }
-          const member = { id: memberDoc.id, ...memberDoc.data() };
+          const memberData = memberDoc.data();
+
+          const sperre = loginGesperrtInfo(memberData);
+          if (sperre){
+            errEl.textContent = `Zu viele Fehlversuche. Bitte in ${sperre.minuten} Minute(n) erneut versuchen.`;
+            return;
+          }
+
+          const gueltig = await verifyPassword(pw, memberData);
+          if (!gueltig){
+            const versuche = (memberData.loginFehlversuche || 0) + 1;
+            const update = { loginFehlversuche: versuche };
+            if (versuche >= MAX_LOGIN_VERSUCHE){
+              update.loginFehlversuche = 0;
+              update.loginGesperrtBis = new Date(Date.now() + LOGIN_SPERRDAUER_MIN * 60000).toISOString();
+              errEl.textContent = `Zu viele Fehlversuche. Konto für ${LOGIN_SPERRDAUER_MIN} Minuten gesperrt.`;
+            } else {
+              errEl.textContent = "Unbekannter Name oder falsches Passwort.";
+            }
+            try { await updateDoc(doc(db, COL_MITGLIEDER, memberDoc.id), update); } catch(e) {}
+            return;
+          }
+
+          if (memberData.loginFehlversuche || memberData.loginGesperrtBis){
+            try { await updateDoc(doc(db, COL_MITGLIEDER, memberDoc.id), { loginFehlversuche: 0, loginGesperrtBis: null }); } catch(e) {}
+          }
+
+          const member = { id: memberDoc.id, ...memberData };
           sessionStorage.setItem("jt_member_id", member.id);
           sessionStorage.setItem("jt_member_name", member.name);
           reveal(member);

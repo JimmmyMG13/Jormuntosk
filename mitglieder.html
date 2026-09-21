@@ -122,6 +122,10 @@
       <label for="fAdresse">Adresse</label>
       <input type="text" id="fAdresse" placeholder="Strasse, PLZ Ort">
     </div>
+    <div class="field" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="fVerzeichnis" style="width:auto;">
+      <label for="fVerzeichnis" style="margin:0;font-size:13px;color:var(--text);">Im Mitgliederverzeichnis anzeigen (Name, Funktion, E-Mail, Telefon)</label>
+    </div>
     <button class="btn" id="saveProfilBtn">Speichern</button>
     <div class="msg" id="profilMsg"></div>
     <div id="vorstandFelderBlock" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:none;">
@@ -187,6 +191,7 @@
     <a href="index.html">Schichtplanung</a>
     <a href="markttagebuch.html">Markttagebuch</a>
     <a href="ideenboard.html">Ideen-Board</a>
+    <a href="mitgliederverzeichnis.html">Mitgliederverzeichnis</a>
   </nav>
 </main>
 
@@ -194,7 +199,7 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml, formatDate, zufaelligeBegruessung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, sha256, generateSalt, hashPassword, abzeichenNachKategorie, mitgliedHatAbzeichen, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, anfrageStatusLabel, escapeHtml, formatDate, zufaelligeBegruessung } from "./common.js";
 import { doc, updateDoc, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const member = await requireMemberLogin();
@@ -209,6 +214,7 @@ function fillProfile(m){
   document.getElementById("fEmail").value = m.email || "";
   document.getElementById("fTelefon").value = m.telefon || "";
   document.getElementById("fAdresse").value = m.adresse || "";
+  document.getElementById("fVerzeichnis").checked = m.verzeichnisSichtbar !== false;
 
   const vorstandFelder = [
     ["fEintrittsdatumRow", "fEintrittsdatum", m.eintrittsdatum ? formatDate(m.eintrittsdatum) : ""],
@@ -315,8 +321,9 @@ document.getElementById("saveProfilBtn").addEventListener("click", async () => {
   const email = document.getElementById("fEmail").value.trim();
   const telefon = document.getElementById("fTelefon").value.trim();
   const adresse = document.getElementById("fAdresse").value.trim();
+  const verzeichnisSichtbar = document.getElementById("fVerzeichnis").checked;
   try {
-    await updateDoc(doc(db, "mitglieder", member.id), { email, telefon, adresse });
+    await updateDoc(doc(db, "mitglieder", member.id), { email, telefon, adresse, verzeichnisSichtbar });
     msgEl.textContent = "Gespeichert.";
     msgEl.className = "msg ok";
   } catch (err) {
@@ -342,8 +349,9 @@ document.getElementById("savePwBtn").addEventListener("click", async () => {
     return;
   }
   try {
-    const hash = await sha256(pw1);
-    await updateDoc(doc(db, "mitglieder", member.id), { password: hash });
+    const salt = generateSalt();
+    const hash = await hashPassword(pw1, salt);
+    await updateDoc(doc(db, "mitglieder", member.id), { password: hash, salt, loginFehlversuche: 0, loginGesperrtBis: null });
     document.getElementById("pwNeu").value = "";
     document.getElementById("pwWiederholen").value = "";
     msgEl.textContent = "Passwort geändert.";
