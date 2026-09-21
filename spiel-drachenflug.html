@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drachenflug — Jörmuntösk</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2AA329">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Jörmuntösk">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+    --accent:#2AA329; --accent-dark:#1f7a1f; --bg:#F7F8F6; --surface:#FFFFFF;
+    --text:#1A1A1A; --text-muted:#5A5F58; --border:#DDE3DA;
+    --shadow:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  [data-theme="dark"]{
+    --bg:#141713; --surface:#1E221D; --text:#EDEFEA; --text-muted:#A2A89C;
+    --border:#31362C; --shadow:0 1px 3px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand img{height:40px;width:40px;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
+  .brand-text .name{font-weight:bold;color:var(--accent);font-size:18px;}
+  .brand-text .sub{font-size:12px;color:var(--text-muted);}
+  .icon-btn{background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:16px;color:var(--text);}
+  .icon-btn:hover{border-color:var(--accent);}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .btn:hover{opacity:.92;}
+  .btn.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+
+  .spiel-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-top:20px;}
+  .spiel-card h3{margin:0 0 10px 0;font-size:22px;color:var(--accent);text-align:center;}
+  .status-zeile{display:flex;justify-content:center;gap:22px;margin-bottom:10px;font-size:13px;color:var(--text-muted);}
+  .status-zeile b{color:var(--text);font-size:15px;}
+
+  .game-stage{position:relative;}
+  .game-stage-static{min-height:280px;display:flex;flex-direction:column;justify-content:center;}
+  .game-start-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:18px 52px;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .game-start-overlay:hover{opacity:.92;}
+  .hidden{display:none;}
+  .back-btn{position:fixed;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:20px;cursor:pointer;z-index:1001;box-shadow:var(--shadow);font-family:inherit;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+  .back-btn:hover{border-color:var(--accent);}
+  main{max-width:900px;margin:0 auto;padding:70px 20px 40px;}
+  footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
+
+  .df-kartenwrap{position:relative;max-width:480px;margin:0 auto;}
+  .df-kartenwrap canvas{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--border);touch-action:none;cursor:pointer;background:#0a2a3a;}
+  .df-hinweis{text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;}
+
+  .df-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.6);border-radius:12px;}
+  .df-overlay.hidden{display:none;}
+  .df-ende{background:var(--surface);border-radius:12px;padding:26px 22px;text-align:center;max-width:280px;width:100%;}
+  .df-ende h4{font-size:19px;margin:0 0 6px 0;color:var(--accent);}
+  .df-ende p{font-size:13px;color:var(--text-muted);margin:4px 0;}
+  .df-ende .df-score{font-size:32px;font-weight:bold;color:var(--accent);margin:10px 0;}
+
+  @media (max-width: 640px){
+    header{padding:6px 12px;}
+    .brand img{height:28px;width:28px;}
+    .brand-text .name{font-size:13px;}
+    .brand-text .sub{font-size:9px;}
+    .icon-btn{width:26px;height:26px;font-size:12px;}
+    .back-btn{width:32px;height:32px;font-size:14px;top:8px;right:8px;}
+    main{padding:8px 8px 4px;}
+    .spiel-card{padding:8px 10px;margin-top:6px;}
+    .spiel-card h3{font-size:16px;margin-bottom:6px;}
+    .status-zeile{font-size:10px;gap:14px;margin-bottom:6px;}
+    .status-zeile b{font-size:12px;}
+    .game-start-overlay{padding:12px 32px;font-size:15px;}
+    .df-hinweis{font-size:10px;}
+  }
+  @media (orientation: landscape) and (max-height: 500px){
+    header{padding:3px 10px;}
+    main{padding:4px 6px 2px;}
+    .spiel-card{padding:4px 10px 6px;}
+    .spiel-card h3{font-size:13px;margin-bottom:4px;}
+    .status-zeile{font-size:10px;margin-bottom:4px;}
+    .df-kartenwrap{max-width:none;width:auto;}
+    .df-kartenwrap canvas{width:auto;height:min(72vh,300px);max-width:100%;margin:0 auto;display:block;}
+    .df-hinweis{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="appRoot" style="display:none;">
+<header>
+  <div class="brand">
+    <img id="logoImg" src="" alt="Jörmuntösk Logo">
+    <div class="brand-text"><span class="name">Jörmuntösk</span><span class="sub">Drachenflug</span></div>
+  </div>
+  <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
+    <button class="icon-btn" id="themeToggle" title="Darstellung wechseln">🌓</button>
+    <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
+  </div>
+</header>
+
+<a class="back-btn" href="spiele.html" title="Zurück zu Spielen">✕</a>
+
+<main>
+  <div class="spiel-card" data-widget="drachenflug">
+    <h3>🐉 Drachenflug</h3>
+    <div class="game-stage game-stage-static">
+      <button class="game-start-overlay" id="dfStartBtn">Start</button>
+      <div id="dfSpielbereich" style="display:none;">
+        <div class="status-zeile">
+          <div>Punkte<br><b id="dfPunkteAnzeige">0</b></div>
+          <div>Bestwert<br><b id="dfBestAnzeige">0</b></div>
+        </div>
+        <div class="df-kartenwrap">
+          <canvas id="dfCanvas" width="480" height="300"></canvas>
+          <div class="df-overlay hidden" id="dfOverlay">
+            <div class="df-ende">
+              <h4>Abgestürzt!</h4>
+              <p id="dfEndeMeldung"></p>
+              <div class="df-score" id="dfEndeScore"></div>
+              <button class="btn secondary" id="dfNeustartBtn">Nochmal starten</button>
+            </div>
+          </div>
+        </div>
+        <p class="df-hinweis">Tippen/Klicken oder Leertaste = Flügelschlag. Durch die Fjord-Schlucht steuern, Felsen ausweichen, 💎 gibt Bonuspunkte.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
+</div>
+
+<script type="module">
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, COL_DRACHENFLUG_HIGHSCORES } from "./common.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+initTheme("themeToggle");
+applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
+document.getElementById("logoutBtn").addEventListener("click", memberLogout);
+
+const currentMember = await requireMemberLogin();
+
+(function initDrachenflug(){
+  const startBtn = document.getElementById("dfStartBtn");
+  const spielbereich = document.getElementById("dfSpielbereich");
+  const canvas = document.getElementById("dfCanvas");
+  const ctx = canvas.getContext("2d");
+  const overlayEl = document.getElementById("dfOverlay");
+  const endeMeldungEl = document.getElementById("dfEndeMeldung");
+  const endeScoreEl = document.getElementById("dfEndeScore");
+  const punkteAnzeigeEl = document.getElementById("dfPunkteAnzeige");
+  const bestAnzeigeEl = document.getElementById("dfBestAnzeige");
+
+  const CANVAS_W = 480, CANVAS_H = 300;
+  const DRACHE_X = 110, DRACHE_R = 14;
+  const SCHWERKRAFT = 0.34;
+  const IMPULS = -6.4;
+  const FELS_BREITE = 56;
+  const SPAWN_ABSTAND = 230;
+  const RAND_ABSTAND = 28; // Mindestabstand der Lücke zum oberen/unteren Rand
+
+  let laufend = false;
+  let drache, felsen, punkte, bestwert, absturz;
+  let letzterFluegelschlag = -1000;
+  let hintergrundVersatzFern = 0, hintergrundVersatzNah = 0;
+  let letzterFrame;
+
+  let bestwertGeladen = 0;
+  (async () => {
+    try {
+      const snap = await getDoc(doc(db, COL_DRACHENFLUG_HIGHSCORES, currentMember.id));
+      if (snap.exists()) bestwertGeladen = snap.data().score || 0;
+      bestAnzeigeEl.textContent = String(bestwertGeladen);
+    } catch (e) {}
+  })();
+
+  function zufall(min, max){ return Math.random() * (max - min) + min; }
+
+  function aktuelleGapHoehe(){ return Math.max(80, 130 - Math.floor(punkte / 5) * 6); }
+  function aktuelleGeschwindigkeit(){ return Math.min(4.5, 2.4 + Math.floor(punkte / 5) * 0.15); }
+
+  function neuerFelsen(vonX){
+    const gapHoehe = aktuelleGapHoehe();
+    const gapY = zufall(gapHoehe / 2 + RAND_ABSTAND, CANVAS_H - gapHoehe / 2 - RAND_ABSTAND);
+    return {
+      x: vonX, breite: FELS_BREITE, gapY, gapHoehe,
+      bestanden: false,
+      schatz: Math.random() < 0.28 ? { gesammelt: false } : null
+    };
+  }
+
+  function starteSpiel(){
+    laufend = true;
+    drache = { y: CANVAS_H / 2, vy: 0, rotation: 0 };
+    felsen = [neuerFelsen(CANVAS_W + 100)];
+    punkte = 0;
+    absturz = null;
+    hintergrundVersatzFern = 0; hintergrundVersatzNah = 0;
+
+    startBtn.classList.add("hidden");
+    startBtn.style.display = "none";
+    spielbereich.style.display = "block";
+    overlayEl.classList.add("hidden");
+    aktualisiereAnzeige();
+
+    letzterFrame = performance.now();
+    requestAnimationFrame(spielSchleife);
+  }
+  startBtn.addEventListener("click", starteSpiel);
+
+  function aktualisiereAnzeige(){
+    punkteAnzeigeEl.textContent = String(punkte);
+  }
+
+  function fluegelschlag(){
+    if (!laufend || absturz) return;
+    drache.vy = IMPULS;
+    letzterFluegelschlag = performance.now();
+  }
+  canvas.addEventListener("pointerdown", fluegelschlag);
+  window.addEventListener("keydown", e => {
+    if (e.key === " "){ fluegelschlag(); e.preventDefault(); }
+  });
+
+  function pruefeKollision(){
+    if (drache.y - DRACHE_R < 0 || drache.y + DRACHE_R > CANVAS_H) return true;
+    for (const f of felsen){
+      if (DRACHE_X + DRACHE_R > f.x && DRACHE_X - DRACHE_R < f.x + f.breite){
+        const oben = f.gapY - f.gapHoehe / 2, unten = f.gapY + f.gapHoehe / 2;
+        if (drache.y - DRACHE_R < oben || drache.y + DRACHE_R > unten) return true;
+      }
+    }
+    return false;
+  }
+
+  function spielSchleife(zeit){
+    if (!laufend) return;
+    const delta = Math.min(40, zeit - letzterFrame);
+    letzterFrame = zeit;
+    const faktor = delta / 16.6667;
+
+    if (absturz){
+      // Kurzer Trudel-Absturz statt abruptem Stopp.
+      drache.vy += SCHWERKRAFT * 1.6 * faktor;
+      drache.y += drache.vy * faktor;
+      drache.rotation += 0.18 * faktor;
+      zeichneAlles(zeit);
+      if (zeit - absturz.start > 650 || drache.y > CANVAS_H + 40){
+        beendeSpiel();
+        return;
+      }
+      requestAnimationFrame(spielSchleife);
+      return;
+    }
+
+    drache.vy += SCHWERKRAFT * faktor;
+    drache.y += drache.vy * faktor;
+    drache.rotation = Math.max(-0.5, Math.min(1.1, drache.vy * 0.09));
+
+    const geschwindigkeit = aktuelleGeschwindigkeit();
+    hintergrundVersatzFern = (hintergrundVersatzFern + geschwindigkeit * 0.25 * faktor) % CANVAS_W;
+    hintergrundVersatzNah = (hintergrundVersatzNah + geschwindigkeit * 0.55 * faktor) % CANVAS_W;
+
+    felsen.forEach(f => { f.x -= geschwindigkeit * faktor; });
+    felsen = felsen.filter(f => f.x + f.breite > -20);
+    const letzter = felsen[felsen.length - 1];
+    if (!letzter || letzter.x < CANVAS_W - SPAWN_ABSTAND){
+      felsen.push(neuerFelsen(CANVAS_W + 20));
+    }
+
+    felsen.forEach(f => {
+      if (!f.bestanden && f.x + f.breite < DRACHE_X - DRACHE_R){
+        f.bestanden = true;
+        punkte += 1;
+      }
+      if (f.schatz && !f.schatz.gesammelt){
+        const dx = DRACHE_X - (f.x + f.breite / 2), dy = drache.y - f.gapY;
+        if (Math.sqrt(dx * dx + dy * dy) < DRACHE_R + 10){
+          f.schatz.gesammelt = true;
+          punkte += 5;
+        }
+      }
+    });
+    aktualisiereAnzeige();
+
+    if (pruefeKollision()){
+      absturz = { start: zeit };
+    }
+
+    zeichneAlles(zeit);
+    requestAnimationFrame(spielSchleife);
+  }
+
+  // =========================================================
+  // Zeichnen — Parallax-Fjordkulisse, Farbverlauf-Himmel, Fels-
+  // formationen mit Moos-/Eis-Akzenten, Drache mit Flügelschlag.
+  // =========================================================
+  function zeichneBerge(versatz, hoehe, basisY, farbe){
+    ctx.fillStyle = farbe;
+    ctx.beginPath();
+    ctx.moveTo(-CANVAS_W + versatz, CANVAS_H);
+    for (let x = -CANVAS_W; x <= CANVAS_W * 2; x += 60){
+      const y = basisY - (Math.sin(x * 0.01) * 0.5 + 0.5) * hoehe;
+      ctx.lineTo(x + versatz, y);
+    }
+    ctx.lineTo(CANVAS_W * 2 + versatz, CANVAS_H);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function zeichneHimmel(){
+    const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+    grad.addColorStop(0, "#1c4d63");
+    grad.addColorStop(0.6, "#2a6f82");
+    grad.addColorStop(1, "#3a8f8a");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    zeichneBerge(-hintergrundVersatzFern, 90, CANVAS_H * 0.62, "rgba(15,45,58,0.55)");
+    zeichneBerge(-hintergrundVersatzNah, 60, CANVAS_H * 0.78, "rgba(10,35,45,0.75)");
+  }
+
+  function zeichneFelsen(){
+    felsen.forEach(f => {
+      const oben = f.gapY - f.gapHoehe / 2, unten = f.gapY + f.gapHoehe / 2;
+      ["oben", "unten"].forEach(teil => {
+        const y0 = teil === "oben" ? 0 : unten;
+        const h = teil === "oben" ? oben : CANVAS_H - unten;
+        const grad = ctx.createLinearGradient(f.x, 0, f.x + f.breite, 0);
+        grad.addColorStop(0, "#3a4a3f");
+        grad.addColorStop(0.5, "#4f6355");
+        grad.addColorStop(1, "#374538");
+        ctx.fillStyle = grad;
+        ctx.fillRect(f.x, y0, f.breite, h);
+        ctx.fillStyle = "rgba(90,140,90,0.35)";
+        for (let i = 0; i < 4; i++){
+          const my = teil === "oben" ? h - 8 - i * 16 : y0 + 8 + i * 16;
+          if (my > 0 && my < CANVAS_H) ctx.fillRect(f.x + 4, my, f.breite - 8, 5);
+        }
+        ctx.strokeStyle = "rgba(0,0,0,0.35)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(f.x, y0, f.breite, h);
+      });
+      if (f.schatz && !f.schatz.gesammelt){
+        ctx.font = "20px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("💎", f.x + f.breite / 2, f.gapY);
+      }
+    });
+  }
+
+  function zeichneDrache(){
+    ctx.save();
+    ctx.translate(DRACHE_X, drache.y);
+    ctx.rotate(drache.rotation);
+
+    const fluegelPhase = performance.now() - letzterFluegelschlag < 160 ? -0.7 : 0.3;
+    ctx.fillStyle = "#1f7a1f";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, DRACHE_R * 1.1, DRACHE_R * 0.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.rotate(fluegelPhase);
+    ctx.fillStyle = "#2AA329";
+    ctx.beginPath();
+    ctx.moveTo(-4, 0);
+    ctx.quadraticCurveTo(-18, -18, -2, -22);
+    ctx.quadraticCurveTo(6, -10, -4, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = "#1a1a1a";
+    ctx.beginPath();
+    ctx.moveTo(DRACHE_R * 0.9, -3);
+    ctx.lineTo(DRACHE_R * 1.6, 0);
+    ctx.lineTo(DRACHE_R * 0.9, 3);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(DRACHE_R * 0.5, -DRACHE_R * 0.3, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#111";
+    ctx.beginPath();
+    ctx.arc(DRACHE_R * 0.6, -DRACHE_R * 0.3, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function zeichneAlles(){
+    zeichneHimmel();
+    zeichneFelsen();
+    zeichneDrache();
+  }
+
+  // --- Spielende ---
+  async function beendeSpiel(){
+    laufend = false;
+    overlayEl.classList.remove("hidden");
+    endeMeldungEl.textContent = `${punkte} Punkte in dieser Schlucht erflogen`;
+    endeScoreEl.textContent = punkte + " Punkte";
+
+    if (punkte > bestwertGeladen){
+      bestwertGeladen = punkte;
+      bestAnzeigeEl.textContent = String(bestwertGeladen);
+    }
+
+    try {
+      const ref = doc(db, COL_DRACHENFLUG_HIGHSCORES, currentMember.id);
+      const bestehend = await getDoc(ref);
+      const bisherigerScore = bestehend.exists() ? (bestehend.data().score || 0) : 0;
+      if (!bestehend.exists() || punkte > bisherigerScore){
+        await setDoc(ref, { mitgliedName: currentMember.name, score: punkte, datum: new Date().toISOString() });
+      }
+    } catch (err) {}
+  }
+
+  document.getElementById("dfNeustartBtn").addEventListener("click", () => {
+    overlayEl.classList.add("hidden");
+    starteSpiel();
+  });
+})();
+</script>
+</body>
+</html>
