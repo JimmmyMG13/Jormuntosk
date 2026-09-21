@@ -523,6 +523,10 @@ export function anfrageStatusLabel(status){
 
 export const COL_IDEEN = "ideen";
 
+// Check-ins per QR-Code-Scan (Mitgliedskarte) oder manuelle Erfassung,
+// gruppiert nach frei wählbarem "ereignis"-Text (z.B. "Sommerlager 2026").
+export const COL_CHECKINS = "checkins";
+
 export const IDEEN_STATUS = ["neu", "diskussion", "geplant", "umgesetzt", "verworfen"];
 
 export function ideeStatusLabel(status){

@@ -185,6 +185,7 @@
       <button data-mod="mitglieder">Mitglieder &amp; Verwaltungsrechte</button>
       <button data-mod="anfragen">Anfragen <span id="anfragenBadge" class="badge-count" style="display:none;"></span></button>
       <button data-mod="ideen">Ideen-Board</button>
+      <button id="checkinNavBtn">Check-in 📷</button>
       <button data-mod="einstellungen">Einstellungen</button>
       <button data-mod="protokoll">Protokoll</button>
     </div>
@@ -374,6 +375,7 @@ document.querySelectorAll(".sidebar button[data-mod]").forEach(btn => {
     loadModule(btn.dataset.mod);
   });
 });
+document.getElementById("checkinNavBtn").addEventListener("click", () => { window.location.href = "checkin.html"; });
 
 function loadModule(mod){
   const container = document.getElementById("moduleContainer");

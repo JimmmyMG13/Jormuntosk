@@ -4,7 +4,7 @@
 // Anfragen, Aktivitätsprotokoll etc.) werden NIE gecacht, sondern laufen immer
 // live über das Netz — sonst würden veraltete Vereinsdaten angezeigt.
 
-const CACHE_NAME = "jormuntosk-shell-v9";
+const CACHE_NAME = "jormuntosk-shell-v10";
 
 const APP_SHELL = [
   "uebersicht.html",
@@ -14,6 +14,7 @@ const APP_SHELL = [
   "ideenboard.html",
   "mitgliederverzeichnis.html",
   "mitgliedskarte.html",
+  "checkin.html",
   "admin.html",
   "spiele.html",
   "spiel-runner.html",
