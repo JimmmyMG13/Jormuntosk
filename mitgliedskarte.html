@@ -42,15 +42,16 @@
 
   .karte{
     position:relative;
-    aspect-ratio:1.6;
+    min-height:230px;
     border-radius:16px;
     background:linear-gradient(135deg, #1f7a1f 0%, #2AA329 55%, #1a6b1a 100%);
     color:#fff;
     padding:clamp(12px,4.5vw,20px) clamp(14px,5vw,22px);
     box-shadow:0 8px 24px rgba(0,0,0,.25);
     display:flex;
-    flex-direction:column;
-    justify-content:space-between;
+    flex-direction:row;
+    align-items:stretch;
+    gap:clamp(10px,4vw,20px);
     overflow:hidden;
   }
   .karte::after{
@@ -61,6 +62,7 @@
     border-radius:50%;
     background:rgba(255,255,255,0.06);
   }
+  .karte-info{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:space-between;position:relative;z-index:1;}
   .karte-kopf{display:flex;align-items:center;gap:clamp(6px,2vw,10px);}
   .karte-kopf img{height:clamp(22px,7vw,34px);width:clamp(22px,7vw,34px);border-radius:50%;background:#fff;padding:2px;flex-shrink:0;}
   .karte-kopf .titel{font-size:clamp(8px,2.6vw,11px);letter-spacing:.08em;text-transform:uppercase;opacity:.85;}
@@ -68,11 +70,12 @@
   .karte-name{font-size:clamp(15px,6vw,24px);font-weight:bold;margin-top:6px;overflow-wrap:anywhere;}
   .karte-spitzname{font-size:clamp(10px,3vw,13px);opacity:.85;margin-top:-2px;}
   .karte-funktion{display:inline-block;margin-top:6px;font-size:clamp(9px,2.6vw,11px);background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:999px;width:fit-content;}
-  .karte-reihe{display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;opacity:.9;position:relative;z-index:1;gap:4px;}
+  .karte-reihe{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 4px;font-size:11px;opacity:.9;}
   .karte-reihe div{line-height:1.5;}
   .karte-reihe .label{opacity:.75;font-size:clamp(7px,2.2vw,10px);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
   .karte-reihe .wert{font-size:clamp(9px,3vw,13px);font-weight:bold;white-space:nowrap;}
-  .karte-qr{position:absolute;top:5%;right:5%;width:clamp(95px,24%,150px);aspect-ratio:1;box-sizing:border-box;background:#fff;border-radius:14%;padding:8%;line-height:0;z-index:1;}
+  .karte-qr-spalte{flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
+  .karte-qr{width:clamp(110px,34vw,190px);aspect-ratio:1;box-sizing:border-box;background:#fff;border-radius:10%;padding:6%;line-height:0;}
   .karte-qr svg{display:block;width:100%;height:100%;}
 
   .aktionen{display:flex;justify-content:center;gap:10px;margin-top:20px;}
@@ -107,24 +110,27 @@
   </div>
 
   <div class="karte" id="karteEl">
-    <div class="karte-qr" id="karteQr"></div>
-    <div class="karte-kopf">
-      <img id="karteLogoImg" src="" alt="">
-      <div class="titel">Jörmuntösk<b>Mitgliedsausweis</b></div>
+    <div class="karte-info">
+      <div class="karte-kopf">
+        <img id="karteLogoImg" src="" alt="">
+        <div class="titel">Jörmuntösk<b>Mitgliedsausweis</b></div>
+      </div>
+      <div>
+        <div class="karte-name" id="kName">–</div>
+        <div class="karte-spitzname" id="kSpitzname"></div>
+        <div class="karte-funktion" id="kFunktion" style="display:none;"></div>
+      </div>
+      <div class="karte-reihe">
+        <div><div class="label">Mitglied seit</div><div class="wert" id="kSeit">–</div></div>
+        <div><div class="label">Status</div><div class="wert" id="kStatus">–</div></div>
+        <div><div class="label">Sippenjahr</div><div class="wert" id="kSippenjahr">–</div></div>
+        <div><div class="label">Abzeichen</div><div class="wert" id="kAbzeichenWert">–</div></div>
+      </div>
     </div>
-    <div>
-      <div class="karte-name" id="kName">–</div>
-      <div class="karte-spitzname" id="kSpitzname"></div>
-      <div class="karte-funktion" id="kFunktion" style="display:none;"></div>
-    </div>
-    <div class="karte-reihe">
-      <div><div class="label">Mitglied seit</div><div class="wert" id="kSeit">–</div></div>
-      <div><div class="label">Status</div><div class="wert" id="kStatus">–</div></div>
-      <div style="text-align:right;"><div class="label">Sippenjahr</div><div class="wert" id="kSippenjahr">–</div></div>
+    <div class="karte-qr-spalte">
+      <div class="karte-qr" id="karteQr"></div>
     </div>
   </div>
-
-  <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:14px;" id="kAbzeichen"></p>
 
   <div class="aktionen">
     <button class="btn" id="speichernBtn">Karte als Bild speichern</button>
@@ -161,9 +167,7 @@ if (member.funktion){
 document.getElementById("kSeit").textContent = member.eintrittsdatum ? formatDate(member.eintrittsdatum) : "–";
 document.getElementById("kStatus").textContent = member.status === "probezeit" ? "Probezeit" : "Aktiv";
 document.getElementById("kSippenjahr").textContent = `${sippenjahr} · ${tier.emoji}`;
-document.getElementById("kAbzeichen").textContent = anzahlAbzeichen > 0
-  ? `🏅 ${anzahlAbzeichen} Abzeichen gesammelt`
-  : "Noch keine Abzeichen gesammelt";
+document.getElementById("kAbzeichenWert").textContent = `🏅 ${anzahlAbzeichen}`;
 
 // QR-Code: kodiert die interne Mitglieds-ID, komplett offline erzeugt (keine
 // Daten gehen an Dritte). Aktuell ohne Scan-Gegenstück - Grundlage für ein
@@ -258,27 +262,32 @@ document.getElementById("speichernBtn").addEventListener("click", async () => {
     ctx.fillText(member.funktion, 62, yUnterName + 7);
   }
 
-  // Untere Infozeile
+  // Untere Infozeile (4 Spalten, bleibt innerhalb der linken Textspalte,
+  // damit sie nicht mit der QR-Spalte rechts kollidiert)
   const zeileY = H - 70;
+  const spalten = [50, 210, 370, 530];
   ctx.font = "11px Arial";
   ctx.globalAlpha = .75;
-  ctx.fillText("MITGLIED SEIT", 50, zeileY - 22);
-  ctx.fillText("STATUS", 400, zeileY - 22);
-  ctx.fillText("SIPPENJAHR", 750, zeileY - 22);
+  ctx.fillText("MITGLIED SEIT", spalten[0], zeileY - 22);
+  ctx.fillText("STATUS", spalten[1], zeileY - 22);
+  ctx.fillText("SIPPENJAHR", spalten[2], zeileY - 22);
+  ctx.fillText("ABZEICHEN", spalten[3], zeileY - 22);
   ctx.globalAlpha = 1;
   ctx.font = "bold 16px Arial";
-  ctx.fillText(member.eintrittsdatum ? formatDate(member.eintrittsdatum) : "–", 50, zeileY);
-  ctx.fillText(member.status === "probezeit" ? "Probezeit" : "Aktiv", 400, zeileY);
-  ctx.fillText(`${sippenjahr} · ${tier.emoji}`, 750, zeileY);
+  ctx.fillText(member.eintrittsdatum ? formatDate(member.eintrittsdatum) : "–", spalten[0], zeileY);
+  ctx.fillText(member.status === "probezeit" ? "Probezeit" : "Aktiv", spalten[1], zeileY);
+  ctx.fillText(`${sippenjahr} · ${tier.emoji}`, spalten[2], zeileY);
+  ctx.fillText(`🏅 ${anzahlAbzeichen}`, spalten[3], zeileY);
 
-  // QR-Code oben rechts (weisse Box + Code aus einer Data-URL geladen)
-  const qrGrösse = 280;
-  const qrX = W - qrGrösse - 30, qrY = 24;
-  roundedRect(ctx, qrX, qrY, qrGrösse, qrGrösse, 14);
+  // QR-Code: eigene rechte Spalte, vertikal zentriert (weisse Box, Code aus
+  // einer Data-URL geladen)
+  const qrGrösse = 260;
+  const qrX = W - qrGrösse - 40, qrY = (H - qrGrösse) / 2;
+  roundedRect(ctx, qrX, qrY, qrGrösse, qrGrösse, 16);
   ctx.fillStyle = "#fff";
   ctx.fill();
-  const qrImg = await ladeQrAlsBild(qrInhalt, qrGrösse - 24);
-  ctx.drawImage(qrImg, qrX + 12, qrY + 12, qrGrösse - 24, qrGrösse - 24);
+  const qrImg = await ladeQrAlsBild(qrInhalt, qrGrösse - 28);
+  ctx.drawImage(qrImg, qrX + 14, qrY + 14, qrGrösse - 28, qrGrösse - 28);
 
   function roundedRect(c, x, y, w, h, r){
     c.beginPath();
