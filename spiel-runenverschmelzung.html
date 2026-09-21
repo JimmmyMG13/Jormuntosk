@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Runen-Verschmelzung — Jörmuntösk</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABe2lDQ1BJQ0MgUHJvZmlsZQAAeJx1kblLQ0EQh78kilc8QAsLiyDRKhEPCLGxSPACtUgiGLVJXi4hx+O9BAm2gq2gINp4FfoXaCtYC4KiCGKtraKNhue8RIiI2WVmvv3tzrA7C9ZQWsnodYOQyea1wKTPsRBedDS80ESbmBdrRNHV2eBEiJrj4w6LGW/cZq3a5/4dLbG4roClUXhMUbW88JTwzGpeNXlbuEtJRWLCp8IuTS4ofGvq0Qo/m5ys8JfJWijgB2uHsCP5i6O/WElpGWF5Oc5MuqD83Md8iT2enQ9K7BXrQSfAJD4cTDOOHw9DjIr34GaYAVlRI3+wnD9HTnIV8SpFNFZIkiKPS9SCVI9LTIgel5mmaPb/b1/1xMhwpbrdB/VPhvHWBw1bUNo0jM9Dwygdge0RLrLV/NwBeN9F36xqzn1oX4ezy6oW3YHzDeh+UCNapCzZxKyJBLyeQGsYOq+heanSs599ju8htCZfdQW7e9Av59uXvwFg9mfjL9tMFQAADb5JREFUeNrlm2mMXWUZx//n3DOdpdNpO9OFMl3oRhdKS5GtlNJSS2RxY4vYEAOiBI0a4xIT4wcjXzTRRIlRUQQDSsCiYEKVtlQsEhCYShVomZYWhtLp3pm2s/XO3Hv80N+bPrzznjtrC4k3ubnLOec973P9n//zvO+J9GOl+j9+JR/o3VPe9hXx7s+16ue5HyoFFPnMSSrj0wmdSipI6uZTkuKMcUZwzYmhKSEZdkvGJQSPJFVyTpuk/ZKOSDrO8QpJtZImSRqNErqM0iJzj90cnyqpZ/BKSIYsuCSVY80eLBJSTiWCbJO0WdJOSYcCY1ZKGotgiyTNkVTNtT0I3yPpfkmtkr4tabKk/OCUkAxJ+DK+75D0nqSJkmYz2dS4apmkNyWtk7TdjDFW0lFj3RhhqyQdlvQkY50raQbnR3hMKmmMUewgX9GgskCK1fdLelxSI5PcLukrkubhnjlJzZI2SHrZA7qbJF0haYukhwKAOEbSBZKmS9qKt3RisjpJ50mai8K6z2QIpFx1WNIvJLUQux/HrSdJOiapSdKrvPMG6EZLulXSxbjybBTlC9Eq6R+SRkq6kzESlFBmALD7TINgilvvQvgcQPUbSdMQ+Agg56yd4BG1klbgtv+S1CHpRSNE6nmJ8J6pkp6RtASvSCW1m7A5o2kwRuD5kmZhdRGXr2corIfvhwmZUoDq/87zeZBQeVbSKkmLOefE0JQwOBB0KetuSfv4rwIruzx+HE/YB1Y0476RZ+UQGbLHc8aDItLfg5JekvRpMkDbAAjUsCggwjIVxHAzrt8IqufBgmskfZK090c8J+on83PpbhbjHTfnRgDjTpRwJcpNB66EwWFAJGmUpHeJ0S2GuVVKWippJZ7wM5TjhCoOwMvGS7pR0mMBXhHj/o9J2iPpFhRWHJgSkgG7vkPgtZLWI6QTbqWkqyTVS3qFmD1uXL0IqtfxHkMaK+d4CyGTkvenS3oUwM0ZJVtmGUl6nvvc4R0bVgW4uG+V9Htyfmxy9mpysyQ9J+kBz2pzJV2GS1dz5xB49RiStZuxnfCxhxnue07SfyQ9LOl2Qm1YPaCIazdL+jVoXob1p5Kn60hNBUl/MqPPBbVnIECe6/IZlLmMd0HSOZK+BtN8grhXIGU60rVZ0jhw4Xj/skPSb8s3S/o5AycIMVvSXfCCdiZ+woCdq/hm8H/qAZl/j4TM8R6fRbxlGop4SdIfUJ6PJ85D1nH+IuYUD0UBziJHJd2H8DncdBrCJwjn/h8LKm/g/44+StsUXNgN83vdkCibEaaTUb4n6ZeS9gaU4BT8CDhU03el2HctkEi61wOi0ZK+yQ3yAcFykt7AExagxDRD+ApJGwHV7ozUaIVcJelalPBWQAnu9zxJX85Ivd7p2a5fJemvRniHrquJ+SwWVpC0UNLlKMlNqhjAlbVUfd2cFyJHOY7FUOInJH0dryh6c3C/t0l6ARmKA1WAq/aasI5F3yUI18bEUiOcexe8gmYPsTwSAV3M75D0tBG8aNw49cZz33OkvS2Svkp94ac9N8ZTzCHJZpvZCsgxuYKZXBXsrsv8l8OS1UbIGmL5RzDAcmJ8HYwt5rrnMnp8rta/GUvfAvGy7PFp5nNbQIrU9A2eRdlpf0HQWv81T7NLYGdHuXkODe+E73egjHYmWEvMup6BJF3IXY8RWqEG5zhJ3yIsnieVfkHST42XNHPfhZKWSdrk4YFTwguSlmOYQm88SDKR/xVj4QJnXkLcj2LyLwB2xwKqnQwAvooA9bitC4MWc51VQBG0l6R7ANl1kr6L8g+YOe0nxX5UUoMpkS1d7kCWa0zRVFIBOU78r/f/NElnMcG/4FoOtetA3U7jNXOp9c8np4/i+pEIdSLglg7AZtMvyAN09YZA2TDoJM3VYpxnPZLkPhvoQ8R9YUARUrObSVttzTNEJy/pIlMXnIVlyrje9QEX46rjYHHLDNUdibJDHmgzQisx/AheY1ljrek3LA4wRBcGeyFXI3orPQ56wE7PJYUluonxhWi1mwEbEWg/buhaVycoi7djoUUAqOsOjQu0u1PCZrEpkJ5BkbFJx2fTh8yjgHqasmlGz2FHOBvEwfz/rndxpaQJptlxFs2QG8z/r0p6m/OPwcvbeF8JP28zQFVliqfIs9h6PGh1YG4FhL/DS8OV4EHWatHbYT4QB9tdB72z6kxvvggTPAAAFgzgOMJSkDSFQukIlZplZK6hssSgkHXfdtjnfMBvqaSZeN4tpMYJXkM05Z5Zrbb9JgUHQdB1e48HUH2Mqf7c5GdRu9cRp42GAM0E/NYYrTfQBnf1RB63XQ7ZynlEqFnSDyRdTwt9FAK4Jmw+QJfHZ/QXhUztGM/UB0kvD+gIrO5UG81FDDBO0mcNCL0H+ckzybUmjRb5vQCscN7QhoAHTdaJjRLy0N4NpLErTarz49xVjiEgFDK1U6xlhoC7aTGw9GXR1513DIt2AJLnSvonJKjN1AWCPD3IuTUoohIT3CnpOlC66JXNbh3xcVhlRR/t+iSjh6nw8lnS68TuAJBEhiHa+r3THOsy7hmq5iKQ+IfE8kRCq5b3zYTIBur+Dq8yjGGFIyFKfq3fn+XygplvNJCO0Am0+wasLCVNrUAJDoUPBtKnn5OP4iVWuWMBsItQxHWc87zhI44krSd7nKP3L41Hpi2f9cr1TpNJr0mGyqM2jr3DxTuhwkVq8w5Acpux+EyyQCfx3eG5tg2pIyZbPEXKvAH0/zMeYa/ZKOmLnjCx13wJKb+8Lx7g4shH0laAbipWXsz/T0KLdwGCB/h/EdS5gfOvJu/7ZW7qrQzHpKv7aH1VU+1N9+bTaPqSlve3BKSKzCp1oDcQBzs0ZZ4SDhlm1wWIXc3xteTsjQY/JuLCiyBVW6kN0hJtMSuIa3ysYdJXeQJ1oWzL7GIob9arJlwRJsHub4UHhp0wqUsYqJwY3Evqi8yagb+sdSEKmFhilSkNFDA5minzCSfbGpdJhzb+m0qMP94AdxzyANupqQm40Fscnw4V7ZT0OUkfMfWAY2J7ydkJuDGRdJk1uQRSNIOxc8ZS6/G8ouct5Z6yWowCQkRoSrj4CleD4wL09DXyqCtLnTVu18lNERfDA8o5dzN1+H6suMPLDpFZAVqGhUZAcZcz4ZQQWuMB3kjwqNsoY4exbogIzQgDZBJUySQQ2SLoHsDuXJ3apJCgkNlM4imjmBaOX49COjyXTQHKybTG7OTKUEon+LPNzK1AdhhrGhxFADfLw0ah0O5StYD1gqkZfbpNOrlpKUc+X4Nrt5HG/AbKeUz+7UD7OsEqm0yOd8e78Z6FKMDl7wJg+jFDlMrJQNsD/MPNew41QHtfCnBLV9NIQVbDEYC3nYk9xPFDTCZGy7MohGo45x2PDTpBJ5jVH/ffbNJbi05tnSs3tclSCiO7VlAm6e/e2qHv/osH0hR1qzvn09Ky1NG1w+ZAX1u55kvEZT0T7uF9N6SpAU/oMq6eYBEnzBzue8i4uiU5q1FAuwHCKsZtKGH98Yzd1Z+WmK32LvdA0FmqiVi/DXDrYBJTmHQbFitgnUUUO9+B3V1KWpusU7tEXZ5uxPqu6eG2wNQBsm1mPk6Bj2ZY1427rPTiSBK8sIv4vIBOj13Zian2piDQFCZfCBCdFAW5FtZmUmQ1Sp6A0DEofgnx7LbCvWyYZWK4f8zv38I04wzr16Lwzuw1sDiTnHSbEjX1uLgk/Q50vwzhCiUqMVf7z0PArQhXhdsXCadNCHmU7+2k5FWmi+xWnB+iOAvtOnEKuBZlFwa6NBaZjs01GQrIw9lfNCsvacbKr2OP81mwdK2zBkKt0lSdOwmzIve/i+N5FFbQyS15DRnCxwZTLjUAPeDl8RgLrMJNG83gtilyP6Gw0mx8cHy+DEu2YomxuKyjrofxjG9Q/DTp/TvHp9OA7SKN7eK85j4sXyXpM+rXfqTSy+OpAZufAFBRoPmQghc34rIu3z4CB2gNeEgZZe8KwqxL0ve5h01x9+A9z9CL6FH2Ziv3/+eh6EPeIOGwYDRrc/caIPK3yG/Bfa8lXXURy462FsCMhN6gA6eXUMA2eIGjtlfw3sES/d4SzRaZ+uF6Gitt6tcWmf5tli7gwm/o5B6hnhIbE9y64Eq4xG4wYA/XnY1Cf0U4dJoxKhH6IpSxkSJMKr3Fzh1bQdu8Xf3ePdr/3eJWCQ8YYuGnH2uhCYDcXNJlBdfskvRvskE7cT6TqvEAi677AmGWletTegY3qfdu1GFTgFVCE0o4VAKMfFediBImoZgqKsWUSe8GaLu89njah9Ul6RNkq45+NEaHpACnhCpa4g/r5IMQUUZsRiVitlT26Wv/sF0HuJWmS5sGtWl6cA9M2B2jf6NpkfYhsN8qTwNN0mIfgGzHXoDLTxhYzA8sC5Syklte+hQMby2I7T885XdysvqBpYS2PcPxuPvFjD0E4QfvAb43OCa4FWb4pt6/EzS0gBF6OEKBlrkMoC6FelcPLt6HzwNCK8oRbrkAcNtK/6ApsNaYtYLrf6+hv3CBTj0f1Dl0qw+vB/je4HrwIwiTQ2YhZR/kyG1tcU2SMshPDVVgPeSpHs4gU2LHGtZXdFqeHbYAl5jFlm4EcQ87+Qpwzx+6hki3Tj1uE+u0vE7Po7MW2Xu8NQanED8jFL1z7YrRaXyd/meHQ+mvp8R5kc7o64N5ejzSh+b1P1KEut6ms5YlAAAAAElFTkSuQmCC">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2AA329">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Jörmuntösk">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+    --accent:#2AA329; --accent-dark:#1f7a1f; --bg:#F7F8F6; --surface:#FFFFFF;
+    --text:#1A1A1A; --text-muted:#5A5F58; --border:#DDE3DA;
+    --shadow:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  [data-theme="dark"]{
+    --bg:#141713; --surface:#1E221D; --text:#EDEFEA; --text-muted:#A2A89C;
+    --border:#31362C; --shadow:0 1px 3px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand img{height:40px;width:40px;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
+  .brand-text .name{font-weight:bold;color:var(--accent);font-size:18px;}
+  .brand-text .sub{font-size:12px;color:var(--text-muted);}
+  .icon-btn{background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:16px;color:var(--text);}
+  .icon-btn:hover{border-color:var(--accent);}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .btn:hover{opacity:.92;}
+  .btn.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+
+  .spiel-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-top:20px;}
+  .spiel-card h3{margin:0 0 10px 0;font-size:22px;color:var(--accent);text-align:center;}
+  .status-zeile{display:flex;justify-content:center;gap:22px;margin-bottom:10px;font-size:13px;color:var(--text-muted);}
+  .status-zeile b{color:var(--text);font-size:15px;}
+
+  .game-stage{position:relative;}
+  .game-stage-static{min-height:280px;display:flex;flex-direction:column;justify-content:center;}
+  .game-start-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:18px 52px;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .game-start-overlay:hover{opacity:.92;}
+  .hidden{display:none;}
+  .back-btn{position:fixed;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:20px;cursor:pointer;z-index:1001;box-shadow:var(--shadow);font-family:inherit;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+  .back-btn:hover{border-color:var(--accent);}
+  main{max-width:900px;margin:0 auto;padding:70px 20px 40px;}
+  footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
+
+  .rv-kartenwrap{position:relative;max-width:380px;margin:0 auto;}
+  .rv-kartenwrap canvas{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--border);touch-action:none;background:#1a1610;}
+  .rv-steuerkreuz{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,44px);gap:6px;justify-content:center;margin-top:14px;}
+  .rv-steuerkreuz button{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:18px;cursor:pointer;font-family:inherit;}
+  .rv-steuerkreuz button:hover{border-color:var(--accent);}
+  #rvUpBtn{grid-column:2;grid-row:1;}
+  #rvLinksBtn{grid-column:1;grid-row:2;}
+  #rvRechtsBtn{grid-column:3;grid-row:2;}
+  #rvUntenBtn{grid-column:2;grid-row:2;}
+  .rv-hinweis{text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;}
+  .rv-banner{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(212,175,55,0.95);color:#2a1f00;padding:8px 16px;border-radius:999px;font-size:12px;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,.3);opacity:0;transition:opacity .4s ease;pointer-events:none;}
+  .rv-banner.zeigen{opacity:1;}
+
+  .rv-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.6);border-radius:12px;}
+  .rv-overlay.hidden{display:none;}
+  .rv-ende{background:var(--surface);border-radius:12px;padding:26px 22px;text-align:center;max-width:280px;width:100%;}
+  .rv-ende h4{font-size:19px;margin:0 0 6px 0;color:var(--accent);}
+  .rv-ende p{font-size:13px;color:var(--text-muted);margin:4px 0;}
+  .rv-ende .rv-score{font-size:32px;font-weight:bold;color:var(--accent);margin:10px 0;}
+
+  @media (max-width: 640px){
+    header{padding:6px 12px;}
+    .brand img{height:28px;width:28px;}
+    .brand-text .name{font-size:13px;}
+    .brand-text .sub{font-size:9px;}
+    .icon-btn{width:26px;height:26px;font-size:12px;}
+    .back-btn{width:32px;height:32px;font-size:14px;top:8px;right:8px;}
+    main{padding:8px 8px 4px;}
+    .spiel-card{padding:8px 10px;margin-top:6px;}
+    .spiel-card h3{font-size:16px;margin-bottom:6px;}
+    .status-zeile{font-size:10px;gap:14px;margin-bottom:6px;}
+    .status-zeile b{font-size:12px;}
+    .game-start-overlay{padding:12px 32px;font-size:15px;}
+    .rv-steuerkreuz{grid-template-columns:repeat(3,42px);grid-template-rows:repeat(2,38px);}
+    .rv-hinweis{font-size:10px;}
+  }
+  @media (orientation: landscape) and (max-height: 500px){
+    header{padding:3px 10px;}
+    main{padding:4px 6px 2px;}
+    .spiel-card{padding:4px 10px 6px;}
+    .spiel-card h3{font-size:13px;margin-bottom:4px;}
+    .status-zeile{font-size:10px;margin-bottom:4px;}
+    .rv-kartenwrap{max-width:none;width:auto;}
+    .rv-kartenwrap canvas{width:auto;height:min(66vh,420px);max-width:100%;margin:0 auto;display:block;}
+    .rv-hinweis{display:none;}
+    .rv-steuerkreuz{margin-top:6px;grid-template-columns:repeat(3,36px);grid-template-rows:repeat(2,32px);}
+  }
+</style>
+</head>
+<body>
+
+<div id="appRoot" style="display:none;">
+<header>
+  <div class="brand">
+    <img id="logoImg" src="" alt="Jörmuntösk Logo">
+    <div class="brand-text"><span class="name">Jörmuntösk</span><span class="sub">Runen-Verschmelzung</span></div>
+  </div>
+  <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
+    <button class="icon-btn" id="themeToggle" title="Darstellung wechseln">🌓</button>
+    <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
+  </div>
+</header>
+
+<a class="back-btn" href="spiele.html" title="Zurück zu Spielen">✕</a>
+
+<main>
+  <div class="spiel-card" data-widget="runenverschmelzung">
+    <h3>ᚠ Runen-Verschmelzung</h3>
+    <div class="game-stage game-stage-static">
+      <button class="game-start-overlay" id="rvStartBtn">Start</button>
+      <div id="rvSpielbereich" style="display:none;">
+        <div class="status-zeile">
+          <div>Punkte<br><b id="rvPunkteAnzeige">0</b></div>
+          <div>Höchste Rune<br><b id="rvHoechsteAnzeige">–</b></div>
+          <div>Verschmelzungen<br><b id="rvVerschmelzAnzeige">0</b></div>
+        </div>
+        <div class="rv-kartenwrap">
+          <canvas id="rvCanvas" width="380" height="380"></canvas>
+          <div class="rv-banner" id="rvBanner">🌳 Yggdrasil-Bindrune erschaffen!</div>
+          <div class="rv-overlay hidden" id="rvOverlay">
+            <div class="rv-ende">
+              <h4>Kein Zug mehr möglich</h4>
+              <p id="rvEndeMeldung"></p>
+              <div class="rv-score" id="rvEndeScore"></div>
+              <button class="btn secondary" id="rvNeustartBtn">Nochmal verschmelzen</button>
+            </div>
+          </div>
+        </div>
+        <div class="rv-steuerkreuz">
+          <button type="button" id="rvUpBtn">▲</button>
+          <button type="button" id="rvLinksBtn">◀</button>
+          <button type="button" id="rvRechtsBtn">▶</button>
+          <button type="button" id="rvUntenBtn">▼</button>
+        </div>
+        <p class="rv-hinweis">Wischen, Pfeiltasten oder Steuerkreuz. Zwei gleiche Runen verschmelzen beim Zusammentreffen zur nächsthöheren.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
+</div>
+
+<script type="module">
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, COL_RUNENVERSCHMELZUNG_HIGHSCORES } from "./common.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+initTheme("themeToggle");
+applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
+document.getElementById("logoutBtn").addEventListener("click", memberLogout);
+
+const currentMember = await requireMemberLogin();
+
+(function initRunenverschmelzung(){
+  const startBtn = document.getElementById("rvStartBtn");
+  const spielbereich = document.getElementById("rvSpielbereich");
+  const canvas = document.getElementById("rvCanvas");
+  const ctx = canvas.getContext("2d");
+  const overlayEl = document.getElementById("rvOverlay");
+  const endeMeldungEl = document.getElementById("rvEndeMeldung");
+  const endeScoreEl = document.getElementById("rvEndeScore");
+  const punkteAnzeigeEl = document.getElementById("rvPunkteAnzeige");
+  const hoechsteAnzeigeEl = document.getElementById("rvHoechsteAnzeige");
+  const verschmelzAnzeigeEl = document.getElementById("rvVerschmelzAnzeige");
+  const bannerEl = document.getElementById("rvBanner");
+
+  const N = 4;
+  const PAD = 23, CELL = 76, GAP = 10;
+  const CANVAS_W = 380, CANVAS_H = 380;
+  const RING_MITTE_X = CANVAS_W / 2, RING_MITTE_Y = CANVAS_H / 2, RING_RADIUS = CANVAS_W / 2 - 4;
+
+  // =========================================================
+  // Elf Futhark-Runenstufen statt blosser Zahlen - vom Alltäglichen
+  // (Fehu, Vieh/Wohlstand) zum Kosmischen (Yggdrasil-Bindrune).
+  // =========================================================
+  const RUNEN_STUFEN = {
+    1: { symbol: "ᚠ", name: "Fehu", farbe: "#8a8a8a" },
+    2: { symbol: "ᚢ", name: "Uruz", farbe: "#7a6a52" },
+    3: { symbol: "ᚦ", name: "Thurisaz", farbe: "#6e5a48" },
+    4: { symbol: "ᚱ", name: "Raidho", farbe: "#5f7a8a" },
+    5: { symbol: "ᚲ", name: "Kaunan", farbe: "#9c7a4a" },
+    6: { symbol: "ᚷ", name: "Gebo", farbe: "#4a8f3f" },
+    7: { symbol: "ᚹ", name: "Wunjo", farbe: "#3fae2f" },
+    8: { symbol: "ᛏ", name: "Tiwaz", farbe: "#2f9e6a" },
+    9: { symbol: "ᛒ", name: "Berkanan", farbe: "#b89a3a" },
+    10: { symbol: "ᛗ", name: "Mannaz", farbe: "#c9a227" },
+    11: { symbol: "🌳", name: "Yggdrasil-Bindrune", farbe: "#d4af37", besonders: true }
+  };
+  function stufenWert(stufe){ return Math.pow(2, stufe) * 5; }
+
+  let laufend = false;
+  let brett, punkte, hoechsteStufe, verschmelzungen, yggdrasilGezeigt;
+  let animation = null; // {start, dauer, eintraege, neuesBrett, mergedZiele, spawnZiel}
+  let poppingZellen = []; // {r,c,start,dauer}
+
+  function leeresBrett(){ return Array.from({ length: N }, () => Array(N).fill(0)); }
+
+  function freieZellen(){
+    const liste = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (brett[r][c] === 0) liste.push([r, c]);
+    return liste;
+  }
+  function spawnStein(){
+    const frei = freieZellen();
+    if (frei.length === 0) return null;
+    const [r, c] = frei[Math.floor(Math.random() * frei.length)];
+    brett[r][c] = Math.random() < 0.9 ? 1 : 2;
+    return { r, c };
+  }
+
+  function starteSpiel(){
+    laufend = true;
+    brett = leeresBrett();
+    punkte = 0; hoechsteStufe = 0; verschmelzungen = 0; yggdrasilGezeigt = false;
+    animation = null; poppingZellen = [];
+    spawnStein(); spawnStein();
+    aktualisiereHoechste();
+
+    startBtn.classList.add("hidden");
+    startBtn.style.display = "none";
+    spielbereich.style.display = "block";
+    overlayEl.classList.add("hidden");
+    bannerEl.classList.remove("zeigen");
+    aktualisiereAnzeige();
+
+    requestAnimationFrame(zeichnFrame);
+  }
+  startBtn.addEventListener("click", starteSpiel);
+
+  function aktualisiereHoechste(){
+    let h = 0;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (brett[r][c] > h) h = brett[r][c];
+    hoechsteStufe = h;
+  }
+  function aktualisiereAnzeige(){
+    punkteAnzeigeEl.textContent = String(punkte);
+    hoechsteAnzeigeEl.textContent = hoechsteStufe > 0 ? RUNEN_STUFEN[hoechsteStufe].symbol : "–";
+    verschmelzAnzeigeEl.textContent = String(verschmelzungen);
+  }
+
+  // =========================================================
+  // Bewegungslogik: pro Zeile/Spalte verarbeiten. Statt persistenter
+  // Stein-IDs wird pro Zug frisch berechnet, welche Ursprungsfelder in
+  // welches Zielfeld einfliessen - reicht für eine flüssige Gleit-
+  // Animation und ist einfacher robust zu halten.
+  // =========================================================
+  function verarbeiteLinie(eingabe){
+    const ausgabe = [];
+    let linienPunkte = 0;
+    let i = 0;
+    while (i < eingabe.length){
+      const aktuelles = eingabe[i];
+      if (i + 1 < eingabe.length && eingabe[i + 1].stufe === aktuelles.stufe && aktuelles.stufe < 11){
+        const neueStufe = aktuelles.stufe + 1;
+        linienPunkte += stufenWert(neueStufe);
+        ausgabe.push({ stufe: neueStufe, quellen: [aktuelles.pos, eingabe[i + 1].pos], merged: true });
+        i += 2;
+      } else {
+        ausgabe.push({ stufe: aktuelles.stufe, quellen: [aktuelles.pos], merged: false });
+        i += 1;
+      }
+    }
+    return { ausgabe, linienPunkte };
+  }
+
+  function versucheBewegung(richtung){
+    if (!laufend || animation) return;
+    const neuesBrett = leeresBrett();
+    const eintraege = [];
+    const mergedZiele = [];
+    let veraendert = false;
+    let gesamtPunkte = 0;
+    let neueVerschmelzungen = 0;
+
+    function verarbeiteLinieUndSchreibe(positionen, zielFn){
+      const eingabe = [];
+      positionen.forEach(([r, c]) => { if (brett[r][c] !== 0) eingabe.push({ stufe: brett[r][c], pos: [r, c] }); });
+      const { ausgabe, linienPunkte } = verarbeiteLinie(eingabe);
+      gesamtPunkte += linienPunkte;
+      ausgabe.forEach((eintrag, zielIndex) => {
+        const [zr, zc] = zielFn(zielIndex);
+        neuesBrett[zr][zc] = eintrag.stufe;
+        eintrag.quellen.forEach(([qr, qc]) => eintraege.push({ vonR: qr, vonC: qc, nachR: zr, nachC: zc, stufe: eintrag.merged ? eintrag.stufe - 1 : eintrag.stufe }));
+        if (eintrag.merged){ mergedZiele.push([zr, zc]); neueVerschmelzungen++; }
+      });
+    }
+
+    if (richtung === "links"){
+      for (let r = 0; r < N; r++) verarbeiteLinieUndSchreibe([[r,0],[r,1],[r,2],[r,3]], i => [r, i]);
+    } else if (richtung === "rechts"){
+      for (let r = 0; r < N; r++) verarbeiteLinieUndSchreibe([[r,3],[r,2],[r,1],[r,0]], i => [r, 3 - i]);
+    } else if (richtung === "oben"){
+      for (let c = 0; c < N; c++) verarbeiteLinieUndSchreibe([[0,c],[1,c],[2,c],[3,c]], i => [i, c]);
+    } else if (richtung === "unten"){
+      for (let c = 0; c < N; c++) verarbeiteLinieUndSchreibe([[3,c],[2,c],[1,c],[0,c]], i => [3 - i, c]);
+    }
+
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (brett[r][c] !== neuesBrett[r][c]) veraendert = true;
+    if (!veraendert) return;
+
+    punkte += gesamtPunkte;
+    verschmelzungen += neueVerschmelzungen;
+
+    animation = { start: performance.now(), dauer: 130, eintraege, neuesBrett, mergedZiele };
+  }
+
+  function schliesseAnimationAb(){
+    brett = animation.neuesBrett;
+    const jetzt = performance.now();
+    animation.mergedZiele.forEach(([r, c]) => poppingZellen.push({ r, c, start: jetzt, dauer: 220 }));
+    animation = null;
+
+    const neuesFeld = spawnStein();
+    if (neuesFeld) poppingZellen.push({ r: neuesFeld.r, c: neuesFeld.c, start: jetzt, dauer: 220, einwachsen: true });
+
+    aktualisiereHoechste();
+    aktualisiereAnzeige();
+
+    if (hoechsteStufe === 11 && !yggdrasilGezeigt){
+      yggdrasilGezeigt = true;
+      bannerEl.classList.add("zeigen");
+      setTimeout(() => bannerEl.classList.remove("zeigen"), 2600);
+    }
+
+    if (keineZuegeMehr()){
+      beendeSpiel();
+    }
+  }
+
+  function keineZuegeMehr(){
+    for (let r = 0; r < N; r++){
+      for (let c = 0; c < N; c++){
+        if (brett[r][c] === 0) return false;
+        if (c < N - 1 && brett[r][c] === brett[r][c + 1]) return false;
+        if (r < N - 1 && brett[r][c] === brett[r + 1][c]) return false;
+      }
+    }
+    return true;
+  }
+
+  // --- Steuerung ---
+  document.getElementById("rvUpBtn").addEventListener("click", () => versucheBewegung("oben"));
+  document.getElementById("rvUntenBtn").addEventListener("click", () => versucheBewegung("unten"));
+  document.getElementById("rvLinksBtn").addEventListener("click", () => versucheBewegung("links"));
+  document.getElementById("rvRechtsBtn").addEventListener("click", () => versucheBewegung("rechts"));
+  window.addEventListener("keydown", e => {
+    if (!laufend) return;
+    if (e.key === "ArrowUp"){ versucheBewegung("oben"); e.preventDefault(); }
+    else if (e.key === "ArrowDown"){ versucheBewegung("unten"); e.preventDefault(); }
+    else if (e.key === "ArrowLeft"){ versucheBewegung("links"); e.preventDefault(); }
+    else if (e.key === "ArrowRight"){ versucheBewegung("rechts"); e.preventDefault(); }
+  });
+
+  let beruehrStartX = null, beruehrStartY = null;
+  canvas.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    beruehrStartX = t.clientX; beruehrStartY = t.clientY;
+  }, { passive: true });
+  canvas.addEventListener("touchend", e => {
+    if (beruehrStartX === null) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - beruehrStartX, dy = t.clientY - beruehrStartY;
+    beruehrStartX = null; beruehrStartY = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+    if (Math.abs(dx) > Math.abs(dy)) versucheBewegung(dx > 0 ? "rechts" : "links");
+    else versucheBewegung(dy > 0 ? "unten" : "oben");
+  });
+
+  // =========================================================
+  // Zeichnen — gemeisselte Runensteine (gleicher Stil wie beim
+  // Mauerbau), ouroboros-artiger Ring ums Feld, weiche Gleit- und
+  // Pop-Animationen, besonderer Glanz für die Yggdrasil-Bindrune.
+  // =========================================================
+  function zellMitteX(c){ return PAD + c * (CELL + GAP) + CELL / 2; }
+  function zellMitteY(r){ return PAD + r * (CELL + GAP) + CELL / 2; }
+
+  function pfadRundesRechteck(x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function hellerFarbton(hex, betrag){ return verschiebeFarbton(hex, betrag); }
+  function dunklerFarbton(hex, betrag){ return verschiebeFarbton(hex, -betrag); }
+  function verschiebeFarbton(hex, betrag){
+    const h = hex.replace("#", "");
+    const r = Math.max(0, Math.min(255, parseInt(h.substring(0, 2), 16) + betrag));
+    const g = Math.max(0, Math.min(255, parseInt(h.substring(2, 4), 16) + betrag));
+    const b = Math.max(0, Math.min(255, parseInt(h.substring(4, 6), 16) + betrag));
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function zeichneRunenstein(cx, cy, stufe, skala, zeit){
+    const def = RUNEN_STUFEN[stufe];
+    const groesse = CELL * skala;
+    ctx.save();
+    if (def.besonders){
+      const puls = 1 + 0.05 * Math.sin(zeit * 0.005);
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = "#d4af37";
+      ctx.beginPath();
+      ctx.arc(cx, cy, groesse / 2 * puls * 1.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    const grad = ctx.createLinearGradient(cx - groesse / 2, cy - groesse / 2, cx + groesse / 2, cy + groesse / 2);
+    grad.addColorStop(0, hellerFarbton(def.farbe, 26));
+    grad.addColorStop(1, dunklerFarbton(def.farbe, 20));
+    ctx.fillStyle = grad;
+    pfadRundesRechteck(cx - groesse / 2, cy - groesse / 2, groesse, groesse, 10 * skala);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = def.besonders ? "#2a1f00" : "rgba(255,255,255,0.6)";
+    ctx.font = `${Math.round(groesse * 0.5)}px serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(def.symbol, cx, cy + 2);
+    ctx.restore();
+  }
+
+  function zeichneOuroborosRing(zeit){
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(RING_MITTE_X, RING_MITTE_Y, RING_RADIUS, 0, Math.PI * 2);
+    ctx.stroke();
+    const segmente = 40;
+    for (let i = 0; i < segmente; i++){
+      if (i % 2 === 0) continue;
+      const a0 = (i / segmente) * Math.PI * 2 + zeit * 0.00006;
+      const a1 = ((i + 1) / segmente) * Math.PI * 2 + zeit * 0.00006;
+      ctx.strokeStyle = "rgba(42,163,41,0.18)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(RING_MITTE_X, RING_MITTE_Y, RING_RADIUS, a0, a1);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function zeichnFrame(zeit){
+    // Hintergrund: warmer Steinton
+    const grad = ctx.createRadialGradient(CANVAS_W / 2, CANVAS_H / 2, 20, CANVAS_W / 2, CANVAS_H / 2, CANVAS_W / 1.3);
+    grad.addColorStop(0, "#241d14");
+    grad.addColorStop(1, "#120d08");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    zeichneOuroborosRing(zeit);
+
+    // Leere Nischen
+    for (let r = 0; r < N; r++){
+      for (let c = 0; c < N; c++){
+        const x = PAD + c * (CELL + GAP), y = PAD + r * (CELL + GAP);
+        ctx.fillStyle = "rgba(0,0,0,0.28)";
+        pfadRundesRechteck(x, y, CELL, CELL, 10);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.04)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    if (laufend){
+      if (animation){
+        const fortschritt = Math.min(1, (zeit - animation.start) / animation.dauer);
+        const ease = 1 - Math.pow(1 - fortschritt, 3);
+        animation.eintraege.forEach(e => {
+          const vonX = zellMitteX(e.vonC), vonY = zellMitteY(e.vonR);
+          const nachX = zellMitteX(e.nachC), nachY = zellMitteY(e.nachR);
+          const x = vonX + (nachX - vonX) * ease, y = vonY + (nachY - vonY) * ease;
+          zeichneRunenstein(x, y, e.stufe, 1, zeit);
+        });
+        if (fortschritt >= 1) schliesseAnimationAb();
+        else requestAnimationFrame(zeichnFrame);
+      } else {
+        for (let r = 0; r < N; r++){
+          for (let c = 0; c < N; c++){
+            if (brett[r][c] === 0) continue;
+            const pop = poppingZellen.find(p => p.r === r && p.c === c);
+            let skala = 1;
+            if (pop){
+              const f = Math.min(1, (zeit - pop.start) / pop.dauer);
+              skala = pop.einwachsen ? 0.2 + 0.8 * f : (f < 0.5 ? 1 + 0.18 * (f / 0.5) : 1 + 0.18 * (1 - (f - 0.5) / 0.5));
+              if (f >= 1) skala = 1;
+            }
+            zeichneRunenstein(zellMitteX(c), zellMitteY(r), brett[r][c], skala, zeit);
+          }
+        }
+        poppingZellen = poppingZellen.filter(p => zeit - p.start < p.dauer);
+        requestAnimationFrame(zeichnFrame);
+      }
+    }
+  }
+
+  // --- Spielende ---
+  async function beendeSpiel(){
+    laufend = false;
+    overlayEl.classList.remove("hidden");
+    endeMeldungEl.textContent = `Höchste Rune: ${RUNEN_STUFEN[hoechsteStufe].symbol} ${RUNEN_STUFEN[hoechsteStufe].name} · ${verschmelzungen} Verschmelzungen`;
+    endeScoreEl.textContent = punkte + " Punkte";
+
+    try {
+      const ref = doc(db, COL_RUNENVERSCHMELZUNG_HIGHSCORES, currentMember.id);
+      const bestehend = await getDoc(ref);
+      const bisherigerScore = bestehend.exists() ? (bestehend.data().score || 0) : 0;
+      if (!bestehend.exists() || punkte > bisherigerScore){
+        await setDoc(ref, { mitgliedName: currentMember.name, score: punkte, hoechsteStufe, datum: new Date().toISOString() });
+      }
+    } catch (err) {}
+  }
+
+  document.getElementById("rvNeustartBtn").addEventListener("click", () => {
+    overlayEl.classList.add("hidden");
+    starteSpiel();
+  });
+})();
+</script>
+</body>
+</html>

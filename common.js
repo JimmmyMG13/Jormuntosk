@@ -536,6 +536,7 @@ export const COL_KARTENERKUNDUNG_HIGHSCORES = "kartenerkundung_highscores";
 export const COL_YGGDRASIL_HIGHSCORES = "yggdrasil_highscores";
 export const COL_RUNENMAUER_HIGHSCORES = "runenmauer_highscores";
 export const COL_MIDGARDSCHLANGE_HIGHSCORES = "midgardschlange_highscores";
+export const COL_RUNENVERSCHMELZUNG_HIGHSCORES = "runenverschmelzung_highscores";
 
 export const ANFRAGE_KATEGORIEN = ["Ausrüstung", "Finanzen", "Organisatorisches", "Sonstiges"];
 
