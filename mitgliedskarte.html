@@ -69,6 +69,8 @@
   .karte-reihe div{line-height:1.5;}
   .karte-reihe .label{opacity:.75;font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
   .karte-reihe .wert{font-size:13px;font-weight:bold;}
+  .karte-qr{position:absolute;top:16px;right:16px;background:#fff;border-radius:8px;padding:5px;line-height:0;z-index:1;}
+  .karte-qr svg{display:block;width:56px;height:56px;}
 
   .aktionen{display:flex;justify-content:center;gap:10px;margin-top:20px;}
   .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
@@ -78,6 +80,7 @@
   nav.tools a:hover{text-decoration:underline;}
   footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -101,6 +104,7 @@
   </div>
 
   <div class="karte" id="karteEl">
+    <div class="karte-qr" id="karteQr"></div>
     <div class="karte-kopf">
       <img id="karteLogoImg" src="" alt="">
       <div class="titel">Jörmuntösk<b>Mitgliedsausweis</b></div>
@@ -157,6 +161,29 @@ document.getElementById("kSippenjahr").textContent = `${sippenjahr} · ${tier.em
 document.getElementById("kAbzeichen").textContent = anzahlAbzeichen > 0
   ? `🏅 ${anzahlAbzeichen} Abzeichen gesammelt`
   : "Noch keine Abzeichen gesammelt";
+
+// QR-Code: kodiert die interne Mitglieds-ID, komplett offline erzeugt (keine
+// Daten gehen an Dritte). Aktuell ohne Scan-Gegenstück - Grundlage für ein
+// späteres Check-in-/Verifizierungs-Feature.
+const qrInhalt = `JOERMUNTOESK-MITGLIED:${member.id}`;
+const qr = qrcode(0, "M");
+qr.addData(qrInhalt);
+qr.make();
+document.getElementById("karteQr").innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0 });
+
+// Erzeugt den QR-Code als Data-URL und lädt ihn als Image-Objekt, damit er
+// per drawImage() auf den Export-Canvas gezeichnet werden kann.
+function ladeQrAlsBild(inhalt, zielGroesse){
+  return new Promise((resolve, reject) => {
+    const qrExport = qrcode(0, "M");
+    qrExport.addData(inhalt);
+    qrExport.make();
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = qrExport.createDataURL(8, 0);
+  });
+}
 
 // --- Karte als PNG-Bild speichern ---
 // Zeichnet dieselben Inhalte auf einen Offscreen-Canvas (unabhängig vom
@@ -240,6 +267,15 @@ document.getElementById("speichernBtn").addEventListener("click", async () => {
   ctx.fillText(member.eintrittsdatum ? formatDate(member.eintrittsdatum) : "–", 50, zeileY);
   ctx.fillText(member.status === "probezeit" ? "Probezeit" : "Aktiv", 400, zeileY);
   ctx.fillText(`${sippenjahr} · ${tier.emoji}`, 750, zeileY);
+
+  // QR-Code oben rechts (weisse Box + Code aus einer Data-URL geladen)
+  const qrGrösse = 110;
+  const qrX = W - qrGrösse - 34, qrY = 26;
+  roundedRect(ctx, qrX, qrY, qrGrösse, qrGrösse, 10);
+  ctx.fillStyle = "#fff";
+  ctx.fill();
+  const qrImg = await ladeQrAlsBild(qrInhalt, qrGrösse - 16);
+  ctx.drawImage(qrImg, qrX + 8, qrY + 8, qrGrösse - 16, qrGrösse - 16);
 
   function roundedRect(c, x, y, w, h, r){
     c.beginPath();
