@@ -523,9 +523,12 @@ export function anfrageStatusLabel(status){
 
 export const COL_IDEEN = "ideen";
 
-// Check-ins per QR-Code-Scan (Mitgliedskarte) oder manuelle Erfassung,
-// gruppiert nach frei wählbarem "ereignis"-Text (z.B. "Sommerlager 2026").
+// Check-ins per QR-Code-Scan (Mitgliedskarte) oder manuelle Erfassung.
+// Jeder Check-in referenziert ein gespeichertes Ereignis (ereignisId) aus
+// COL_CHECKIN_EVENTS - Ereignisse werden vorab angelegt und bleiben
+// bestehen, bis sie explizit gelöscht werden.
 export const COL_CHECKINS = "checkins";
+export const COL_CHECKIN_EVENTS = "checkin_events";
 
 export const IDEEN_STATUS = ["neu", "diskussion", "geplant", "umgesetzt", "verworfen"];
 

@@ -60,6 +60,12 @@
   .scan-status.err{color:#B3261E;}
   .kamera-aktionen{display:flex;justify-content:center;gap:10px;}
 
+  .ereignis-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:13px;cursor:pointer;}
+  .ereignis-item:hover{border-color:var(--accent);}
+  .ereignis-item.aktiv{border-color:var(--accent);background:rgba(42,163,41,0.1);font-weight:bold;}
+  .ereignis-item .ereignis-loeschen{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:2px 6px;}
+  .ereignis-item .ereignis-loeschen:hover{color:#c83c3c;}
+
   .suchergebnis{margin-top:10px;}
   .suchergebnis-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:13px;}
 
@@ -96,9 +102,14 @@
   <div id="inhaltBereich" style="display:none;">
     <div class="card">
       <h2>Ereignis</h2>
-      <div class="field">
-        <label for="ereignisInput">Bezeichnung (z. B. "Sommerlager 2026")</label>
-        <input type="text" id="ereignisInput" placeholder="Ereignis eingeben …">
+      <div id="keinEreignisAusgewaehlt" style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">Noch kein Ereignis ausgewählt.</div>
+      <div id="ereignisListe" style="margin-bottom:14px;"></div>
+      <div class="field" style="display:flex;gap:8px;align-items:flex-end;margin-bottom:0;">
+        <div style="flex:1;">
+          <label for="neuesEreignisInput">Neues Ereignis</label>
+          <input type="text" id="neuesEreignisInput" placeholder="z. B. Sommerlager 2026">
+        </div>
+        <button class="btn" id="ereignisErstellenBtn">Erstellen</button>
       </div>
     </div>
 
@@ -109,7 +120,7 @@
         <div class="scan-rahmen"></div>
       </div>
       <div class="kamera-aktionen">
-        <button class="btn" id="kameraStartBtn">Kamera starten</button>
+        <button class="btn" id="kameraStartBtn" disabled>Kamera starten</button>
         <button class="btn btn-secondary" id="kameraStopBtn" style="display:none;">Kamera stoppen</button>
       </div>
       <p class="scan-status" id="scanStatus"></p>
@@ -119,7 +130,7 @@
       <h2>Manuell erfassen</h2>
       <div class="field">
         <label for="suchInput">Name suchen</label>
-        <input type="text" id="suchInput" placeholder="Namen eingeben …">
+        <input type="text" id="suchInput" placeholder="Zuerst ein Ereignis auswählen …" disabled>
       </div>
       <div class="suchergebnis" id="suchergebnis"></div>
     </div>
@@ -140,8 +151,8 @@
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_CHECKINS } from "./common.js";
-import { collection, addDoc, doc, getDoc, getDocs, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, formatDate, COL_CHECKINS, COL_CHECKIN_EVENTS } from "./common.js";
+import { collection, addDoc, doc, getDoc, getDocs, deleteDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const COL_MITGLIEDER = "mitglieder";
 
@@ -159,26 +170,120 @@ if (member.verwaltung !== true){
 }
 
 function initCheckin(){
-  const ereignisInput = document.getElementById("ereignisInput");
   const ereignisTitelEl = document.getElementById("ereignisTitel");
+  const keinEreignisEl = document.getElementById("keinEreignisAusgewaehlt");
+  const ereignisListeEl = document.getElementById("ereignisListe");
+  const neuesEreignisInput = document.getElementById("neuesEreignisInput");
+  const ereignisErstellenBtn = document.getElementById("ereignisErstellenBtn");
   const scanStatusEl = document.getElementById("scanStatus");
   const scanWrap = document.getElementById("scanWrap");
   const video = document.getElementById("scanVideo");
   const kameraStartBtn = document.getElementById("kameraStartBtn");
   const kameraStopBtn = document.getElementById("kameraStopBtn");
+  const suchInputEl = document.getElementById("suchInput");
 
   let kameraStream = null;
   let scanLoopAktiv = false;
   let letzteScanId = null;
   let letzteScanZeit = 0;
 
-  // Gespeichertes Ereignis wiederherstellen (praktisch, wenn man die Seite
-  // während eines Anlasses mehrfach neu lädt).
-  ereignisInput.value = localStorage.getItem("jt_checkin_ereignis") || "";
-  ereignisInput.addEventListener("input", () => {
-    localStorage.setItem("jt_checkin_ereignis", ereignisInput.value);
+  // --- Ereignisse: erstellen, auswählen, löschen ---
+  // Ereignisse bleiben dauerhaft gespeichert (eigene Collection), bis sie
+  // explizit gelöscht werden. Die Auswahl wird gemerkt, damit man nach einem
+  // Neuladen der Seite direkt weiterscannen kann.
+  let alleEreignisse = [];
+  let aktuellesEreignis = null; // { id, name }
+
+  onSnapshot(query(collection(db, COL_CHECKIN_EVENTS), orderBy("erstelltAm", "desc")), snap => {
+    alleEreignisse = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const gemerkteId = localStorage.getItem("jt_checkin_ereignis_id");
+    if (!aktuellesEreignis && gemerkteId){
+      const gefunden = alleEreignisse.find(e => e.id === gemerkteId);
+      if (gefunden) aktuellesEreignis = gefunden;
+    }
+    // Falls das ausgewählte Ereignis zwischenzeitlich gelöscht wurde
+    if (aktuellesEreignis && !alleEreignisse.find(e => e.id === aktuellesEreignis.id)){
+      aktuellesEreignis = null;
+      localStorage.removeItem("jt_checkin_ereignis_id");
+    }
+    renderEreignisListe();
+    aktualisiereAktivierung();
     renderCheckinListe();
   });
+
+  function renderEreignisListe(){
+    if (alleEreignisse.length === 0){
+      ereignisListeEl.innerHTML = `<p style="color:var(--text-muted);font-size:12px;">Noch keine Ereignisse angelegt.</p>`;
+      return;
+    }
+    ereignisListeEl.innerHTML = alleEreignisse.map(e => `
+      <div class="ereignis-item${aktuellesEreignis && e.id === aktuellesEreignis.id ? " aktiv" : ""}" data-waehle="${e.id}">
+        <span>${escapeHtml(e.name)}</span>
+        <button type="button" class="ereignis-loeschen" data-loesche="${e.id}" title="Ereignis löschen">🗑</button>
+      </div>`).join("");
+    ereignisListeEl.querySelectorAll("[data-waehle]").forEach(row => {
+      row.addEventListener("click", (e) => {
+        if (e.target.closest("[data-loesche]")) return;
+        waehleEreignis(row.dataset.waehle);
+      });
+    });
+    ereignisListeEl.querySelectorAll("[data-loesche]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        loescheEreignis(btn.dataset.loesche);
+      });
+    });
+  }
+
+  function waehleEreignis(id){
+    const e = alleEreignisse.find(x => x.id === id);
+    if (!e) return;
+    aktuellesEreignis = e;
+    localStorage.setItem("jt_checkin_ereignis_id", id);
+    renderEreignisListe();
+    aktualisiereAktivierung();
+    renderCheckinListe();
+  }
+
+  async function loescheEreignis(id){
+    const e = alleEreignisse.find(x => x.id === id);
+    if (!e) return;
+    if (!confirm(`Ereignis „${e.name}" wirklich löschen? Alle zugehörigen Check-ins werden ebenfalls gelöscht.`)) return;
+    try {
+      const checkinSnap = await getDocs(query(collection(db, COL_CHECKINS), where("ereignisId", "==", id)));
+      await Promise.all(checkinSnap.docs.map(d => deleteDoc(doc(db, COL_CHECKINS, d.id))));
+      await deleteDoc(doc(db, COL_CHECKIN_EVENTS, id));
+      if (aktuellesEreignis && aktuellesEreignis.id === id){
+        aktuellesEreignis = null;
+        localStorage.removeItem("jt_checkin_ereignis_id");
+      }
+    } catch (err) {
+      alert("Löschen fehlgeschlagen: " + err.message);
+    }
+  }
+
+  ereignisErstellenBtn.addEventListener("click", async () => {
+    const name = neuesEreignisInput.value.trim();
+    if (!name) return;
+    try {
+      const ref = await addDoc(collection(db, COL_CHECKIN_EVENTS), {
+        name, erstelltAm: new Date().toISOString(), erstelltVon: member.name
+      });
+      neuesEreignisInput.value = "";
+      waehleEreignis(ref.id);
+    } catch (err) {
+      alert("Erstellen fehlgeschlagen: " + err.message);
+    }
+  });
+  neuesEreignisInput.addEventListener("keydown", e => { if (e.key === "Enter") ereignisErstellenBtn.click(); });
+
+  function aktualisiereAktivierung(){
+    const bereit = !!aktuellesEreignis;
+    keinEreignisEl.style.display = bereit ? "none" : "block";
+    kameraStartBtn.disabled = !bereit;
+    suchInputEl.disabled = !bereit;
+    suchInputEl.placeholder = bereit ? "Namen eingeben …" : "Zuerst ein Ereignis auswählen …";
+  }
 
   // --- Kamera / QR-Scan ---
   kameraStartBtn.addEventListener("click", async () => {
@@ -229,6 +334,11 @@ function initCheckin(){
   }
 
   async function behandleScan(inhalt){
+    if (!aktuellesEreignis){
+      scanStatusEl.textContent = "Bitte zuerst ein Ereignis auswählen.";
+      scanStatusEl.className = "scan-status err";
+      return;
+    }
     const match = /^JOERMUNTOESK-MITGLIED:(.+)$/.exec(inhalt.trim());
     if (!match){
       scanStatusEl.textContent = "Unbekannter QR-Code.";
@@ -259,7 +369,7 @@ function initCheckin(){
   }
 
   // --- Manuelle Erfassung ---
-  const suchInput = document.getElementById("suchInput");
+  const suchInput = suchInputEl;
   const suchergebnisEl = document.getElementById("suchergebnis");
   let alleMitglieder = [];
   getDocs(collection(db, COL_MITGLIEDER)).then(snap => {
@@ -267,6 +377,7 @@ function initCheckin(){
   });
 
   suchInput.addEventListener("input", () => {
+    if (!aktuellesEreignis) return;
     const begriff = suchInput.value.trim().toLowerCase();
     if (!begriff){ suchergebnisEl.innerHTML = ""; return; }
     const treffer = alleMitglieder.filter(m => m.name.toLowerCase().includes(begriff)).slice(0, 8);
@@ -280,10 +391,16 @@ function initCheckin(){
 
   // --- Check-in speichern ---
   async function checkeEin(mitgliedId, mitgliedName){
-    const ereignis = ereignisInput.value.trim() || "Ohne Bezeichnung";
+    if (!aktuellesEreignis){
+      scanStatusEl.textContent = "Bitte zuerst ein Ereignis auswählen.";
+      scanStatusEl.className = "scan-status err";
+      return;
+    }
     try {
       await addDoc(collection(db, COL_CHECKINS), {
-        mitgliedId, mitgliedName, ereignis,
+        mitgliedId, mitgliedName,
+        ereignisId: aktuellesEreignis.id,
+        ereignisName: aktuellesEreignis.name,
         zeitpunkt: new Date().toISOString(),
         erfasstVon: member.name
       });
@@ -305,10 +422,14 @@ function initCheckin(){
   });
 
   function renderCheckinListe(){
-    const ereignis = ereignisInput.value.trim() || "Ohne Bezeichnung";
-    ereignisTitelEl.textContent = `– ${ereignis}`;
     const el = document.getElementById("checkinListe");
-    const gefiltert = alleCheckins.filter(c => (c.ereignis || "Ohne Bezeichnung") === ereignis);
+    if (!aktuellesEreignis){
+      ereignisTitelEl.textContent = "";
+      el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Kein Ereignis ausgewählt.</p>`;
+      return;
+    }
+    ereignisTitelEl.textContent = `– ${aktuellesEreignis.name}`;
+    const gefiltert = alleCheckins.filter(c => c.ereignisId === aktuellesEreignis.id);
     if (gefiltert.length === 0){
       el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Noch niemand eingecheckt.</p>`;
       return;
