@@ -184,6 +184,7 @@
       <button data-mod="markttagebuch">Markttagebuch</button>
       <button data-mod="mitglieder">Mitglieder &amp; Verwaltungsrechte</button>
       <button data-mod="anfragen">Anfragen <span id="anfragenBadge" class="badge-count" style="display:none;"></span></button>
+      <button data-mod="ideen">Ideen-Board</button>
       <button data-mod="einstellungen">Einstellungen</button>
       <button data-mod="protokoll">Protokoll</button>
     </div>
@@ -200,7 +201,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES } from "./common.js";
+import { db, sha256, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_IDEEN, IDEEN_STATUS, ideeStatusLabel } from "./common.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -232,10 +233,11 @@ const KACHEL_DEFS = {
   schichtplanung: "📅 Schichtplanung",
   markttagebuch: "🛖 Markttagebuch",
   mitglieder: "👤 Mitgliederbereich",
+  ideenboard: "💡 Ideen-Board",
   spiele: "🏃 Spiele",
   admin: "⚙ Admin"
 };
-const KACHEL_STANDARD_REIHENFOLGE = ["tierkreis", "tageswidgets", "omen", "orakel", "schichtplanung", "markttagebuch", "mitglieder", "spiele", "admin"];
+const KACHEL_STANDARD_REIHENFOLGE = ["tierkreis", "tageswidgets", "omen", "orakel", "schichtplanung", "markttagebuch", "mitglieder", "ideenboard", "spiele", "admin"];
 
 const SPIELE_HIGHSCORES = [
   { name: "🏃 Sippen-Runner", col: COL_RUNNER_HIGHSCORES },
@@ -356,6 +358,7 @@ function loadModule(mod){
   if (mod === "markttagebuch") renderMarkttagebuchModule(container);
   if (mod === "mitglieder") renderMitgliederModule(container);
   if (mod === "anfragen") renderAnfragenModule(container);
+  if (mod === "ideen") renderIdeenModule(container);
   if (mod === "einstellungen") renderEinstellungenModule(container);
   if (mod === "protokoll") renderProtokollModule(container);
 }
@@ -1658,6 +1661,90 @@ function openAnfrageModal(anfrage){
     try {
       await updateDoc(doc(db, COL_ANFRAGEN, anfrage.id), { status, antwortVorstand, bearbeitetVon: currentAdmin.name, bearbeitetAm: new Date().toISOString() });
       logActivity(currentAdmin.name, `hat die Anfrage „${anfrage.titel}" auf „${anfrageStatusLabel(status)}" gesetzt`);
+      closeModal();
+    } catch (err) {
+      alert("Fehler beim Speichern: " + err.message);
+    }
+  });
+}
+
+function renderIdeenModule(container){
+  container.innerHTML = `
+    <div class="toolbar">
+      <h1 style="margin:0;">Ideen-Board</h1>
+      <select id="ideeFilter">
+        <option value="alle">Alle</option>
+        ${IDEEN_STATUS.map(s => `<option value="${s}">${ideeStatusLabel(s)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="card pad" id="ideeList"></div>
+  `;
+  const filterEl = document.getElementById("ideeFilter");
+  let alleIdeen = [];
+  function render(){
+    const el = document.getElementById("ideeList");
+    if (!el) return;
+    const filter = filterEl.value;
+    const rows = (filter === "alle" ? alleIdeen : alleIdeen.filter(i => i.status === filter))
+      .slice()
+      .sort((a, b) => (b.stimmenVon || []).length - (a.stimmenVon || []).length);
+    if (rows.length === 0){
+      el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">Keine Ideen vorhanden.</p>`;
+      return;
+    }
+    el.innerHTML = rows.map(i => `
+      <div class="list-item">
+        <span>
+          <b>${escapeHtml(i.titel)}</b>
+          <span style="color:var(--text-muted);"> — 👍 ${(i.stimmenVon || []).length} · von ${escapeHtml(i.mitgliedName)} · ${new Date(i.erstelltAm).toLocaleDateString("de-CH")}</span>
+          <br><span class="anfrage-status ${i.status}" style="display:inline-block;margin-top:4px;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);">${ideeStatusLabel(i.status)}</span>
+        </span>
+        <span><button class="btn secondary small" data-open="${i.id}">Öffnen</button></span>
+      </div>`).join("");
+    el.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openIdeeModal(alleIdeen.find(i => i.id === b.dataset.open))));
+  }
+  filterEl.addEventListener("change", render);
+  onSnapshot(query(collection(db, COL_IDEEN), orderBy("erstelltAm", "desc")), snap => {
+    alleIdeen = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  });
+}
+
+function openIdeeModal(idee){
+  if (!idee) return;
+  showModal(`
+    <h2>${escapeHtml(idee.titel)}</h2>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:-8px;">👍 ${(idee.stimmenVon || []).length} Stimmen · von ${escapeHtml(idee.mitgliedName)} · ${new Date(idee.erstelltAm).toLocaleString("de-CH")}</p>
+    <div class="field"><label>Beschreibung</label><p style="white-space:pre-wrap;">${idee.beschreibung ? escapeHtml(idee.beschreibung) : "–"}</p></div>
+    <div class="field"><label>Status</label>
+      <select id="iStatus">
+        ${IDEEN_STATUS.map(s => `<option value="${s}" ${idee.status === s ? "selected" : ""}>${ideeStatusLabel(s)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="modal-actions">
+      <div><button class="btn danger" id="iDeleteBtn" style="background:#c83c3c;color:#fff;border:none;">Löschen</button></div>
+      <div class="right">
+        <button class="btn secondary" id="iCancelBtn">Abbrechen</button>
+        <button class="btn" id="iSaveBtn">Speichern</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("iCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("iDeleteBtn").addEventListener("click", async () => {
+    if (!confirm(`Idee „${idee.titel}" von ${idee.mitgliedName} wirklich unwiderruflich löschen? Kommentare gehen dabei ebenfalls verloren.`)) return;
+    try {
+      await deleteDoc(doc(db, COL_IDEEN, idee.id));
+      logActivity(currentAdmin.name, `hat die Idee „${idee.titel}" von ${idee.mitgliedName} gelöscht`);
+      closeModal();
+    } catch (err) {
+      alert("Fehler beim Löschen: " + err.message);
+    }
+  });
+  document.getElementById("iSaveBtn").addEventListener("click", async () => {
+    const status = document.getElementById("iStatus").value;
+    try {
+      await updateDoc(doc(db, COL_IDEEN, idee.id), { status, bearbeitetVon: currentAdmin.name, bearbeitetAm: new Date().toISOString() });
+      logActivity(currentAdmin.name, `hat die Idee „${idee.titel}" auf „${ideeStatusLabel(status)}" gesetzt`);
       closeModal();
     } catch (err) {
       alert("Fehler beim Speichern: " + err.message);

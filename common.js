@@ -450,6 +450,23 @@ export function anfrageStatusLabel(status){
 }
 
 // =========================================================
+// Ideen-Board
+// Mitglieder sammeln und bewerten Ideen (Events, Ausrüstung,
+// Anschaffungen usw.), können kommentieren; der Vorstand pflegt den
+// Status im Admin-Bereich. Collection "ideen", Unter-Collection
+// "ideen/{id}/kommentare".
+// =========================================================
+
+export const COL_IDEEN = "ideen";
+
+export const IDEEN_STATUS = ["neu", "diskussion", "geplant", "umgesetzt", "verworfen"];
+
+export function ideeStatusLabel(status){
+  const labels = { neu: "🆕 Neu", diskussion: "💬 In Diskussion", geplant: "📌 Geplant", umgesetzt: "✅ Umgesetzt", verworfen: "❌ Verworfen" };
+  return labels[status] || status;
+}
+
+// =========================================================
 // 9-Jahres-Tierkreis
 // Gemäss Konzeptdokument "9-Jahres-Tierkreis": Zyklus beginnt am
 // 21.12.2025 (Wintersonnenwende) mit dem Eichhörnchen und schliesst sich
