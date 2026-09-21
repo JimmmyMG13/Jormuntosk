@@ -209,6 +209,7 @@ function renderIdeenListe(){
     const stimmen = idee.stimmenVon || [];
     const hatGestimmt = stimmen.includes(member.id);
     const offen = offeneKommentarThreads.has(idee.id);
+    const anzahlKommentare = (kommentareCache[idee.id] || []).length;
     return `
       <div class="idee-item">
         <div class="idee-head">
@@ -219,7 +220,7 @@ function renderIdeenListe(){
         <p class="idee-meta">von ${escapeHtml(idee.mitgliedName)} · ${formatDate(idee.erstelltAm)}</p>
         <div class="idee-aktionen">
           <button class="idee-vote-btn${hatGestimmt ? " aktiv" : ""}" data-vote="${idee.id}">👍 ${stimmen.length}</button>
-          <button class="idee-kommentar-toggle" data-toggle="${idee.id}">💬 Kommentare</button>
+          <button class="idee-kommentar-toggle" data-toggle="${idee.id}">💬 Kommentare (${anzahlKommentare})</button>
         </div>
         <div class="idee-kommentare${offen ? "" : " hidden"}" id="kommentare-${idee.id}">
           <div class="idee-kommentar-liste" id="kommentarListe-${idee.id}"></div>
@@ -241,8 +242,13 @@ function renderIdeenListe(){
     btn.addEventListener("click", () => sendeKommentar(btn.dataset.senden));
   });
 
-  // Bereits geöffnete Kommentar-Threads nach dem Neuzeichnen wieder anzeigen
-  offeneKommentarThreads.forEach(id => ladeKommentare(id));
+  // Für jede Idee einen (einmaligen) Kommentar-Listener sicherstellen, damit
+  // die Anzahl am Button stimmt, und offene Threads sofort aus dem Cache
+  // wieder befüllen (behebt das "Verschwinden" nach jedem Neuzeichnen).
+  sortiert.forEach(idee => {
+    ladeKommentare(idee.id);
+    if (offeneKommentarThreads.has(idee.id)) renderKommentarListe(idee.id);
+  });
 }
 
 async function stimmeAb(ideeId){
@@ -265,27 +271,47 @@ function toggleKommentare(ideeId){
   el.classList.toggle("hidden");
   if (wirdGeoeffnet){
     offeneKommentarThreads.add(ideeId);
-    ladeKommentare(ideeId);
+    renderKommentarListe(ideeId);
+  } else {
+    offeneKommentarThreads.delete(ideeId);
   }
 }
 
+// Kommentare werden pro Idee einmalig live abonniert und hier zwischengespeichert.
+// Das Neuzeichnen der Ideenliste (z.B. nach einem Vote) erstellt die DOM-Elemente
+// neu, ohne dass Firestore ein neues Snapshot-Ereignis feuert - deshalb wird der
+// Cache in renderIdeenListe() explizit wieder ins DOM zurückgeschrieben.
+const kommentareCache = {};
 const kommentarListenerAktiv = new Set();
+
 function ladeKommentare(ideeId){
   if (kommentarListenerAktiv.has(ideeId)) return;
   kommentarListenerAktiv.add(ideeId);
   const kommentareQ = query(collection(db, COL_IDEEN, ideeId, "kommentare"), orderBy("erstelltAm", "asc"));
   onSnapshot(kommentareQ, snap => {
-    const listeEl = document.getElementById("kommentarListe-" + ideeId);
-    if (!listeEl) return;
-    if (snap.empty){
-      listeEl.innerHTML = `<p style="color:var(--text-muted);font-size:12px;margin:0;">Noch keine Kommentare.</p>`;
-      return;
-    }
-    listeEl.innerHTML = snap.docs.map(d => {
-      const k = d.data();
-      return `<div class="idee-kommentar-eintrag"><span class="autor">${escapeHtml(k.mitgliedName)}</span><span class="zeit">${formatDate(k.erstelltAm)}</span><br>${escapeHtml(k.text)}</div>`;
-    }).join("");
+    kommentareCache[ideeId] = snap.docs.map(d => d.data());
+    const anzahlNeu = kommentareCache[ideeId].length;
+    const toggleBtn = document.querySelector(`[data-toggle="${ideeId}"]`);
+    if (toggleBtn) toggleBtn.textContent = `💬 Kommentare (${anzahlNeu})`;
+    if (offeneKommentarThreads.has(ideeId)) renderKommentarListe(ideeId);
   });
+}
+
+function renderKommentarListe(ideeId){
+  const listeEl = document.getElementById("kommentarListe-" + ideeId);
+  if (!listeEl) return;
+  const kommentare = kommentareCache[ideeId];
+  if (!kommentare){
+    listeEl.innerHTML = `<p style="color:var(--text-muted);font-size:12px;margin:0;">Lädt …</p>`;
+    return;
+  }
+  if (kommentare.length === 0){
+    listeEl.innerHTML = `<p style="color:var(--text-muted);font-size:12px;margin:0;">Noch keine Kommentare.</p>`;
+    return;
+  }
+  listeEl.innerHTML = kommentare.map(k =>
+    `<div class="idee-kommentar-eintrag"><span class="autor">${escapeHtml(k.mitgliedName)}</span><span class="zeit">${formatDate(k.erstelltAm)}</span><br>${escapeHtml(k.text)}</div>`
+  ).join("");
 }
 
 async function sendeKommentar(ideeId){
