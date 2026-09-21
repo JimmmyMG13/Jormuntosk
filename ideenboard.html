@@ -217,7 +217,7 @@ function renderIdeenListe(){
           <span class="idee-status ${idee.status}">${ideeStatusLabel(idee.status)}</span>
         </div>
         ${idee.beschreibung ? `<p class="idee-beschreibung">${escapeHtml(idee.beschreibung)}</p>` : ""}
-        <p class="idee-meta">von ${escapeHtml(idee.mitgliedName)} · ${formatDate(idee.erstelltAm)}</p>
+        <p class="idee-meta">von ${escapeHtml(idee.mitgliedName)} · ${new Date(idee.erstelltAm).toLocaleDateString("de-CH")} ${new Date(idee.erstelltAm).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}</p>
         <div class="idee-aktionen">
           <button class="idee-vote-btn${hatGestimmt ? " aktiv" : ""}" data-vote="${idee.id}">👍 ${stimmen.length}</button>
           <button class="idee-kommentar-toggle" data-toggle="${idee.id}">💬 Kommentare (${anzahlKommentare})</button>
@@ -310,7 +310,7 @@ function renderKommentarListe(ideeId){
     return;
   }
   listeEl.innerHTML = kommentare.map(k =>
-    `<div class="idee-kommentar-eintrag"><span class="autor">${escapeHtml(k.mitgliedName)}</span><span class="zeit">${formatDate(k.erstelltAm)}</span><br>${escapeHtml(k.text)}</div>`
+    `<div class="idee-kommentar-eintrag"><span class="autor">${escapeHtml(k.mitgliedName)}</span><span class="zeit">${new Date(k.erstelltAm).toLocaleDateString("de-CH")} ${new Date(k.erstelltAm).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}</span><br>${escapeHtml(k.text)}</div>`
   ).join("");
 }
 

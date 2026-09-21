@@ -389,6 +389,27 @@ function initCheckin(){
     });
   });
 
+  // --- Feedback bei erfolgreichem Check-in (Piepton + Vibration) ---
+  // Praktisch beim Scannen, wenn man nicht ständig aufs Display schauen will.
+  function spielePiepton(){
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.2);
+    } catch (e) {}
+  }
+  function vibriere(){
+    if (navigator.vibrate) navigator.vibrate(200);
+  }
+
   // --- Check-in speichern ---
   async function checkeEin(mitgliedId, mitgliedName){
     if (!aktuellesEreignis){
@@ -406,6 +427,8 @@ function initCheckin(){
       });
       scanStatusEl.textContent = `✅ ${mitgliedName} eingecheckt`;
       scanStatusEl.className = "scan-status ok";
+      spielePiepton();
+      vibriere();
       suchInput.value = "";
       suchergebnisEl.innerHTML = "";
     } catch (err) {
@@ -437,7 +460,7 @@ function initCheckin(){
     el.innerHTML = gefiltert.map(c => `
       <div class="checkin-item">
         <span>${escapeHtml(c.mitgliedName)}</span>
-        <span class="zeit">${formatDate(c.zeitpunkt)} ${new Date(c.zeitpunkt).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}</span>
+        <span class="zeit">${new Date(c.zeitpunkt).toLocaleDateString("de-CH")} ${new Date(c.zeitpunkt).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}</span>
       </div>`).join("");
   }
 

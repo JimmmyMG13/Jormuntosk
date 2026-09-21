@@ -69,8 +69,8 @@
   .karte-reihe div{line-height:1.5;}
   .karte-reihe .label{opacity:.75;font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
   .karte-reihe .wert{font-size:13px;font-weight:bold;}
-  .karte-qr{position:absolute;top:16px;right:16px;background:#fff;border-radius:8px;padding:5px;line-height:0;z-index:1;}
-  .karte-qr svg{display:block;width:56px;height:56px;}
+  .karte-qr{position:absolute;top:14px;right:14px;background:#fff;border-radius:10px;padding:8px;line-height:0;z-index:1;}
+  .karte-qr svg{display:block;width:150px;height:150px;}
 
   .aktionen{display:flex;justify-content:center;gap:10px;margin-top:20px;}
   .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
@@ -269,13 +269,13 @@ document.getElementById("speichernBtn").addEventListener("click", async () => {
   ctx.fillText(`${sippenjahr} · ${tier.emoji}`, 750, zeileY);
 
   // QR-Code oben rechts (weisse Box + Code aus einer Data-URL geladen)
-  const qrGrösse = 110;
-  const qrX = W - qrGrösse - 34, qrY = 26;
-  roundedRect(ctx, qrX, qrY, qrGrösse, qrGrösse, 10);
+  const qrGrösse = 280;
+  const qrX = W - qrGrösse - 30, qrY = 24;
+  roundedRect(ctx, qrX, qrY, qrGrösse, qrGrösse, 14);
   ctx.fillStyle = "#fff";
   ctx.fill();
-  const qrImg = await ladeQrAlsBild(qrInhalt, qrGrösse - 16);
-  ctx.drawImage(qrImg, qrX + 8, qrY + 8, qrGrösse - 16, qrGrösse - 16);
+  const qrImg = await ladeQrAlsBild(qrInhalt, qrGrösse - 24);
+  ctx.drawImage(qrImg, qrX + 12, qrY + 12, qrGrösse - 24, qrGrösse - 24);
 
   function roundedRect(c, x, y, w, h, r){
     c.beginPath();
