@@ -33,6 +33,9 @@
   .icon-btn{background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:16px;color:var(--text);}
   .icon-btn:hover{border-color:var(--accent);}
   main{max-width:460px;margin:0 auto;padding:32px 20px;}
+  @media (max-width:400px){
+    main{padding:20px 12px;}
+  }
   .intro{text-align:center;margin-bottom:22px;}
   .intro h1{font-size:22px;margin:0 0 6px 0;}
   .intro p{color:var(--text-muted);margin:0;font-size:14px;}
@@ -43,7 +46,7 @@
     border-radius:16px;
     background:linear-gradient(135deg, #1f7a1f 0%, #2AA329 55%, #1a6b1a 100%);
     color:#fff;
-    padding:20px 22px;
+    padding:clamp(12px,4.5vw,20px) clamp(14px,5vw,22px);
     box-shadow:0 8px 24px rgba(0,0,0,.25);
     display:flex;
     flex-direction:column;
@@ -58,17 +61,17 @@
     border-radius:50%;
     background:rgba(255,255,255,0.06);
   }
-  .karte-kopf{display:flex;align-items:center;gap:10px;}
-  .karte-kopf img{height:34px;width:34px;border-radius:50%;background:#fff;padding:2px;}
-  .karte-kopf .titel{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.85;}
-  .karte-kopf .titel b{display:block;font-size:15px;letter-spacing:0;text-transform:none;}
-  .karte-name{font-size:24px;font-weight:bold;margin-top:6px;}
-  .karte-spitzname{font-size:13px;opacity:.85;margin-top:-2px;}
-  .karte-funktion{display:inline-block;margin-top:6px;font-size:11px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:999px;width:fit-content;}
-  .karte-reihe{display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;opacity:.9;position:relative;z-index:1;}
+  .karte-kopf{display:flex;align-items:center;gap:clamp(6px,2vw,10px);}
+  .karte-kopf img{height:clamp(22px,7vw,34px);width:clamp(22px,7vw,34px);border-radius:50%;background:#fff;padding:2px;flex-shrink:0;}
+  .karte-kopf .titel{font-size:clamp(8px,2.6vw,11px);letter-spacing:.08em;text-transform:uppercase;opacity:.85;}
+  .karte-kopf .titel b{display:block;font-size:clamp(11px,3.6vw,15px);letter-spacing:0;text-transform:none;}
+  .karte-name{font-size:clamp(15px,6vw,24px);font-weight:bold;margin-top:6px;overflow-wrap:anywhere;}
+  .karte-spitzname{font-size:clamp(10px,3vw,13px);opacity:.85;margin-top:-2px;}
+  .karte-funktion{display:inline-block;margin-top:6px;font-size:clamp(9px,2.6vw,11px);background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:999px;width:fit-content;}
+  .karte-reihe{display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;opacity:.9;position:relative;z-index:1;gap:4px;}
   .karte-reihe div{line-height:1.5;}
-  .karte-reihe .label{opacity:.75;font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
-  .karte-reihe .wert{font-size:13px;font-weight:bold;}
+  .karte-reihe .label{opacity:.75;font-size:clamp(7px,2.2vw,10px);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+  .karte-reihe .wert{font-size:clamp(9px,3vw,13px);font-weight:bold;white-space:nowrap;}
   .karte-qr{position:absolute;top:5%;right:5%;width:24%;aspect-ratio:1;box-sizing:border-box;background:#fff;border-radius:14%;padding:8%;line-height:0;z-index:1;}
   .karte-qr svg{display:block;width:100%;height:100%;}
 
