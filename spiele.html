@@ -104,32 +104,32 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
     <div class="highscore-dots" id="hsDots"></div>
   </div>
 
-  <div class="spiele-icon-grid">
-    <a class="spiel-tile" href="spiel-runner.html">
+  <div class="spiele-icon-grid" id="spieleGrid">
+    <a class="spiel-tile" id="spieltile-runner" href="spiel-runner.html">
       <span class="spiel-tile-icon">🏃</span>
       <span class="spiel-tile-name">Sippen-Runner</span>
     </a>
-    <a class="spiel-tile" href="spiel-drachenschiff.html">
+    <a class="spiel-tile" id="spieltile-drachenschiff" href="spiel-drachenschiff.html">
       <span class="spiel-tile-icon">🐉</span>
       <span class="spiel-tile-name">Drachenschiff-Wettfahrt</span>
     </a>
-    <a class="spiel-tile" href="spiel-runenspiel.html">
+    <a class="spiel-tile" id="spieltile-runenspiel" href="spiel-runenspiel.html">
       <span class="spiel-tile-icon">ᚠ</span>
       <span class="spiel-tile-name">Runen-Lernspiel</span>
     </a>
-    <a class="spiel-tile" href="spiel-symbolzuordnung.html">
+    <a class="spiel-tile" id="spieltile-symbolzuordnung" href="spiel-symbolzuordnung.html">
       <span class="spiel-tile-icon">🔮</span>
       <span class="spiel-tile-name">Symbol-Zuordnung</span>
     </a>
-    <a class="spiel-tile" href="spiel-landnahme.html">
+    <a class="spiel-tile" id="spieltile-landnahme" href="spiel-landnahme.html">
       <span class="spiel-tile-icon">🏕️</span>
       <span class="spiel-tile-name">Landnahme</span>
     </a>
-    <a class="spiel-tile" href="spiel-kartenerkundung.html">
+    <a class="spiel-tile" id="spieltile-kartenerkundung" href="spiel-kartenerkundung.html">
       <span class="spiel-tile-icon">🗺️</span>
       <span class="spiel-tile-name">Kartenerkundung</span>
     </a>
-    <a class="spiel-tile" href="spiel-yggdrasil.html">
+    <a class="spiel-tile" id="spieltile-yggdrasil" href="spiel-yggdrasil.html">
       <span class="spiel-tile-icon">🐿️</span>
       <span class="spiel-tile-name">Ratatöskr</span>
     </a>
@@ -146,7 +146,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
 
 <script type="module">
 import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_YGGDRASIL_HIGHSCORES, zufaelligeBegruessung, requestNotificationPermission, notificationStatus, zeigeBenachrichtigung } from "./common.js";
-import { collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { collection, query, orderBy, limit, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
 applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
@@ -161,7 +161,7 @@ document.getElementById("greeting").textContent = zufaelligeBegruessung(currentM
 // zeigt jeweils nur das aktuell ausgewählte Spiel an, unabhängig davon,
 // welche Daten gerade aktualisiert werden.
 // =========================================================
-const SPIELE = [
+const SPIELE_STANDARD = [
   { id: "runner", name: "🏃 Sippen-Runner" },
   { id: "drachenschiff", name: "🐉 Drachenschiff-Wettfahrt" },
   { id: "runenspiel", name: "ᚠ Runen-Lernspiel" },
@@ -170,8 +170,28 @@ const SPIELE = [
   { id: "kartenerkundung", name: "🗺️ Kartenerkundung" },
   { id: "yggdrasil", name: "🐿️ Ratatöskr" }
 ];
+let SPIELE = SPIELE_STANDARD.slice();
 const highscoreCache = {};
 let highscoreIndex = 0;
+
+// Vom Vorstand festgelegte Reihenfolge übernehmen (einstellungen/sichtbarkeit,
+// Feld "spieleReihenfolge") - wirkt sich auf die Kachel-Anordnung UND die
+// Reihenfolge im Bestenlisten-Karussell aus, da beide dieselbe SPIELE-Liste nutzen.
+onSnapshot(doc(db, "einstellungen", "sichtbarkeit"), snap => {
+  const d = snap.exists() ? snap.data() : {};
+  let reihenfolge = Array.isArray(d.spieleReihenfolge) ? d.spieleReihenfolge.filter(id => SPIELE_STANDARD.some(s => s.id === id)) : [];
+  SPIELE_STANDARD.forEach(s => { if (!reihenfolge.includes(s.id)) reihenfolge.push(s.id); });
+  SPIELE = reihenfolge.map(id => SPIELE_STANDARD.find(s => s.id === id));
+
+  const grid = document.getElementById("spieleGrid");
+  reihenfolge.forEach(id => {
+    const el = document.getElementById("spieltile-" + id);
+    if (el) grid.appendChild(el);
+  });
+
+  highscoreIndex = 0;
+  renderHighscorePanel();
+});
 
 function renderHighscorePanel(){
   const spiel = SPIELE[highscoreIndex];

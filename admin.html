@@ -202,7 +202,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { db, sha256, generateSalt, hashPassword, verifyPassword, loginGesperrtInfo, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_IDEEN, IDEEN_STATUS, ideeStatusLabel } from "./common.js";
+import { db, sha256, generateSalt, hashPassword, verifyPassword, loginGesperrtInfo, initTheme, genCode, escapeHtml, todayStr, addDays, formatDate, timeDiffHours, applyBranding, logActivity, fileToLimitedDataUrl, abzeichenNachKategorie, mitgliedHatAbzeichen, ABZEICHEN_KATALOG, COL_ANFRAGEN, ANFRAGE_KATEGORIEN, ANFRAGE_STATUS, anfrageStatusLabel, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_YGGDRASIL_HIGHSCORES, COL_IDEEN, IDEEN_STATUS, ideeStatusLabel } from "./common.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -243,13 +243,15 @@ const KACHEL_DEFS = {
 const KACHEL_STANDARD_REIHENFOLGE = ["tierkreis", "tageswidgets", "omen", "orakel", "schichtplanung", "markttagebuch", "mitglieder", "ideenboard", "mitgliederverzeichnis", "mitgliedskarte", "spiele", "admin"];
 
 const SPIELE_HIGHSCORES = [
-  { name: "🏃 Sippen-Runner", col: COL_RUNNER_HIGHSCORES },
-  { name: "🐉 Drachenschiff-Wettfahrt", col: COL_DRACHENSCHIFF_HIGHSCORES },
-  { name: "ᚠ Runen-Lernspiel", col: COL_RUNENSPIEL_HIGHSCORES },
-  { name: "🔮 Symbol-Zuordnung", col: COL_SYMBOLZUORDNUNG_HIGHSCORES },
-  { name: "🏕️ Landnahme", col: COL_LANDNAHME_HIGHSCORES },
-  { name: "🗺️ Kartenerkundung", col: COL_KARTENERKUNDUNG_HIGHSCORES }
+  { id: "runner", name: "🏃 Sippen-Runner", col: COL_RUNNER_HIGHSCORES },
+  { id: "drachenschiff", name: "🐉 Drachenschiff-Wettfahrt", col: COL_DRACHENSCHIFF_HIGHSCORES },
+  { id: "runenspiel", name: "ᚠ Runen-Lernspiel", col: COL_RUNENSPIEL_HIGHSCORES },
+  { id: "symbolzuordnung", name: "🔮 Symbol-Zuordnung", col: COL_SYMBOLZUORDNUNG_HIGHSCORES },
+  { id: "landnahme", name: "🏕️ Landnahme", col: COL_LANDNAHME_HIGHSCORES },
+  { id: "kartenerkundung", name: "🗺️ Kartenerkundung", col: COL_KARTENERKUNDUNG_HIGHSCORES },
+  { id: "yggdrasil", name: "🐿️ Ratatöskr", col: COL_YGGDRASIL_HIGHSCORES }
 ];
+const SPIELE_STANDARD_REIHENFOLGE = SPIELE_HIGHSCORES.map(s => s.id);
 
 let currentAdmin = null; // {id, name} — angemeldetes Mitglied mit Verwaltungsrechten
 let mtEntriesCache = []; // zuletzt geladene Markttagebuch-Einträge, für Autovervollständigung
@@ -1426,8 +1428,9 @@ function renderEinstellungenModule(container){
     <div class="card">
       <div class="panel-header" data-panel="spielebestenlisten"><h2>Spiele-Bestenlisten</h2><span>▾</span></div>
       <div class="panel-body" id="panel-spielebestenlisten">
-        <p style="font-size:12px;color:var(--text-muted);margin-top:0;">Setzt die komplette Bestenliste eines Spiels zurück — betrifft alle Mitglieder und ist nicht rückgängig zu machen.</p>
-        <div id="spieleBestenlistenListe"></div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:0;">Reihenfolge der Spiele-Kacheln auf der Spiele-Seite anpassen (▲▼, dann "Reihenfolge speichern"), oder die komplette Bestenliste eines Spiels zurücksetzen — betrifft alle Mitglieder und ist nicht rückgängig zu machen.</p>
+        <div id="spieleBestenlistenListe" style="margin-bottom:12px;"></div>
+        <button class="btn small" id="saveSpieleReihenfolgeBtn">Reihenfolge speichern</button>
       </div>
     </div>
     <div class="card">
@@ -1466,18 +1469,40 @@ function renderEinstellungenModule(container){
     renderKachelReihenfolge(reihenfolge);
   });
 
-  renderSpieleBestenlistenListe();
+  getDoc(SETTINGS_SICHTBARKEIT).then(snap => {
+    const d = snap.exists() ? snap.data() : {};
+    let spieleReihenfolge = Array.isArray(d.spieleReihenfolge) ? d.spieleReihenfolge.filter(id => SPIELE_HIGHSCORES.some(s => s.id === id)) : [];
+    SPIELE_STANDARD_REIHENFOLGE.forEach(id => { if (!spieleReihenfolge.includes(id)) spieleReihenfolge.push(id); });
+    renderSpieleBestenlistenListe(spieleReihenfolge);
+  });
 
-  function renderSpieleBestenlistenListe(){
+  function renderSpieleBestenlistenListe(reihenfolge){
     const el = document.getElementById("spieleBestenlistenListe");
-    el.innerHTML = SPIELE_HIGHSCORES.map((s, i) => `
+    el.dataset.reihenfolge = JSON.stringify(reihenfolge);
+    el.innerHTML = reihenfolge.map((id, i) => {
+      const spiel = SPIELE_HIGHSCORES.find(s => s.id === id);
+      return `
       <div class="kachel-order-row">
-        <span>${s.name}</span>
-        <button type="button" class="btn small" data-reset-idx="${i}">Bestenliste zurücksetzen</button>
-      </div>`).join("");
-    el.querySelectorAll("button[data-reset-idx]").forEach(btn => {
+        <span>${spiel.name}</span>
+        <div class="kachel-order-btns">
+          <button type="button" data-move="up" data-index="${i}" ${i === 0 ? "disabled" : ""} title="Nach oben">▲</button>
+          <button type="button" data-move="down" data-index="${i}" ${i === reihenfolge.length - 1 ? "disabled" : ""} title="Nach unten">▼</button>
+          <button type="button" class="btn small" data-reset-id="${id}" style="margin-left:6px;">Bestenliste zurücksetzen</button>
+        </div>
+      </div>`;
+    }).join("");
+    el.querySelectorAll("button[data-move]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const arr = JSON.parse(el.dataset.reihenfolge);
+        const i = Number(btn.dataset.index);
+        const j = btn.dataset.move === "up" ? i - 1 : i + 1;
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        renderSpieleBestenlistenListe(arr);
+      });
+    });
+    el.querySelectorAll("button[data-reset-id]").forEach(btn => {
       btn.addEventListener("click", async () => {
-        const spiel = SPIELE_HIGHSCORES[Number(btn.dataset.resetIdx)];
+        const spiel = SPIELE_HIGHSCORES.find(s => s.id === btn.dataset.resetId);
         if (!confirm(`Bestenliste "${spiel.name}" komplett zurücksetzen? Alle Einträge aller Mitglieder werden unwiderruflich gelöscht.`)) return;
         btn.disabled = true;
         btn.textContent = "Wird gelöscht …";
@@ -1494,6 +1519,17 @@ function renderEinstellungenModule(container){
       });
     });
   }
+
+  document.getElementById("saveSpieleReihenfolgeBtn").addEventListener("click", async () => {
+    const reihenfolge = JSON.parse(document.getElementById("spieleBestenlistenListe").dataset.reihenfolge || "[]");
+    try{
+      await setDoc(SETTINGS_SICHTBARKEIT, { spieleReihenfolge: reihenfolge }, { merge: true });
+      logActivity(currentAdmin.name, "hat die Spiele-Reihenfolge aktualisiert");
+      alert("Reihenfolge gespeichert.");
+    } catch(err){
+      alert("Speichern fehlgeschlagen: " + err.message);
+    }
+  });
 
   function renderKachelReihenfolge(reihenfolge){
     const el = document.getElementById("kachelReihenfolgeListe");
