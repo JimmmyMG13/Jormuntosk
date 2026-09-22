@@ -538,6 +538,7 @@ export const COL_RUNENMAUER_HIGHSCORES = "runenmauer_highscores";
 export const COL_MIDGARDSCHLANGE_HIGHSCORES = "midgardschlange_highscores";
 export const COL_RUNENVERSCHMELZUNG_HIGHSCORES = "runenverschmelzung_highscores";
 export const COL_DRACHENFLUG_HIGHSCORES = "drachenflug_highscores";
+export const COL_FAFNIRSHORT_HIGHSCORES = "fafnirshort_highscores";
 
 export const ANFRAGE_KATEGORIEN = ["Ausrüstung", "Finanzen", "Organisatorisches", "Sonstiges"];
 

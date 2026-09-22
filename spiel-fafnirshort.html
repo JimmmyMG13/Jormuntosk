@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fafnirs Hort — Jörmuntösk</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2AA329">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Jörmuntösk">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+    --accent:#2AA329; --accent-dark:#1f7a1f; --bg:#F7F8F6; --surface:#FFFFFF;
+    --text:#1A1A1A; --text-muted:#5A5F58; --border:#DDE3DA;
+    --shadow:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  [data-theme="dark"]{
+    --bg:#141713; --surface:#1E221D; --text:#EDEFEA; --text-muted:#A2A89C;
+    --border:#31362C; --shadow:0 1px 3px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand img{height:40px;width:40px;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
+  .brand-text .name{font-weight:bold;color:var(--accent);font-size:18px;}
+  .brand-text .sub{font-size:12px;color:var(--text-muted);}
+  .icon-btn{background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:16px;color:var(--text);}
+  .icon-btn:hover{border-color:var(--accent);}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .btn:hover{opacity:.92;}
+  .btn.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+
+  .spiel-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px;margin-top:20px;}
+  .spiel-card h3{margin:0 0 10px 0;font-size:22px;color:var(--accent);text-align:center;}
+
+  .game-stage{position:relative;}
+  .game-stage-static{min-height:280px;display:flex;flex-direction:column;justify-content:center;}
+  .game-start-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:18px 52px;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .game-start-overlay:hover{opacity:.92;}
+  .hidden{display:none;}
+  .back-btn{position:fixed;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:20px;cursor:pointer;z-index:1001;box-shadow:var(--shadow);font-family:inherit;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+  .back-btn:hover{border-color:var(--accent);}
+  main{max-width:900px;margin:0 auto;padding:70px 20px 40px;}
+  footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
+
+  .fh-kartenwrap{position:relative;max-width:560px;margin:0 auto;}
+  .fh-kartenwrap canvas{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--border);background:#000;touch-action:none;}
+
+  .hud-oben{position:absolute;top:8px;left:8px;right:100px;pointer-events:none;}
+  .hud-zeile{display:flex;justify-content:space-between;font-size:11px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.9);margin-bottom:3px;}
+  .fackel-bar{width:100%;height:6px;background:rgba(0,0,0,0.5);border-radius:3px;overflow:hidden;border:1px solid rgba(255,255,255,0.2);}
+  .fackel-bar-fuellung{height:100%;background:linear-gradient(90deg,#ffb703,#e85d04);width:100%;transition:width .2s linear;}
+  .gefahr-warnung{text-align:center;font-size:11px;font-weight:bold;color:#ff8a8a;text-shadow:0 1px 2px rgba(0,0,0,.9);margin-top:4px;opacity:0;transition:opacity .3s ease;}
+  .gefahr-warnung.zeigen{opacity:1;}
+
+  .dpad-links{position:absolute;left:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;}
+  .dpad-rechts{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:row;gap:6px;}
+  .dpad-links button, .dpad-rechts button{width:46px;height:46px;background:rgba(20,24,20,0.55);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:10px;font-size:19px;cursor:pointer;font-family:inherit;backdrop-filter:blur(1px);touch-action:none;}
+  .dpad-links button:active, .dpad-rechts button:active{background:rgba(42,163,41,0.55);}
+
+  .fh-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.6);border-radius:12px;}
+  .fh-overlay.hidden{display:none;}
+  .fh-ende{background:var(--surface);border-radius:12px;padding:22px;text-align:center;max-width:270px;width:100%;}
+  .fh-ende h4{color:var(--accent);margin:0 0 8px 0;font-size:19px;}
+  .fh-ende p{font-size:13px;color:var(--text-muted);margin:4px 0;}
+  .fh-ende .fh-score{font-size:32px;font-weight:bold;color:var(--accent);margin:10px 0;}
+
+  @media (max-width: 640px){
+    header{padding:6px 12px;}
+    .brand img{height:28px;width:28px;}
+    .brand-text .name{font-size:13px;}
+    .brand-text .sub{font-size:9px;}
+    .icon-btn{width:26px;height:26px;font-size:12px;}
+    .back-btn{width:32px;height:32px;font-size:14px;top:8px;right:8px;}
+    main{padding:8px 8px 4px;}
+    .spiel-card{padding:8px 10px;margin-top:6px;}
+    .spiel-card h3{font-size:16px;margin-bottom:6px;}
+    .game-start-overlay{padding:12px 32px;font-size:15px;}
+  }
+  @media (orientation: landscape) and (max-height: 500px){
+    header{padding:3px 10px;}
+    main{padding:4px 6px 2px;}
+    .spiel-card{padding:4px 10px 6px;}
+    .spiel-card h3{font-size:13px;margin-bottom:4px;}
+    .fh-kartenwrap{max-width:none;width:auto;}
+    .fh-kartenwrap canvas{width:auto;height:min(88vh,320px);max-width:100%;margin:0 auto;display:block;}
+  }
+</style>
+</head>
+<body>
+
+<div id="appRoot" style="display:none;">
+<header>
+  <div class="brand">
+    <img id="logoImg" src="" alt="Jörmuntösk Logo">
+    <div class="brand-text"><span class="name">Jörmuntösk</span><span class="sub">Fafnirs Hort</span></div>
+  </div>
+  <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
+    <button class="icon-btn" id="themeToggle" title="Darstellung wechseln">🌓</button>
+    <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
+  </div>
+</header>
+
+<a class="back-btn" href="spiele.html" title="Zurück zu Spielen">✕</a>
+
+<main>
+  <div class="spiel-card" data-widget="fafnirshort">
+    <h3>🐲 Fafnirs Hort</h3>
+    <div class="game-stage game-stage-static">
+      <button class="game-start-overlay" id="fhStartBtn">Start</button>
+      <div id="fhSpielbereich" style="display:none;">
+        <div class="fh-kartenwrap">
+          <canvas id="fhCanvas" width="480" height="320"></canvas>
+
+          <div class="hud-oben">
+            <div class="hud-zeile"><span>Gold: <b id="fhGoldAnzeige">0</b></span><span>Raum <b id="fhRaumAnzeige">1</b></span></div>
+            <div class="fackel-bar"><div class="fackel-bar-fuellung" id="fhFackelFuellung"></div></div>
+            <div class="gefahr-warnung" id="fhGefahrWarnung">🐉 Fafnir ist nah!</div>
+          </div>
+
+          <div class="dpad-links">
+            <button type="button" id="fhBtnVor">▲</button>
+            <button type="button" id="fhBtnZurueck">▼</button>
+          </div>
+          <div class="dpad-rechts">
+            <button type="button" id="fhBtnLinks">◀</button>
+            <button type="button" id="fhBtnRechts">▶</button>
+          </div>
+
+          <div class="fh-overlay hidden" id="fhOverlay">
+            <div class="fh-ende">
+              <h4 id="fhEndeTitel"></h4>
+              <p id="fhEndeMeldung"></p>
+              <div class="fh-score" id="fhEndeScore"></div>
+              <button class="btn secondary" id="fhNeustartBtn">Nochmal versuchen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
+</div>
+
+<script type="module">
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, COL_FAFNIRSHORT_HIGHSCORES } from "./common.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+initTheme("themeToggle");
+applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
+document.getElementById("logoutBtn").addEventListener("click", memberLogout);
+
+const currentMember = await requireMemberLogin();
+
+(function initFafnirshort(){
+  const startBtn = document.getElementById("fhStartBtn");
+  const spielbereich = document.getElementById("fhSpielbereich");
+  const canvas = document.getElementById("fhCanvas");
+  const ctx = canvas.getContext("2d");
+  const overlayEl = document.getElementById("fhOverlay");
+  const endeTitelEl = document.getElementById("fhEndeTitel");
+  const endeMeldungEl = document.getElementById("fhEndeMeldung");
+  const endeScoreEl = document.getElementById("fhEndeScore");
+  const goldAnzeigeEl = document.getElementById("fhGoldAnzeige");
+  const raumAnzeigeEl = document.getElementById("fhRaumAnzeige");
+  const fackelFuellungEl = document.getElementById("fhFackelFuellung");
+  const gefahrWarnungEl = document.getElementById("fhGefahrWarnung");
+
+  const CANVAS_W = 480, CANVAS_H = 320;
+  const FOV = 66 * Math.PI / 180;
+  const NUM_STRAHLEN = 240;
+  const STRAHL_BREITE = CANVAS_W / NUM_STRAHLEN;
+  const FACKEL_DAUER = 75;
+  const FACKEL_NACHSCHUB = 22;
+
+  // =========================================================
+  // Prozedurale Texturen (64x64, zur Laufzeit gezeichnet).
+  // =========================================================
+  function erzeugeTextur(breite, hoehe, maler){
+    const c = document.createElement("canvas");
+    c.width = breite; c.height = hoehe;
+    maler(c.getContext("2d"), breite, hoehe);
+    return c;
+  }
+  const TEX_GROESSE = 64;
+  const texturStein = erzeugeTextur(TEX_GROESSE, TEX_GROESSE, (t, w, h) => {
+    t.fillStyle = "#6b5a48"; t.fillRect(0, 0, w, h);
+    for (let i = 0; i < 140; i++){
+      t.fillStyle = `rgba(0,0,0,${0.08 + Math.random() * 0.15})`;
+      t.beginPath(); t.arc(Math.random() * w, Math.random() * h, 1 + Math.random() * 3, 0, Math.PI * 2); t.fill();
+    }
+    t.strokeStyle = "rgba(0,0,0,0.28)"; t.lineWidth = 1;
+    for (let i = 0; i < 7; i++){
+      let x = Math.random() * w, y = Math.random() * h;
+      t.beginPath(); t.moveTo(x, y);
+      for (let j = 0; j < 4; j++){ x += Math.random() * 16 - 8; y += Math.random() * 16 - 8; t.lineTo(x, y); }
+      t.stroke();
+    }
+  });
+  const texturRunen = erzeugeTextur(TEX_GROESSE, TEX_GROESSE, (t, w, h) => {
+    t.fillStyle = "#3f382f"; t.fillRect(0, 0, w, h);
+    for (let i = 0; i < 100; i++){
+      t.fillStyle = `rgba(0,0,0,${0.08 + Math.random() * 0.12})`;
+      t.beginPath(); t.arc(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 0, Math.PI * 2); t.fill();
+    }
+    t.strokeStyle = "rgba(190,205,195,0.55)"; t.lineWidth = 2;
+    t.beginPath();
+    t.moveTo(w * 0.3, h * 0.15); t.lineTo(w * 0.3, h * 0.85);
+    t.moveTo(w * 0.3, h * 0.15); t.lineTo(w * 0.62, h * 0.4);
+    t.moveTo(w * 0.3, h * 0.5); t.lineTo(w * 0.62, h * 0.75);
+    t.stroke();
+  });
+  const texturMoos = erzeugeTextur(TEX_GROESSE, TEX_GROESSE, (t, w, h) => {
+    t.fillStyle = "#5a5040"; t.fillRect(0, 0, w, h);
+    for (let i = 0; i < 55; i++){
+      t.fillStyle = `rgba(60,110,50,${0.25 + Math.random() * 0.3})`;
+      t.beginPath(); t.arc(Math.random() * w, Math.random() * h, 3 + Math.random() * 7, 0, Math.PI * 2); t.fill();
+    }
+  });
+  const texturBoden = erzeugeTextur(TEX_GROESSE, TEX_GROESSE, (t, w, h) => {
+    t.fillStyle = "#2e2620"; t.fillRect(0, 0, w, h);
+    for (let i = 0; i < 180; i++){
+      const c = 50 + Math.random() * 35 | 0;
+      t.fillStyle = `rgba(${c + 15},${c},${c - 10},1)`;
+      t.beginPath(); t.arc(Math.random() * w, Math.random() * h, 0.5 + Math.random() * 2.2, 0, Math.PI * 2); t.fill();
+    }
+  });
+  const bodenDaten = texturBoden.getContext("2d").getImageData(0, 0, TEX_GROESSE, TEX_GROESSE).data;
+  function texturFuerTyp(typ){ return typ === 2 ? texturRunen : typ === 3 ? texturMoos : texturStein; }
+
+  // =========================================================
+  // Echtes Labyrinth (Recursive-Backtracker + Braid-Schritt gegen
+  // unpassierbare Engstellen). 7x7 Räume -> 15x15-Gitter.
+  // =========================================================
+  const RAUM_W = 7, RAUM_H = 7;
+  const BREITE = RAUM_W * 2 + 1, HOEHE = RAUM_H * 2 + 1;
+  let karte, entdeckt;
+
+  function generiereLabyrinth(){
+    const grid = Array.from({ length: HOEHE }, () => Array(BREITE).fill(1));
+    const besucht = Array.from({ length: RAUM_H }, () => Array(RAUM_W).fill(false));
+    const zelleFrei = (x, y) => x >= 0 && y >= 0 && x < RAUM_W && y < RAUM_H;
+    const stapel = [[0, 0]];
+    besucht[0][0] = true;
+    grid[1][1] = 0;
+    while (stapel.length){
+      const [cx, cy] = stapel[stapel.length - 1];
+      const nachbarn = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]].filter(([nx, ny]) => zelleFrei(nx, ny) && !besucht[ny][nx]);
+      if (nachbarn.length === 0){ stapel.pop(); continue; }
+      const [nx, ny] = nachbarn[Math.floor(Math.random() * nachbarn.length)];
+      grid[cy * 2 + 1 + (ny - cy)][cx * 2 + 1 + (nx - cx)] = 0;
+      grid[ny * 2 + 1][nx * 2 + 1] = 0;
+      besucht[ny][nx] = true;
+      stapel.push([nx, ny]);
+    }
+    // Braid-Schritt: ~30% der Wände, die zwei bereits verbundene Gänge
+    // trennen, zusätzlich entfernen - erzeugt Schleifen/Umwege, damit
+    // Fafnir nie den einzigen Weg blockieren kann.
+    for (let y = 1; y < HOEHE - 1; y++){
+      for (let x = 1; x < BREITE - 1; x++){
+        if (grid[y][x] !== 1) continue;
+        const linksOffen = grid[y][x - 1] === 0, rechtsOffen = grid[y][x + 1] === 0;
+        const obenOffen = grid[y - 1][x] === 0, untenOffen = grid[y + 1][x] === 0;
+        if ((linksOffen && rechtsOffen) || (obenOffen && untenOffen)){
+          if (Math.random() < 0.3) grid[y][x] = 0;
+        }
+      }
+    }
+    for (let y = 0; y < HOEHE; y++){
+      for (let x = 0; x < BREITE; x++){
+        if (grid[y][x] === 1){
+          const r = Math.random();
+          if (r < 0.14) grid[y][x] = 2;
+          else if (r < 0.28) grid[y][x] = 3;
+        }
+      }
+    }
+    return grid;
+  }
+
+  function sammleBodenZellen(){
+    const liste = [];
+    for (let y = 1; y < HOEHE - 1; y++) for (let x = 1; x < BREITE - 1; x++) if (karte[y][x] === 0) liste.push([x, y]);
+    for (let i = liste.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [liste[i], liste[j]] = [liste[j], liste[i]];
+    }
+    return liste;
+  }
+
+  let laufend = false;
+  let spieler, fafnir, gold, fackelZeit, letzterFrame, raumNummer;
+  let goldListe, fackelPunkte;
+  const ausgang = { x: (BREITE - 2) + 0.5, y: (HOEHE - 2) + 0.5 };
+  let vor = false, zurueck = false, linksDrehen = false, rechtsDrehen = false;
+  let fackelFlacker = 0;
+  let fafnirNaechsteEntscheidung = 0;
+
+  function baueRaumAuf(){
+    karte = generiereLabyrinth();
+    entdeckt = Array.from({ length: HOEHE }, () => Array(BREITE).fill(false));
+    const bodenZellen = sammleBodenZellen().filter(([x, y]) => Math.hypot(x - 1, y - 1) > 3 && Math.hypot(x - (BREITE - 2), y - (HOEHE - 2)) > 1.5);
+    goldListe = bodenZellen.slice(0, 10).map(([x, y]) => ({ x: x + 0.5, y: y + 0.5, eingesammelt: false }));
+    fackelPunkte = bodenZellen.slice(10, 12).map(([x, y]) => ({ x: x + 0.5, y: y + 0.5, eingesammelt: false }));
+    spieler = { x: 1.5, y: 1.5, winkel: 0 };
+    fafnir = { x: (BREITE - 2) + 0.5, y: (HOEHE - 2) + 0.5, ziel: null };
+    fafnirNaechsteEntscheidung = 0;
+  }
+
+  function starteSpiel(){
+    laufend = true;
+    raumNummer = 1;
+    gold = 0;
+    fackelZeit = FACKEL_DAUER;
+    baueRaumAuf();
+
+    startBtn.classList.add("hidden");
+    startBtn.style.display = "none";
+    spielbereich.style.display = "block";
+    overlayEl.classList.add("hidden");
+    gefahrWarnungEl.classList.remove("zeigen");
+    aktualisiereHUD();
+    letzterFrame = performance.now();
+    requestAnimationFrame(schleife);
+  }
+  startBtn.addEventListener("click", starteSpiel);
+
+  function naechsterRaum(){
+    raumNummer++;
+    fackelZeit = Math.min(FACKEL_DAUER, fackelZeit + FACKEL_DAUER * 0.2);
+    baueRaumAuf();
+    aktualisiereHUD();
+  }
+
+  function aktualisiereHUD(){
+    goldAnzeigeEl.textContent = String(gold);
+    raumAnzeigeEl.textContent = String(raumNummer);
+    fackelFuellungEl.style.width = Math.max(0, (fackelZeit / FACKEL_DAUER) * 100) + "%";
+  }
+
+  // --- Steuerung: überlagertes Steuerkreuz, links vor/zurück, rechts drehen ---
+  function bind(id, setter){
+    const el = document.getElementById(id);
+    el.addEventListener("pointerdown", e => { e.preventDefault(); setter(true); });
+    el.addEventListener("pointerup", () => setter(false));
+    el.addEventListener("pointerleave", () => setter(false));
+    el.addEventListener("pointercancel", () => setter(false));
+  }
+  bind("fhBtnVor", v => vor = v);
+  bind("fhBtnZurueck", v => zurueck = v);
+  bind("fhBtnLinks", v => linksDrehen = v);
+  bind("fhBtnRechts", v => rechtsDrehen = v);
+  window.addEventListener("keydown", e => {
+    if (!laufend) return;
+    if (e.key === "ArrowUp"){ vor = true; e.preventDefault(); }
+    if (e.key === "ArrowDown"){ zurueck = true; e.preventDefault(); }
+    if (e.key === "ArrowLeft"){ linksDrehen = true; e.preventDefault(); }
+    if (e.key === "ArrowRight"){ rechtsDrehen = true; e.preventDefault(); }
+  });
+  window.addEventListener("keyup", e => {
+    if (e.key === "ArrowUp") vor = false;
+    if (e.key === "ArrowDown") zurueck = false;
+    if (e.key === "ArrowLeft") linksDrehen = false;
+    if (e.key === "ArrowRight") rechtsDrehen = false;
+  });
+
+  function bewegeSpieler(faktor){
+    const drehTempo = 0.045;
+    if (linksDrehen) spieler.winkel -= drehTempo * faktor;
+    if (rechtsDrehen) spieler.winkel += drehTempo * faktor;
+    const tempo = 0.045 * faktor;
+    let richtung = 0;
+    if (vor) richtung += 1;
+    if (zurueck) richtung -= 1;
+    if (richtung !== 0){
+      const dx = Math.cos(spieler.winkel) * tempo * richtung;
+      const dy = Math.sin(spieler.winkel) * tempo * richtung;
+      if (karte[Math.floor(spieler.y)][Math.floor(spieler.x + dx)] === 0) spieler.x += dx;
+      if (karte[Math.floor(spieler.y + dy)][Math.floor(spieler.x)] === 0) spieler.y += dy;
+    }
+  }
+
+  function bewegeFafnir(faktor, zeitJetzt){
+    if (zeitJetzt > fafnirNaechsteEntscheidung){
+      fafnirNaechsteEntscheidung = zeitJetzt + 1400 + Math.random() * 900;
+      const vx = Math.floor(fafnir.x), vy = Math.floor(fafnir.y);
+      const nachbarn = [[vx + 1, vy], [vx - 1, vy], [vx, vy + 1], [vx, vy - 1]]
+        .filter(([nx, ny]) => nx >= 0 && ny >= 0 && nx < BREITE && ny < HOEHE && karte[ny][nx] === 0);
+      if (nachbarn.length){
+        const [nx, ny] = nachbarn[Math.floor(Math.random() * nachbarn.length)];
+        fafnir.ziel = { x: nx + 0.5, y: ny + 0.5 };
+      }
+    }
+    if (fafnir.ziel){
+      const dx = fafnir.ziel.x - fafnir.x, dy = fafnir.ziel.y - fafnir.y;
+      const dist = Math.hypot(dx, dy);
+      const tempo = 0.02 * faktor;
+      if (dist < tempo || dist === 0){ fafnir.x = fafnir.ziel.x; fafnir.y = fafnir.ziel.y; }
+      else { fafnir.x += (dx / dist) * tempo; fafnir.y += (dy / dist) * tempo; }
+    }
+  }
+
+  function enthuelleUmgebung(){
+    const px = Math.floor(spieler.x), py = Math.floor(spieler.y);
+    for (let dy = -2; dy <= 2; dy++){
+      for (let dx = -2; dx <= 2; dx++){
+        const x = px + dx, y = py + dy;
+        if (x >= 0 && y >= 0 && x < BREITE && y < HOEHE) entdeckt[y][x] = true;
+      }
+    }
+  }
+
+  function werfeStrahl(winkel){
+    const dirX = Math.cos(winkel), dirY = Math.sin(winkel);
+    let mapX = Math.floor(spieler.x), mapY = Math.floor(spieler.y);
+    const deltaDistX = dirX === 0 ? 1e30 : Math.abs(1 / dirX);
+    const deltaDistY = dirY === 0 ? 1e30 : Math.abs(1 / dirY);
+    let stepX, sideDistX, stepY, sideDistY;
+    if (dirX < 0){ stepX = -1; sideDistX = (spieler.x - mapX) * deltaDistX; } else { stepX = 1; sideDistX = (mapX + 1 - spieler.x) * deltaDistX; }
+    if (dirY < 0){ stepY = -1; sideDistY = (spieler.y - mapY) * deltaDistY; } else { stepY = 1; sideDistY = (mapY + 1 - spieler.y) * deltaDistY; }
+    let seite = 0, sicherheit = 0, typ = 1;
+    while (sicherheit++ < 200){
+      if (sideDistX < sideDistY){ sideDistX += deltaDistX; mapX += stepX; seite = 0; }
+      else { sideDistY += deltaDistY; mapY += stepY; seite = 1; }
+      if (karte[mapY] && karte[mapY][mapX] > 0){ typ = karte[mapY][mapX]; break; }
+    }
+    const abstand = seite === 0 ? Math.max(0.0001, sideDistX - deltaDistX) : Math.max(0.0001, sideDistY - deltaDistY);
+    return { abstand, seite, typ, dirX, dirY };
+  }
+
+  const zBuffer = new Array(NUM_STRAHLEN).fill(1e30);
+  let bodenBild = null;
+
+  function zeichneBoden(){
+    if (!bodenBild) bodenBild = ctx.createImageData(CANVAS_W, CANVAS_H - Math.floor(CANVAS_H / 2) - 1);
+    const daten = bodenBild.data;
+    const rayWinkelLinks = spieler.winkel - FOV / 2, rayWinkelRechts = spieler.winkel + FOV / 2;
+    const rayDirX0 = Math.cos(rayWinkelLinks), rayDirY0 = Math.sin(rayWinkelLinks);
+    const rayDirX1 = Math.cos(rayWinkelRechts), rayDirY1 = Math.sin(rayWinkelRechts);
+    const startY = Math.floor(CANVAS_H / 2) + 1;
+
+    for (let y = startY; y < CANVAS_H; y++){
+      const p = y - CANVAS_H / 2;
+      const rowDistance = (0.5 * CANVAS_H) / p;
+      const floorStepX = (rowDistance * (rayDirX1 - rayDirX0)) / CANVAS_W;
+      const floorStepY = (rowDistance * (rayDirY1 - rayDirY0)) / CANVAS_W;
+      let floorX = spieler.x + rowDistance * rayDirX0;
+      let floorY = spieler.y + rowDistance * rayDirY0;
+      const dunkel = Math.max(0.18, 1 - rowDistance / 9);
+      const zeilenOffset = (y - startY) * CANVAS_W * 4;
+      for (let x = 0; x < CANVAS_W; x++){
+        const tx = Math.floor(TEX_GROESSE * (floorX - Math.floor(floorX))) & (TEX_GROESSE - 1);
+        const ty = Math.floor(TEX_GROESSE * (floorY - Math.floor(floorY))) & (TEX_GROESSE - 1);
+        floorX += floorStepX; floorY += floorStepY;
+        const quelle = (ty * TEX_GROESSE + tx) * 4;
+        const ziel = zeilenOffset + x * 4;
+        daten[ziel] = bodenDaten[quelle] * dunkel;
+        daten[ziel + 1] = bodenDaten[quelle + 1] * dunkel;
+        daten[ziel + 2] = bodenDaten[quelle + 2] * dunkel;
+        daten[ziel + 3] = 255;
+      }
+    }
+    ctx.putImageData(bodenBild, 0, startY);
+  }
+
+  function zeichneSzene(){
+    ctx.fillStyle = "#1a1410";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H / 2 + 1);
+    zeichneBoden();
+
+    fackelFlacker = fackelFlacker * 0.88 + (Math.random() - 0.5) * 0.14;
+
+    for (let i = 0; i < NUM_STRAHLEN; i++){
+      const rayWinkel = spieler.winkel - FOV / 2 + (i / NUM_STRAHLEN) * FOV;
+      const { abstand, seite, typ, dirX, dirY } = werfeStrahl(rayWinkel);
+      const korrigiert = abstand * Math.cos(rayWinkel - spieler.winkel);
+      zBuffer[i] = korrigiert;
+      const hoehe = Math.min(CANVAS_H * 2, CANVAS_H / korrigiert);
+      const y0 = (CANVAS_H - hoehe) / 2;
+
+      let wandX = seite === 0 ? spieler.y + abstand * dirY : spieler.x + abstand * dirX;
+      wandX -= Math.floor(wandX);
+      let texX = Math.floor(wandX * TEX_GROESSE);
+      if (seite === 0 && dirX > 0) texX = TEX_GROESSE - texX - 1;
+      if (seite === 1 && dirY < 0) texX = TEX_GROESSE - texX - 1;
+
+      ctx.drawImage(texturFuerTyp(typ), texX, 0, 1, TEX_GROESSE, i * STRAHL_BREITE, y0, STRAHL_BREITE + 1, hoehe);
+
+      let dunkelheit = Math.min(0.82, korrigiert / 9) + (seite === 1 ? 0.14 : 0) - fackelFlacker * 0.25;
+      dunkelheit = Math.max(0, Math.min(0.85, dunkelheit));
+      ctx.fillStyle = `rgba(0,0,0,${dunkelheit})`;
+      ctx.fillRect(i * STRAHL_BREITE, y0, STRAHL_BREITE + 1, hoehe);
+    }
+
+    const sprites = [
+      ...goldListe.filter(g => !g.eingesammelt).map(g => ({ ...g, icon: "🪙", groesse: 0.55 })),
+      ...fackelPunkte.filter(f => !f.eingesammelt).map(f => ({ ...f, icon: "🔥", groesse: 0.55 })),
+      { ...ausgang, icon: "🚪", groesse: 0.9 },
+      { x: fafnir.x, y: fafnir.y, icon: "🐉", groesse: 1.05 }
+    ];
+    sprites.sort((a, b) => ((b.x - spieler.x) ** 2 + (b.y - spieler.y) ** 2) - ((a.x - spieler.x) ** 2 + (a.y - spieler.y) ** 2));
+    sprites.forEach(s => {
+      const dx = s.x - spieler.x, dy = s.y - spieler.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      let winkelZu = Math.atan2(dy, dx) - spieler.winkel;
+      while (winkelZu > Math.PI) winkelZu -= Math.PI * 2;
+      while (winkelZu < -Math.PI) winkelZu += Math.PI * 2;
+      if (Math.abs(winkelZu) > FOV / 2 + 0.25 || dist < 0.2) return;
+      const screenX = (0.5 + winkelZu / FOV) * CANVAS_W;
+      const rayIndex = Math.max(0, Math.min(NUM_STRAHLEN - 1, Math.floor((screenX / CANVAS_W) * NUM_STRAHLEN)));
+      if (zBuffer[rayIndex] < dist) return;
+      const spriteGroesse = Math.min(CANVAS_H, (CANVAS_H / dist) * s.groesse);
+      ctx.font = `${Math.round(spriteGroesse)}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(s.icon, screenX, CANVAS_H / 2 + spriteGroesse * 0.08);
+    });
+
+    const vignetteStaerke = 0.3 + 0.5 * (1 - fackelZeit / FACKEL_DAUER);
+    const grad = ctx.createRadialGradient(CANVAS_W / 2, CANVAS_H / 2, CANVAS_H * 0.15, CANVAS_W / 2, CANVAS_H / 2, CANVAS_W * 0.6);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, `rgba(0,0,0,${vignetteStaerke})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    const distZuFafnir = Math.hypot(fafnir.x - spieler.x, fafnir.y - spieler.y);
+    if (distZuFafnir < 3){
+      const staerke = (1 - distZuFafnir / 3) * 0.4;
+      const rotGrad = ctx.createRadialGradient(CANVAS_W/2, CANVAS_H/2, CANVAS_H*0.2, CANVAS_W/2, CANVAS_H/2, CANVAS_W*0.55);
+      rotGrad.addColorStop(0, "rgba(180,20,20,0)");
+      rotGrad.addColorStop(1, `rgba(180,20,20,${staerke})`);
+      ctx.fillStyle = rotGrad;
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    }
+
+    zeichneMinikarte();
+  }
+
+  function zeichneMinikarte(){
+    const groesse = 78, zelle = groesse / Math.max(BREITE, HOEHE);
+    const ox = CANVAS_W - groesse - 10, oy = 10;
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(ox - 4, oy - 4, groesse + 8, groesse + 8);
+    for (let y = 0; y < HOEHE; y++){
+      for (let x = 0; x < BREITE; x++){
+        if (!entdeckt[y][x]) continue;
+        ctx.fillStyle = karte[y][x] > 0 ? "#5a4a35" : "#2a2318";
+        ctx.fillRect(ox + x * zelle, oy + y * zelle, zelle, zelle);
+      }
+    }
+    goldListe.filter(g => !g.eingesammelt && entdeckt[Math.floor(g.y)][Math.floor(g.x)]).forEach(g => {
+      ctx.fillStyle = "#e6c250";
+      ctx.beginPath(); ctx.arc(ox + g.x * zelle, oy + g.y * zelle, 1.3, 0, Math.PI * 2); ctx.fill();
+    });
+    if (entdeckt[Math.floor(fafnir.y)] && entdeckt[Math.floor(fafnir.y)][Math.floor(fafnir.x)]){
+      ctx.fillStyle = "#e04a3f";
+      ctx.beginPath(); ctx.arc(ox + fafnir.x * zelle, oy + fafnir.y * zelle, 2, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = "#4ade4a";
+    ctx.beginPath(); ctx.arc(ox + spieler.x * zelle, oy + spieler.y * zelle, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#4ade4a";
+    ctx.beginPath();
+    ctx.moveTo(ox + spieler.x * zelle, oy + spieler.y * zelle);
+    ctx.lineTo(ox + (spieler.x + Math.cos(spieler.winkel) * 1.4) * zelle, oy + (spieler.y + Math.sin(spieler.winkel) * 1.4) * zelle);
+    ctx.stroke();
+  }
+
+  function pruefeInteraktionen(delta){
+    goldListe.forEach(g => {
+      if (!g.eingesammelt && Math.hypot(g.x - spieler.x, g.y - spieler.y) < 0.45){ g.eingesammelt = true; gold++; }
+    });
+    fackelPunkte.forEach(f => {
+      if (!f.eingesammelt && Math.hypot(f.x - spieler.x, f.y - spieler.y) < 0.45){
+        f.eingesammelt = true;
+        fackelZeit = Math.min(FACKEL_DAUER, fackelZeit + FACKEL_NACHSCHUB);
+      }
+    });
+    if (Math.hypot(ausgang.x - spieler.x, ausgang.y - spieler.y) < 0.6){ naechsterRaum(); return; }
+
+    const distZuFafnir = Math.hypot(fafnir.x - spieler.x, fafnir.y - spieler.y);
+    if (distZuFafnir < 0.5){ beendeSpiel(true); return; }
+    gefahrWarnungEl.classList.toggle("zeigen", distZuFafnir < 3);
+    if (distZuFafnir < 3){
+      fackelZeit -= (1 - distZuFafnir / 3) * 0.6 * ((delta * 16.6667) / 1000);
+    }
+  }
+
+  async function beendeSpiel(vonFafnir){
+    laufend = false;
+    overlayEl.classList.remove("hidden");
+    gefahrWarnungEl.classList.remove("zeigen");
+    const punkte = gold * 10 + (raumNummer - 1) * 50;
+    if (vonFafnir){
+      endeTitelEl.textContent = "Fafnir hat dich entdeckt!";
+      endeMeldungEl.textContent = `Raum ${raumNummer} · ${gold} Goldstücke gesammelt`;
+    } else {
+      endeTitelEl.textContent = "Die Fackel ist erloschen";
+      endeMeldungEl.textContent = `Raum ${raumNummer} · ${gold} Goldstücke gesammelt`;
+    }
+    endeScoreEl.textContent = punkte + " Punkte";
+
+    try {
+      const ref = doc(db, COL_FAFNIRSHORT_HIGHSCORES, currentMember.id);
+      const bestehend = await getDoc(ref);
+      const bisherigerScore = bestehend.exists() ? (bestehend.data().score || 0) : 0;
+      if (!bestehend.exists() || punkte > bisherigerScore){
+        await setDoc(ref, { mitgliedName: currentMember.name, score: punkte, gold, raeume: raumNummer, datum: new Date().toISOString() });
+      }
+    } catch (err) {}
+  }
+
+  document.getElementById("fhNeustartBtn").addEventListener("click", () => {
+    overlayEl.classList.add("hidden");
+    starteSpiel();
+  });
+
+  function schleife(zeit){
+    if (!laufend) return;
+    const delta = Math.min(2.5, (zeit - letzterFrame) / 16.6667);
+    letzterFrame = zeit;
+
+    bewegeSpieler(delta);
+    bewegeFafnir(delta, zeit);
+    enthuelleUmgebung();
+    pruefeInteraktionen(delta);
+    if (!laufend) return;
+
+    fackelZeit -= (delta * 16.6667) / 1000;
+    aktualisiereHUD();
+    if (fackelZeit <= 0){ beendeSpiel(false); return; }
+
+    zeichneSzene();
+    requestAnimationFrame(schleife);
+  }
+})();
+</script>
+</body>
+</html>
