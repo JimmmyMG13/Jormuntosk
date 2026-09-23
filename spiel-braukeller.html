@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Met-Braukeller — Jörmuntösk</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2AA329">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Jörmuntösk">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --accent:#2AA329; --accent-dark:#1f7a1f; --bg:#F7F8F6; --surface:#FFFFFF;
+    --text:#1A1A1A; --text-muted:#5A5F58; --border:#DDE3DA;
+    --shadow:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  [data-theme="dark"]{
+    --bg:#141713; --surface:#1E221D; --text:#EDEFEA; --text-muted:#A2A89C;
+    --border:#31362C; --shadow:0 1px 3px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand img{height:40px;width:40px;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
+  .brand-text .name{font-weight:bold;color:var(--accent);font-size:18px;}
+  .brand-text .sub{font-size:12px;color:var(--text-muted);}
+  .icon-btn{background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:16px;color:var(--text);}
+  .icon-btn:hover{border-color:var(--accent);}
+  .back-btn{position:fixed;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:20px;cursor:pointer;z-index:1001;box-shadow:var(--shadow);font-family:inherit;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+  .back-btn:hover{border-color:var(--accent);}
+  main{max-width:480px;margin:0 auto;padding:70px 16px 40px;}
+  footer{text-align:center;font-size:12px;color:var(--text-muted);padding:30px 20px;}
+
+  .banner{background:rgba(42,163,41,0.15);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;text-align:center;display:none;}
+  .banner.zeigen{display:block;}
+  .ereignis-banner{border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;text-align:center;opacity:0;max-height:0;overflow:hidden;transition:opacity .3s ease, max-height .3s ease;}
+  .ereignis-banner.zeigen{opacity:1;max-height:60px;padding:10px 14px;margin-bottom:14px;}
+  .ereignis-banner.positiv{background:rgba(42,163,41,0.18);border:1px solid var(--accent);}
+  .ereignis-banner.negativ{background:rgba(200,60,60,0.18);border:1px solid #c83c3c;}
+
+  .muenzen-leiste{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .muenzen-leiste .betrag{font-size:20px;font-weight:bold;color:#c9a227;}
+  .muenzen-leiste .label{font-size:11px;color:var(--text-muted);}
+
+  .station{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+  .station-kopf{display:flex;align-items:center;gap:8px;margin-bottom:8px;position:relative;}
+  .station-icon-wrap{position:relative;width:26px;height:26px;}
+  .station-icon{font-size:22px;position:relative;z-index:1;}
+  .biene{position:absolute;top:50%;left:50%;font-size:9px;opacity:0;pointer-events:none;}
+  .biene.aktiv{opacity:1;animation:bienenflug 2.6s linear infinite;}
+  .biene.b2{animation-delay:-0.9s;font-size:8px;}
+  .biene.b3{animation-delay:-1.8s;font-size:7px;}
+  @keyframes bienenflug{
+    0%{ transform: rotate(0deg) translateX(16px) rotate(0deg); }
+    100%{ transform: rotate(360deg) translateX(16px) rotate(-360deg); }
+  }
+  .station-name{font-weight:bold;font-size:14px;flex:1;color:var(--text);}
+  .station-status{font-size:11px;color:var(--text-muted);}
+  .fuellstand{width:100%;height:10px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;position:relative;}
+  .fuellstand-balken{height:100%;background:linear-gradient(90deg,var(--accent-dark),var(--accent));width:0%;transition:width .15s linear;}
+  .fuellstand-balken.brauend{background:linear-gradient(90deg,#c98a2e,#e6c250);}
+  .blase{position:absolute;bottom:0;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.7);opacity:0;}
+  .blase.aktiv{animation:aufsteigen 1.6s ease-in infinite;}
+  @keyframes aufsteigen{ 0%{ bottom:-2px; opacity:0; } 15%{ opacity:.8; } 100%{ bottom:100%; opacity:0; } }
+  .fuellstand-text{font-size:10px;color:var(--text-muted);margin-bottom:10px;}
+  .sorten-wahl{display:flex;gap:6px;margin-bottom:8px;}
+  .sorten-btn{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:6px;font-size:11px;cursor:pointer;font-family:inherit;}
+  .sorten-btn.aktiv{border-color:var(--accent);color:var(--accent);font-weight:bold;background:rgba(42,163,41,0.1);}
+  .sorten-btn:disabled{opacity:.5;cursor:default;}
+  .upgrade-reihe{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .upgrade-btn{flex:1;min-width:110px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 8px;font-size:11px;cursor:pointer;font-family:inherit;text-align:left;}
+  .upgrade-btn:hover:not(:disabled){border-color:var(--accent);}
+  .upgrade-btn:disabled{opacity:.4;cursor:default;}
+  .upgrade-btn b{display:block;font-size:12px;}
+  .aktion-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .aktion-btn:disabled{opacity:.5;cursor:default;background:var(--text-muted);}
+  .aktion-btn.sekundaer{background:transparent;border:1px solid var(--accent);color:var(--accent);margin-top:6px;}
+  .aktion-btn.sekundaer:disabled{border-color:var(--text-muted);color:var(--text-muted);}
+
+  .kessel-block{border-top:1px solid var(--border);padding-top:10px;margin-top:10px;}
+  .kessel-block:first-child{border-top:none;padding-top:0;margin-top:0;}
+  .kessel-titel{font-size:11px;font-weight:bold;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;}
+
+  .verbindung{display:flex;justify-content:center;height:18px;position:relative;}
+  .verbindung::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--border);}
+  .fluss-punkt{width:6px;height:6px;border-radius:50%;background:var(--accent);position:absolute;top:6px;left:calc(50% - 3px);opacity:0;transition:opacity .2s ease;}
+  .fluss-punkt.aktiv{opacity:1;animation:fliessen 0.9s linear infinite;}
+  @keyframes fliessen{ from{top:0;} to{top:18px;} }
+
+  .statistik-karte{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:16px;box-shadow:var(--shadow);}
+  .statistik-karte h3{margin:0 0 8px 0;font-size:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .statistik-zeile{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-top:1px solid var(--border);color:var(--text);}
+  .statistik-zeile:first-of-type{border-top:none;}
+
+  .prestige-karte{background:var(--surface);border:1px solid #c9a227;border-radius:12px;padding:14px 16px;margin-top:16px;text-align:center;box-shadow:var(--shadow);}
+  .prestige-karte h3{margin:0 0 6px 0;font-size:14px;color:#c9a227;}
+  .prestige-karte p{font-size:12px;color:var(--text-muted);margin:4px 0;}
+  .prestige-btn{background:#c9a227;color:#2a1f00;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:bold;cursor:pointer;font-family:inherit;margin-top:8px;}
+  .prestige-btn:disabled{opacity:.4;cursor:default;}
+
+  @media (max-width: 640px){
+    header{padding:6px 12px;}
+    .brand img{height:28px;width:28px;}
+    .brand-text .name{font-size:13px;}
+    .brand-text .sub{font-size:9px;}
+    .icon-btn{width:26px;height:26px;font-size:12px;}
+    .back-btn{width:32px;height:32px;font-size:14px;top:8px;right:8px;}
+    main{padding:56px 8px 20px;}
+  }
+  @media (orientation: landscape) and (max-height: 520px){
+    header{padding:4px 10px;}
+    main{max-width:820px;padding:44px 8px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;}
+    .banner, .ereignis-banner, .muenzen-leiste, .statistik-karte, .prestige-karte{grid-column:1 / -1;margin-top:0;}
+    .banner, .ereignis-banner{margin-bottom:0;}
+    .muenzen-leiste{padding:7px 12px;margin-bottom:0;}
+    .verbindung{display:none;}
+    .station{margin-bottom:0;padding:9px 11px;}
+    .station-kopf{margin-bottom:5px;}
+    .station-icon{font-size:18px;}
+    .station-name{font-size:12px;}
+    .station-status{font-size:9px;}
+    .fuellstand-text{font-size:9px;margin-bottom:6px;}
+    .sorten-wahl{margin-bottom:6px;}
+    .sorten-btn{font-size:9px;padding:5px;}
+    .upgrade-reihe{margin-top:6px;gap:4px;}
+    .upgrade-btn{font-size:9px;padding:5px 6px;min-width:90px;}
+    .upgrade-btn b{font-size:10px;}
+    .aktion-btn{font-size:10px;padding:6px;}
+    .statistik-karte{padding:10px 12px;margin-top:0;}
+    .statistik-karte h3{font-size:11px;margin-bottom:5px;}
+    .statistik-zeile{font-size:10px;padding:3px 0;}
+    .prestige-karte{padding:10px 12px;margin-top:0;}
+    .prestige-karte h3{font-size:12px;}
+    .prestige-karte p{font-size:10px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="appRoot" style="display:none;">
+<header>
+  <div class="brand">
+    <img id="logoImg" src="" alt="Jörmuntösk Logo">
+    <div class="brand-text"><span class="name">Jörmuntösk</span><span class="sub">Met-Braukeller</span></div>
+  </div>
+  <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
+    <button class="icon-btn" id="themeToggle" title="Darstellung wechseln">🌓</button>
+    <button class="icon-btn" id="logoutBtn" title="Abmelden">⎋</button>
+  </div>
+</header>
+
+<a class="back-btn" href="spiele.html" title="Zurück zu Spielen">✕</a>
+
+<main>
+  <div class="banner" id="willkommenBanner"></div>
+  <div class="ereignis-banner" id="ereignisBanner"></div>
+
+  <div class="muenzen-leiste">
+    <div><div class="label">Silbermünzen</div><div class="betrag" id="muenzenAnzeige">0</div></div>
+    <div style="text-align:right;"><div class="label">Jahresfeste</div><div class="betrag" id="jahresfesteAnzeige" style="font-size:16px;">0</div></div>
+  </div>
+
+  <div class="station">
+    <div class="station-kopf">
+      <span class="station-icon-wrap"><span class="station-icon">🐝</span><span class="biene" id="bieneAnim1">🐝</span><span class="biene b2" id="bieneAnim2">🐝</span><span class="biene b3" id="bieneAnim3">🐝</span></span>
+      <span class="station-name">Bienenstock</span>
+      <span class="station-status" id="bienenStatusText"></span>
+    </div>
+    <div class="fuellstand"><div class="fuellstand-balken" id="honigBalken"></div></div>
+    <div class="fuellstand-text" id="honigText"></div>
+    <div class="fuellstand"><div class="fuellstand-balken" id="ernteBalken"></div></div>
+    <div class="fuellstand-text" id="ernteText"></div>
+    <button class="aktion-btn" id="erntenBtn">Bienenstock ernten</button>
+    <div class="upgrade-reihe">
+      <button class="upgrade-btn" id="bienenRateBtn"><b id="bienenRateTitel">Mehr Bienenstöcke</b><span id="bienenRateKosten"></span></button>
+      <button class="upgrade-btn" id="bienenKapBtn"><b id="bienenKapTitel">Grösserer Speicher</b><span id="bienenKapKosten"></span></button>
+    </div>
+    <button class="upgrade-btn" id="imkerBtn" style="width:100%;margin-top:6px;"><b>Imker einstellen</b><span id="imkerKosten"></span></button>
+  </div>
+
+  <div class="verbindung"><div class="fluss-punkt" id="flussPunkt1"></div></div>
+
+  <div class="station">
+    <div class="station-kopf">
+      <span class="station-icon">🧪</span>
+      <span class="station-name">Braukessel</span>
+      <span class="station-status" id="kesselAnzahlText"></span>
+    </div>
+    <div id="kesselListe"></div>
+    <button class="aktion-btn sekundaer" id="neuerKesselBtn" style="margin-top:10px;">Weiteren Kessel kaufen</button>
+    <div class="upgrade-reihe">
+      <button class="upgrade-btn" id="kesselZeitBtn"><b id="kesselZeitTitel">Bessere Kessel (alle)</b><span id="kesselZeitKosten"></span></button>
+    </div>
+  </div>
+
+  <div class="verbindung"><div class="fluss-punkt" id="flussPunkt2"></div></div>
+
+  <div class="station">
+    <div class="station-kopf">
+      <span class="station-icon">🛢️</span>
+      <span class="station-name">Fasslager</span>
+      <span class="station-status">reiner Speicher</span>
+    </div>
+    <div class="fuellstand"><div class="fuellstand-balken" id="faesserBalken"></div></div>
+    <div class="fuellstand-text" id="faesserText"></div>
+    <div class="upgrade-reihe">
+      <button class="upgrade-btn" id="lagerKapBtn"><b id="lagerKapTitel">Mehr Fässer</b><span id="lagerKapKosten"></span></button>
+    </div>
+  </div>
+
+  <div class="verbindung"><div class="fluss-punkt" id="flussPunkt3"></div></div>
+
+  <div class="station">
+    <div class="station-kopf">
+      <span class="station-icon">🏪</span>
+      <span class="station-name">Marktstand</span>
+      <span class="station-status" id="marktStatusText"></span>
+    </div>
+    <div class="fuellstand-text" id="marktText"></div>
+    <button class="aktion-btn" id="verkaufenBtn">Fässer verkaufen</button>
+    <div class="upgrade-reihe">
+      <button class="upgrade-btn" id="marktPreisBtn"><b id="marktPreisTitel">Bessere Preise</b><span id="marktPreisKosten"></span></button>
+      <button class="upgrade-btn" id="verkaeuferBtn"><b>Verkäufer einstellen</b><span id="verkaeuferKosten"></span></button>
+    </div>
+  </div>
+
+  <div class="prestige-karte">
+    <h3>Jahresfest</h3>
+    <p id="prestigeText"></p>
+    <p style="font-size:11px;">Setzt Fortschritt, Ausbauten und alle Mitarbeiter zurück, gibt aber einen dauerhaften +10%-Bonus auf Honigertrag und Brauzeit.</p>
+    <button class="prestige-btn" id="prestigeBtn">Jahresfest feiern</button>
+  </div>
+
+  <div class="statistik-karte">
+    <h3>Statistik (über alle Jahresfeste hinweg)</h3>
+    <div class="statistik-zeile"><span>Einfacher Met gebraut</span><b id="statEinfach">0</b></div>
+    <div class="statistik-zeile"><span>Gewürzmet gebraut</span><b id="statGewuerz">0</b></div>
+    <div class="statistik-zeile"><span>Fässer verkauft</span><b id="statVerkauft">0</b></div>
+    <div class="statistik-zeile"><span>Münzen insgesamt verdient</span><b id="statMuenzen">0</b></div>
+  </div>
+</main>
+
+<footer id="footerText">Jörmuntösk · 5024 Küttigen, Schweiz · jormuntosk@gmail.com</footer>
+</div>
+
+<script type="module">
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, COL_BRAUKELLER_STAND, COL_BRAUKELLER_HIGHSCORES } from "./common.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+initTheme("themeToggle");
+applyBranding({ logoImgIds: ["logoImg"], footerId: "footerText" });
+document.getElementById("logoutBtn").addEventListener("click", memberLogout);
+
+const currentMember = await requireMemberLogin();
+
+(async function initBraukeller(){
+  const MAX_OFFLINE_SEK = 4 * 3600;
+
+  const METSORTEN = {
+    einfach: { name: "Einfacher Met", honigKosten: 10, brauZeitBasis: 8, preis: 5 },
+    gewuerz: { name: "Gewürzmet", honigKosten: 16, brauZeitBasis: 13, preis: 9 }
+  };
+  const BASIS = { ertragProErnte: 3, ernteDauer: 3, bienenKap: 20, fassKapazitaet: 2 };
+  const IMKER_KOSTEN = 60;
+  const BRAUMEISTER_KOSTEN = 150;
+  const VERKAEUFER_KOSTEN = 120;
+  const GEWUERZMET_KOSTEN = 80;
+  const NEUER_KESSEL_BASIS_KOSTEN = 200;
+
+  let honig = 0, faesser = { einfach: 0, gewuerz: 0 }, muenzen = 0, gesamtVerdient = 0, jahresfeste = 0;
+  let bienenErtragLvl = 0, bienenKapLvl = 0, kesselZeitLvl = 0, lagerKapLvl = 0, marktPreisLvl = 0;
+  let imkerGekauft = false, verkaeuferGekauft = false, gewuerzmetFreigeschaltet = false;
+  let ernteAktiv = false, ernteStart = 0;
+  let fluss1Bis = 0, fluss2Bis = 0, fluss3Bis = 0;
+  let honigBonusBis = 0, marktBonusBis = 0;
+  let naechstesEreignis = performance.now() + zufall(30, 60) * 1000;
+  let ereignisBannerBis = 0;
+
+  function neuerKesselObjekt(){
+    return { brauAktiv: false, brauStart: 0, brauDauer: 0, brauSorte: null, braumeisterGekauft: false, sorte: "einfach", umruehrenCooldownBis: 0 };
+  }
+  let kessel = [neuerKesselObjekt()];
+
+  let statGebraut = { einfach: 0, gewuerz: 0 };
+  let statVerkauftFaesser = 0, statVerkaufteMuenzen = 0;
+
+  function zufall(min, max){ return Math.random() * (max - min) + min; }
+  function prestigeMult(){ return 1 + jahresfeste * 0.1; }
+
+  function effErtragProErnte(){ return Math.round(BASIS.ertragProErnte * Math.pow(1.2, bienenErtragLvl) * prestigeMult()); }
+  function effBienenKap(){ return BASIS.bienenKap * Math.pow(1.15, bienenKapLvl); }
+  function effBrauZeit(sorte){ return Math.max(2, (METSORTEN[sorte].brauZeitBasis - kesselZeitLvl * 0.6) / prestigeMult()); }
+  function effFassKapazitaet(){ return Math.round(BASIS.fassKapazitaet * Math.pow(1.2, lagerKapLvl)); }
+  function effPreis(sorte){
+    let p = METSORTEN[sorte].preis * Math.pow(1.12, marktPreisLvl);
+    if (performance.now() < marktBonusBis) p *= 1.5;
+    return p;
+  }
+  function faesserGesamt(){ return faesser.einfach + faesser.gewuerz; }
+  function naechsterKesselKosten(){ return Math.ceil(NEUER_KESSEL_BASIS_KOSTEN * Math.pow(1.8, kessel.length - 1)); }
+
+  function kosten(basis, level){ return Math.ceil(basis * Math.pow(1.15, level)); }
+  const KOSTEN_BASIS = { bienenRate: 8, bienenKap: 6, kesselZeit: 12, lagerKap: 9, marktPreis: 16 };
+  function jahresfestSchwelle(){ return Math.round(500 * Math.pow(1.6, jahresfeste)); }
+
+  function starteErnte(jetztMs){
+    if (ernteAktiv) return false;
+    if (honig >= effBienenKap()) return false;
+    ernteAktiv = true; ernteStart = jetztMs;
+    return true;
+  }
+
+  function starteBrauen(k, jetztMs){
+    if (k.brauAktiv) return false;
+    if (honig < METSORTEN[k.sorte].honigKosten) return false;
+    if (faesserGesamt() >= effFassKapazitaet()) return false;
+    honig -= METSORTEN[k.sorte].honigKosten;
+    k.brauAktiv = true; k.brauStart = jetztMs; k.brauDauer = effBrauZeit(k.sorte); k.brauSorte = k.sorte;
+    fluss1Bis = jetztMs + 500;
+    return true;
+  }
+
+  function verkaufeAlles(jetztMs){
+    if (faesserGesamt() <= 0) return;
+    const erloes = faesser.einfach * effPreis("einfach") + faesser.gewuerz * effPreis("gewuerz");
+    const anzahl = faesserGesamt();
+    muenzen += erloes; gesamtVerdient += erloes;
+    statVerkauftFaesser += anzahl; statVerkaufteMuenzen += erloes;
+    faesser = { einfach: 0, gewuerz: 0 };
+    fluss3Bis = jetztMs + 500;
+  }
+
+  const EREIGNISSE = [
+    { positiv: true, text: "Ein fahrender Händler zahlt Aufpreis — 50% mehr Erlös für 20s!", wirkung: j => { marktBonusBis = j + 20000; } },
+    { positiv: true, text: "Gutes Bienenwetter — dieser Ernteertrag fällt grosszügiger aus!", wirkung: () => { honig = Math.min(effBienenKap(), honig + effErtragProErnte()); } },
+    { positiv: false, text: "Ein Fass ist ausgelaufen — 1 Fass ging verloren.", wirkung: () => {
+      if (faesser.einfach > 0) faesser.einfach--; else if (faesser.gewuerz > 0) faesser.gewuerz--;
+    } },
+    { positiv: false, text: "Die Bienen waren unruhig — etwas Honig ist verloren gegangen.", wirkung: () => { honig = Math.max(0, honig - 3); } }
+  ];
+  function pruefeEreignis(jetztMs){
+    if (jetztMs < naechstesEreignis) return;
+    naechstesEreignis = jetztMs + zufall(45, 90) * 1000;
+    const positivWahrscheinlich = Math.random() < 0.65;
+    const kandidaten = EREIGNISSE.filter(e => e.positiv === positivWahrscheinlich);
+    const ereignis = kandidaten[Math.floor(Math.random() * kandidaten.length)];
+    ereignis.wirkung(jetztMs);
+    const banner = document.getElementById("ereignisBanner");
+    banner.textContent = ereignis.text;
+    banner.className = "ereignis-banner zeigen " + (ereignis.positiv ? "positiv" : "negativ");
+    ereignisBannerBis = jetztMs + 5000;
+  }
+
+  function tick(delta, jetztMs){
+    if (!ernteAktiv && imkerGekauft) starteErnte(jetztMs);
+    if (ernteAktiv && jetztMs - ernteStart >= BASIS.ernteDauer * 1000){
+      honig = Math.min(effBienenKap(), honig + effErtragProErnte());
+      ernteAktiv = false;
+      fluss1Bis = jetztMs + 500;
+    }
+
+    kessel.forEach(k => {
+      if (!k.brauAktiv && k.braumeisterGekauft) starteBrauen(k, jetztMs);
+      if (k.brauAktiv && jetztMs - k.brauStart >= k.brauDauer * 1000){
+        faesser[k.brauSorte] = Math.min(effFassKapazitaet(), faesser[k.brauSorte] + 1);
+        statGebraut[k.brauSorte]++;
+        k.brauAktiv = false; k.brauSorte = null;
+        fluss2Bis = jetztMs + 500;
+      }
+    });
+
+    if (verkaeuferGekauft) verkaufeAlles(jetztMs);
+
+    pruefeEreignis(jetztMs);
+  }
+
+  document.getElementById("erntenBtn").addEventListener("click", () => starteErnte(performance.now()));
+  document.getElementById("imkerBtn").addEventListener("click", () => {
+    if (imkerGekauft || muenzen < IMKER_KOSTEN) return;
+    muenzen -= IMKER_KOSTEN; imkerGekauft = true;
+  });
+  document.getElementById("bienenRateBtn").addEventListener("click", () => {
+    const c = kosten(KOSTEN_BASIS.bienenRate, bienenErtragLvl);
+    if (muenzen < c) return; muenzen -= c; bienenErtragLvl++;
+  });
+  document.getElementById("bienenKapBtn").addEventListener("click", () => {
+    const c = kosten(KOSTEN_BASIS.bienenKap, bienenKapLvl);
+    if (muenzen < c) return; muenzen -= c; bienenKapLvl++;
+  });
+
+  let kesselDomAnzahl = 0;
+  function erzeugeKesselBlockHTML(idx){
+    return `<div class="kessel-block" id="kesselBlock-${idx}">
+      <div class="kessel-titel">Kessel ${idx + 1}</div>
+      <div class="sorten-wahl">
+        <button class="sorten-btn" data-aktion="sorte-einfach" data-idx="${idx}" id="kesselSorteEinfach-${idx}">Einfacher Met<br><span style="font-weight:normal;">10 Honig · 8s</span></button>
+        <button class="sorten-btn" data-aktion="sorte-gewuerz" data-idx="${idx}" id="kesselSorteGewuerz-${idx}"></button>
+      </div>
+      <div class="fuellstand">
+        <div class="fuellstand-balken" id="kesselBalken-${idx}"></div>
+        <div class="blase" id="kesselBlase1-${idx}" style="left:15%;"></div>
+        <div class="blase" id="kesselBlase2-${idx}" style="left:40%;"></div>
+        <div class="blase" id="kesselBlase3-${idx}" style="left:65%;"></div>
+        <div class="blase" id="kesselBlase4-${idx}" style="left:85%;"></div>
+      </div>
+      <div class="fuellstand-text" id="kesselText-${idx}"></div>
+      <button class="aktion-btn" data-aktion="starten" data-idx="${idx}" id="kesselStartBtn-${idx}"></button>
+      <button class="aktion-btn sekundaer" data-aktion="umruehren" data-idx="${idx}" id="kesselUmruehrenBtn-${idx}"></button>
+      <div class="station-status" id="kesselBraumeisterStatus-${idx}" style="margin-top:6px;display:none;">Braumeister im Dienst — läuft automatisch</div>
+      <button class="upgrade-btn" style="width:100%;margin-top:6px;" data-aktion="braumeister" data-idx="${idx}" id="kesselBraumeisterBtn-${idx}"><b>Braumeister für diesen Kessel</b></button>
+    </div>`;
+  }
+  function stelleKesselDomSicher(){
+    const container = document.getElementById("kesselListe");
+    while (kesselDomAnzahl < kessel.length){
+      container.insertAdjacentHTML("beforeend", erzeugeKesselBlockHTML(kesselDomAnzahl));
+      kesselDomAnzahl++;
+    }
+  }
+  function setzeKesselDomZurueck(){
+    document.getElementById("kesselListe").innerHTML = "";
+    kesselDomAnzahl = 0;
+  }
+
+  document.getElementById("kesselListe").addEventListener("click", e => {
+    const btn = e.target.closest("button[data-aktion]");
+    if (!btn) return;
+    const aktion = btn.dataset.aktion;
+    const idx = btn.dataset.idx !== undefined ? Number(btn.dataset.idx) : null;
+    const jetzt = performance.now();
+    const k = idx !== null ? kessel[idx] : null;
+    if (aktion === "starten") starteBrauen(k, jetzt);
+    else if (aktion === "umruehren"){
+      if (k.brauAktiv && jetzt >= k.umruehrenCooldownBis){ k.brauStart -= 1000; k.umruehrenCooldownBis = jetzt + 1000; }
+    } else if (aktion === "sorte-einfach"){ if (!k.brauAktiv) k.sorte = "einfach"; }
+    else if (aktion === "sorte-gewuerz"){ if (!k.brauAktiv && gewuerzmetFreigeschaltet) k.sorte = "gewuerz"; }
+    else if (aktion === "freischalten-gewuerz"){
+      if (muenzen >= GEWUERZMET_KOSTEN){ muenzen -= GEWUERZMET_KOSTEN; gewuerzmetFreigeschaltet = true; }
+    } else if (aktion === "braumeister"){
+      if (!k.braumeisterGekauft && muenzen >= BRAUMEISTER_KOSTEN){ muenzen -= BRAUMEISTER_KOSTEN; k.braumeisterGekauft = true; }
+    }
+  });
+  document.getElementById("neuerKesselBtn").addEventListener("click", () => {
+    const c = naechsterKesselKosten();
+    if (muenzen < c) return;
+    muenzen -= c; kessel.push(neuerKesselObjekt());
+  });
+  document.getElementById("kesselZeitBtn").addEventListener("click", () => {
+    const c = kosten(KOSTEN_BASIS.kesselZeit, kesselZeitLvl);
+    if (muenzen < c) return; muenzen -= c; kesselZeitLvl++;
+  });
+
+  document.getElementById("lagerKapBtn").addEventListener("click", () => {
+    const c = kosten(KOSTEN_BASIS.lagerKap, lagerKapLvl);
+    if (muenzen < c) return; muenzen -= c; lagerKapLvl++;
+  });
+
+  document.getElementById("verkaufenBtn").addEventListener("click", () => verkaufeAlles(performance.now()));
+  document.getElementById("marktPreisBtn").addEventListener("click", () => {
+    const c = kosten(KOSTEN_BASIS.marktPreis, marktPreisLvl);
+    if (muenzen < c) return; muenzen -= c; marktPreisLvl++;
+  });
+  document.getElementById("verkaeuferBtn").addEventListener("click", () => {
+    if (verkaeuferGekauft || muenzen < VERKAEUFER_KOSTEN) return;
+    muenzen -= VERKAEUFER_KOSTEN; verkaeuferGekauft = true;
+  });
+
+  document.getElementById("prestigeBtn").addEventListener("click", () => {
+    if (gesamtVerdient < jahresfestSchwelle()) return;
+    honig = 0; faesser = { einfach: 0, gewuerz: 0 }; muenzen = 0; gesamtVerdient = 0;
+    bienenErtragLvl = 0; bienenKapLvl = 0; kesselZeitLvl = 0; lagerKapLvl = 0; marktPreisLvl = 0;
+    imkerGekauft = false; verkaeuferGekauft = false; gewuerzmetFreigeschaltet = false;
+    ernteAktiv = false; kessel = [neuerKesselObjekt()];
+    setzeKesselDomZurueck();
+    jahresfeste++;
+  });
+
+  // =========================================================
+  // Spielstand in Firestore (statt localStorage) - so bleibt der
+  // Fortschritt an den Account gebunden, nicht ans Gerät. Laufende
+  // Ernte-/Brauvorgänge werden beim Neuladen nicht mitten drin
+  // fortgesetzt (Vereinfachung). Die Bestenliste wird aus dem
+  // Spielstand abgeleitet (Jahresfeste zählen am meisten, dann
+  // insgesamt verdiente Münzen).
+  // =========================================================
+  async function speichern(){
+    const daten = {
+      honig, faesser, muenzen, gesamtVerdient, jahresfeste,
+      bienenErtragLvl, bienenKapLvl, kesselZeitLvl, lagerKapLvl, marktPreisLvl,
+      imkerGekauft, verkaeuferGekauft, gewuerzmetFreigeschaltet,
+      kessel: kessel.map(k => ({ braumeisterGekauft: k.braumeisterGekauft, sorte: k.sorte })),
+      statGebraut, statVerkauftFaesser, statVerkaufteMuenzen,
+      zeitstempel: Date.now()
+    };
+    try { await setDoc(doc(db, COL_BRAUKELLER_STAND, currentMember.id), daten); } catch (e) {}
+    try {
+      const punkte = jahresfeste * 100000 + Math.floor(statVerkaufteMuenzen);
+      const ref = doc(db, COL_BRAUKELLER_HIGHSCORES, currentMember.id);
+      const bestehend = await getDoc(ref);
+      const bisher = bestehend.exists() ? (bestehend.data().score || 0) : 0;
+      if (!bestehend.exists() || punkte > bisher){
+        await setDoc(ref, { mitgliedName: currentMember.name, score: punkte, jahresfeste, datum: new Date().toISOString() });
+      }
+    } catch (e) {}
+  }
+
+  async function laden(){
+    let g;
+    try {
+      const snap = await getDoc(doc(db, COL_BRAUKELLER_STAND, currentMember.id));
+      g = snap.exists() ? snap.data() : null;
+    } catch (e) { return; }
+    if (!g) return;
+    honig = g.honig || 0;
+    faesser = g.faesser || { einfach: 0, gewuerz: 0 };
+    muenzen = g.muenzen || 0;
+    gesamtVerdient = g.gesamtVerdient || 0;
+    jahresfeste = g.jahresfeste || 0;
+    bienenErtragLvl = g.bienenErtragLvl || 0;
+    bienenKapLvl = g.bienenKapLvl || 0;
+    kesselZeitLvl = g.kesselZeitLvl || 0;
+    lagerKapLvl = g.lagerKapLvl || 0;
+    marktPreisLvl = g.marktPreisLvl || 0;
+    imkerGekauft = g.imkerGekauft || false;
+    verkaeuferGekauft = g.verkaeuferGekauft || false;
+    gewuerzmetFreigeschaltet = g.gewuerzmetFreigeschaltet || false;
+    statGebraut = g.statGebraut || { einfach: 0, gewuerz: 0 };
+    statVerkauftFaesser = g.statVerkauftFaesser || 0;
+    statVerkaufteMuenzen = g.statVerkaufteMuenzen || 0;
+    if (Array.isArray(g.kessel) && g.kessel.length){
+      kessel = g.kessel.map(k => {
+        const neu = neuerKesselObjekt();
+        neu.braumeisterGekauft = k.braumeisterGekauft || false;
+        neu.sorte = (k.sorte === "gewuerz" && gewuerzmetFreigeschaltet) ? "gewuerz" : "einfach";
+        return neu;
+      });
+    }
+
+    if (g.zeitstempel){
+      const vergangenSek = Math.min(MAX_OFFLINE_SEK, Math.max(0, (Date.now() - g.zeitstempel) / 1000));
+      if (imkerGekauft && vergangenSek > 5){
+        const moeglicheErnten = Math.floor(vergangenSek / BASIS.ernteDauer);
+        const honigVorher = honig;
+        honig = Math.min(effBienenKap(), honig + moeglicheErnten * effErtragProErnte());
+        const gewonnen = honig - honigVorher;
+        if (gewonnen > 0.05){
+          const minuten = Math.floor(vergangenSek / 60);
+          const banner = document.getElementById("willkommenBanner");
+          banner.textContent = `Willkommen zurück! Der Imker hat in ${minuten} Minute(n) ${gewonnen.toFixed(1)} Honig geerntet.`;
+          banner.classList.add("zeigen");
+          setTimeout(() => banner.classList.remove("zeigen"), 6000);
+        }
+      }
+    }
+  }
+  await laden();
+  setInterval(speichern, 15000);
+  window.addEventListener("beforeunload", () => { speichern(); });
+
+  function setzeFluss(id, aktiv){ document.getElementById(id).classList.toggle("aktiv", aktiv); }
+  function formatZahl(n){ return n >= 1000 ? (n / 1000).toFixed(1) + "k" : n.toFixed(n < 10 ? 1 : 0); }
+
+  function renderKesselListe(jetztMs){
+    stelleKesselDomSicher();
+    kessel.forEach((k, idx) => {
+      const sorte = METSORTEN[k.sorte];
+      const balken = document.getElementById(`kesselBalken-${idx}`);
+      const text = document.getElementById(`kesselText-${idx}`);
+      const startBtn = document.getElementById(`kesselStartBtn-${idx}`);
+      const umruehrenBtn = document.getElementById(`kesselUmruehrenBtn-${idx}`);
+      const braumeisterStatus = document.getElementById(`kesselBraumeisterStatus-${idx}`);
+      const braumeisterBtn = document.getElementById(`kesselBraumeisterBtn-${idx}`);
+      const sorteEinfachBtn = document.getElementById(`kesselSorteEinfach-${idx}`);
+      const sorteGewuerzBtn = document.getElementById(`kesselSorteGewuerz-${idx}`);
+
+      sorteEinfachBtn.classList.toggle("aktiv", k.sorte === "einfach");
+      sorteEinfachBtn.disabled = k.brauAktiv;
+
+      if (gewuerzmetFreigeschaltet){
+        sorteGewuerzBtn.dataset.aktion = "sorte-gewuerz";
+        sorteGewuerzBtn.classList.toggle("aktiv", k.sorte === "gewuerz");
+        sorteGewuerzBtn.disabled = k.brauAktiv;
+        sorteGewuerzBtn.innerHTML = `Gewürzmet<br><span style="font-weight:normal;">16 Honig · 13s</span>`;
+      } else {
+        sorteGewuerzBtn.dataset.aktion = "freischalten-gewuerz";
+        sorteGewuerzBtn.classList.remove("aktiv");
+        sorteGewuerzBtn.disabled = muenzen < GEWUERZMET_KOSTEN;
+        sorteGewuerzBtn.innerHTML = `🔒 Gewürzmet freischalten<br><span style="font-weight:normal;">${GEWUERZMET_KOSTEN} 🪙</span>`;
+      }
+
+      [1, 2, 3, 4].forEach(n => document.getElementById(`kesselBlase${n}-${idx}`).classList.toggle("aktiv", k.brauAktiv));
+      balken.classList.toggle("brauend", k.brauAktiv);
+
+      if (k.brauAktiv){
+        const fortschritt = Math.min(1, (jetztMs - k.brauStart) / (k.brauDauer * 1000));
+        const rest = Math.max(0, k.brauDauer - (jetztMs - k.brauStart) / 1000);
+        balken.style.width = (fortschritt * 100) + "%";
+        text.textContent = `${METSORTEN[k.brauSorte].name} braut … noch ${rest.toFixed(1)}s`;
+        startBtn.style.display = "none";
+        umruehrenBtn.textContent = "Umrühren (−1s Brauzeit)";
+        umruehrenBtn.disabled = jetztMs < k.umruehrenCooldownBis;
+      } else {
+        balken.style.width = "0%";
+        const genugHonig = honig >= sorte.honigKosten;
+        const platzFrei = faesserGesamt() < effFassKapazitaet();
+        text.textContent = !genugHonig ? `Braucht ${sorte.honigKosten} Honig für ${sorte.name} (aktuell ${formatZahl(honig)})`
+          : !platzFrei ? "Fasslager ist voll" : `Bereit zum Brauen (${sorte.name})`;
+        startBtn.style.display = k.braumeisterGekauft ? "none" : "block";
+        startBtn.disabled = !genugHonig || !platzFrei;
+        startBtn.textContent = `Kessel starten (${sorte.honigKosten} Honig, ${effBrauZeit(k.sorte).toFixed(1)}s)`;
+        umruehrenBtn.textContent = "Umrühren (kein aktiver Brauvorgang)";
+        umruehrenBtn.disabled = true;
+      }
+
+      if (k.braumeisterGekauft){
+        braumeisterStatus.style.display = "block";
+        braumeisterBtn.style.display = "none";
+      } else {
+        braumeisterStatus.style.display = "none";
+        braumeisterBtn.style.display = "block";
+        braumeisterBtn.disabled = muenzen < BRAUMEISTER_KOSTEN;
+        braumeisterBtn.innerHTML = `<b>Braumeister für diesen Kessel</b> — ${BRAUMEISTER_KOSTEN} 🪙`;
+      }
+    });
+  }
+
+  function render(jetztMs){
+    document.getElementById("muenzenAnzeige").textContent = formatZahl(muenzen);
+    document.getElementById("jahresfesteAnzeige").textContent = String(jahresfeste);
+
+    ["bieneAnim1", "bieneAnim2", "bieneAnim3"].forEach(id => document.getElementById(id).classList.toggle("aktiv", ernteAktiv || imkerGekauft));
+    document.getElementById("bienenStatusText").textContent = imkerGekauft ? "automatisch (Imker)" : "manuell";
+    document.getElementById("honigBalken").style.width = (honig / effBienenKap() * 100) + "%";
+    document.getElementById("honigText").textContent = `Honig: ${formatZahl(honig)} / ${formatZahl(effBienenKap())}`;
+    const erntenBtn = document.getElementById("erntenBtn");
+    if (ernteAktiv){
+      const fortschritt = Math.min(1, (jetztMs - ernteStart) / (BASIS.ernteDauer * 1000));
+      const rest = Math.max(0, BASIS.ernteDauer - (jetztMs - ernteStart) / 1000);
+      document.getElementById("ernteBalken").style.width = (fortschritt * 100) + "%";
+      document.getElementById("ernteBalken").classList.add("brauend");
+      document.getElementById("ernteText").textContent = `Erntet … noch ${rest.toFixed(1)}s (+${effErtragProErnte()} Honig)`;
+      erntenBtn.style.display = "none";
+    } else {
+      document.getElementById("ernteBalken").style.width = "0%";
+      document.getElementById("ernteBalken").classList.remove("brauend");
+      const platzFrei = honig < effBienenKap();
+      document.getElementById("ernteText").textContent = platzFrei ? `Bereit zur Ernte (+${effErtragProErnte()} Honig, ${BASIS.ernteDauer}s)` : "Honigspeicher ist voll";
+      erntenBtn.style.display = imkerGekauft ? "none" : "block";
+      erntenBtn.disabled = !platzFrei;
+    }
+    document.getElementById("bienenRateTitel").textContent = `Mehr Bienenstöcke (Stufe ${bienenErtragLvl})`;
+    document.getElementById("bienenKapTitel").textContent = `Grösserer Speicher (Stufe ${bienenKapLvl})`;
+    document.getElementById("bienenRateKosten").textContent = ` — ${kosten(KOSTEN_BASIS.bienenRate, bienenErtragLvl)} 🪙`;
+    document.getElementById("bienenKapKosten").textContent = ` — ${kosten(KOSTEN_BASIS.bienenKap, bienenKapLvl)} 🪙`;
+    document.getElementById("bienenRateBtn").disabled = muenzen < kosten(KOSTEN_BASIS.bienenRate, bienenErtragLvl);
+    document.getElementById("bienenKapBtn").disabled = muenzen < kosten(KOSTEN_BASIS.bienenKap, bienenKapLvl);
+    const imkerBtn = document.getElementById("imkerBtn");
+    if (imkerGekauft){ imkerBtn.disabled = true; imkerBtn.innerHTML = "<b>Imker im Dienst</b>"; }
+    else { imkerBtn.disabled = muenzen < IMKER_KOSTEN; imkerBtn.innerHTML = `<b>Imker einstellen</b> — ${IMKER_KOSTEN} 🪙`; }
+
+    document.getElementById("kesselAnzahlText").textContent = `${kessel.length} Kessel`;
+    renderKesselListe(jetztMs);
+    document.getElementById("kesselZeitTitel").textContent = `Bessere Kessel, alle (Stufe ${kesselZeitLvl})`;
+    document.getElementById("kesselZeitKosten").textContent = ` — ${kosten(KOSTEN_BASIS.kesselZeit, kesselZeitLvl)} 🪙`;
+    document.getElementById("kesselZeitBtn").disabled = muenzen < kosten(KOSTEN_BASIS.kesselZeit, kesselZeitLvl);
+    const neuerKesselBtn = document.getElementById("neuerKesselBtn");
+    neuerKesselBtn.textContent = `Weiteren Kessel kaufen (${naechsterKesselKosten()} 🪙)`;
+    neuerKesselBtn.disabled = muenzen < naechsterKesselKosten();
+
+    document.getElementById("faesserBalken").style.width = (faesserGesamt() / effFassKapazitaet() * 100) + "%";
+    document.getElementById("faesserText").textContent = `Fässer: ${formatZahl(faesserGesamt())} / ${formatZahl(effFassKapazitaet())} (${formatZahl(faesser.einfach)} einfach, ${formatZahl(faesser.gewuerz)} Gewürz)`;
+    document.getElementById("lagerKapTitel").textContent = `Mehr Fässer (Stufe ${lagerKapLvl})`;
+    document.getElementById("lagerKapKosten").textContent = ` — ${kosten(KOSTEN_BASIS.lagerKap, lagerKapLvl)} 🪙`;
+    document.getElementById("lagerKapBtn").disabled = muenzen < kosten(KOSTEN_BASIS.lagerKap, lagerKapLvl);
+
+    const marktBonusAktiv = jetztMs < marktBonusBis;
+    document.getElementById("marktStatusText").textContent = verkaeuferGekauft ? "automatisch (Verkäufer)" : "manuell";
+    document.getElementById("marktText").textContent = `Preis: ${effPreis("einfach").toFixed(1)} 🪙 (einfach) / ${effPreis("gewuerz").toFixed(1)} 🪙 (Gewürz)${marktBonusAktiv ? " ⚡" : ""}`;
+    const verkaufenBtn = document.getElementById("verkaufenBtn");
+    if (verkaeuferGekauft){ verkaufenBtn.style.display = "none"; }
+    else {
+      verkaufenBtn.style.display = "block";
+      if (faesserGesamt() <= 0){ verkaufenBtn.disabled = true; verkaufenBtn.textContent = "Keine Fässer zum Verkaufen"; }
+      else {
+        const erwarteterErloes = faesser.einfach * effPreis("einfach") + faesser.gewuerz * effPreis("gewuerz");
+        verkaufenBtn.disabled = false;
+        verkaufenBtn.textContent = `${formatZahl(faesserGesamt())} Fässer verkaufen (${formatZahl(erwarteterErloes)} 🪙)`;
+      }
+    }
+    document.getElementById("marktPreisTitel").textContent = `Bessere Preise (Stufe ${marktPreisLvl})`;
+    document.getElementById("marktPreisKosten").textContent = ` — ${kosten(KOSTEN_BASIS.marktPreis, marktPreisLvl)} 🪙`;
+    document.getElementById("marktPreisBtn").disabled = muenzen < kosten(KOSTEN_BASIS.marktPreis, marktPreisLvl);
+    const verkaeuferBtn = document.getElementById("verkaeuferBtn");
+    if (verkaeuferGekauft){ verkaeuferBtn.disabled = true; verkaeuferBtn.innerHTML = "<b>Verkäufer im Dienst</b>"; }
+    else { verkaeuferBtn.disabled = muenzen < VERKAEUFER_KOSTEN; verkaeuferBtn.innerHTML = `<b>Verkäufer einstellen</b> — ${VERKAEUFER_KOSTEN} 🪙`; }
+
+    document.getElementById("statEinfach").textContent = formatZahl(statGebraut.einfach);
+    document.getElementById("statGewuerz").textContent = formatZahl(statGebraut.gewuerz);
+    document.getElementById("statVerkauft").textContent = formatZahl(statVerkauftFaesser);
+    document.getElementById("statMuenzen").textContent = formatZahl(statVerkaufteMuenzen);
+
+    const schwelle = jahresfestSchwelle();
+    document.getElementById("prestigeText").textContent = `${formatZahl(gesamtVerdient)} / ${formatZahl(schwelle)} Münzen in diesem Zyklus verdient`;
+    document.getElementById("prestigeBtn").disabled = gesamtVerdient < schwelle;
+
+    if (jetztMs > ereignisBannerBis) document.getElementById("ereignisBanner").classList.remove("zeigen");
+
+    setzeFluss("flussPunkt1", jetztMs < fluss1Bis);
+    setzeFluss("flussPunkt2", jetztMs < fluss2Bis);
+    setzeFluss("flussPunkt3", jetztMs < fluss3Bis);
+  }
+
+  let letzterFrame = performance.now();
+  function schleife(zeit){
+    const delta = Math.min(0.25, (zeit - letzterFrame) / 1000);
+    letzterFrame = zeit;
+    tick(delta, zeit);
+    render(zeit);
+    requestAnimationFrame(schleife);
+  }
+  requestAnimationFrame(schleife);
+})();
+</script>
+</body>
+</html>

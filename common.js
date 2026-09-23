@@ -538,6 +538,11 @@ export const COL_RUNENMAUER_HIGHSCORES = "runenmauer_highscores";
 export const COL_MIDGARDSCHLANGE_HIGHSCORES = "midgardschlange_highscores";
 export const COL_RUNENVERSCHMELZUNG_HIGHSCORES = "runenverschmelzung_highscores";
 export const COL_DRACHENFLUG_HIGHSCORES = "drachenflug_highscores";
+// Met-Braukeller: voller Spielstand pro Mitglied (nicht nur ein Highscore,
+// da Idle-Spiele über Sitzungen hinweg persistieren müssen) + eigene
+// Bestenliste, deren Score aus dem Spielstand abgeleitet wird.
+export const COL_BRAUKELLER_STAND = "braukeller_stand";
+export const COL_BRAUKELLER_HIGHSCORES = "braukeller_highscores";
 export const COL_FAFNIRSHORT_HIGHSCORES = "fafnirshort_highscores";
 
 export const ANFRAGE_KATEGORIEN = ["Ausrüstung", "Finanzen", "Organisatorisches", "Sonstiges"];

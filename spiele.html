@@ -153,6 +153,10 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
       <span class="spiel-tile-icon">🐲</span>
       <span class="spiel-tile-name">Fafnirs Hort</span>
     </a>
+    <a class="spiel-tile" id="spieltile-braukeller" href="spiel-braukeller.html">
+      <span class="spiel-tile-icon">🍯</span>
+      <span class="spiel-tile-name">Met-Braukeller</span>
+    </a>
   </div>
 
 
@@ -165,7 +169,7 @@ nav.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top
 </div>
 
 <script type="module">
-import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_YGGDRASIL_HIGHSCORES, COL_RUNENMAUER_HIGHSCORES, COL_MIDGARDSCHLANGE_HIGHSCORES, COL_RUNENVERSCHMELZUNG_HIGHSCORES, COL_DRACHENFLUG_HIGHSCORES, COL_FAFNIRSHORT_HIGHSCORES, zufaelligeBegruessung, requestNotificationPermission, notificationStatus, zeigeBenachrichtigung } from "./common.js";
+import { db, initTheme, applyBranding, requireMemberLogin, memberLogout, escapeHtml, COL_RUNNER_HIGHSCORES, COL_DRACHENSCHIFF_HIGHSCORES, COL_RUNENSPIEL_HIGHSCORES, COL_SYMBOLZUORDNUNG_HIGHSCORES, COL_LANDNAHME_HIGHSCORES, COL_KARTENERKUNDUNG_HIGHSCORES, COL_YGGDRASIL_HIGHSCORES, COL_RUNENMAUER_HIGHSCORES, COL_MIDGARDSCHLANGE_HIGHSCORES, COL_RUNENVERSCHMELZUNG_HIGHSCORES, COL_DRACHENFLUG_HIGHSCORES, COL_FAFNIRSHORT_HIGHSCORES, COL_BRAUKELLER_HIGHSCORES, zufaelligeBegruessung, requestNotificationPermission, notificationStatus, zeigeBenachrichtigung } from "./common.js";
 import { collection, query, orderBy, limit, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 initTheme("themeToggle");
@@ -193,7 +197,8 @@ const SPIELE_STANDARD = [
   { id: "midgardschlange", name: "🐍 Midgardschlange" },
   { id: "runenverschmelzung", name: "ᚠ Runen-Verschmelzung" },
   { id: "drachenflug", name: "🐉 Drachenflug" },
-  { id: "fafnirshort", name: "🐲 Fafnirs Hort" }
+  { id: "fafnirshort", name: "🐲 Fafnirs Hort" },
+  { id: "braukeller", name: "🍯 Met-Braukeller" }
 ];
 let SPIELE = SPIELE_STANDARD.slice();
 const highscoreCache = {};
@@ -346,6 +351,13 @@ onSnapshot(query(collection(db, COL_RUNENVERSCHMELZUNG_HIGHSCORES), orderBy("sco
 onSnapshot(query(collection(db, COL_DRACHENFLUG_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
   highscoreCache.drachenflug = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
   pruefeRekordUeberholt("drachenflug", "Drachenflug", snap.docs);
+  renderHighscorePanel();
+});
+
+// Met-Braukeller: Highscore-Daten für das Panel (Spiel liegt in spiel-braukeller.html).
+onSnapshot(query(collection(db, COL_BRAUKELLER_HIGHSCORES), orderBy("score", "desc"), limit(10)), snap => {
+  highscoreCache.braukeller = snap.docs.map(d => ({ name: d.data().mitgliedName || "?", score: d.data().score, istEigen: d.id === currentMember.id }));
+  pruefeRekordUeberholt("braukeller", "Met-Braukeller", snap.docs);
   renderHighscorePanel();
 });
 
